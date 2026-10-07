@@ -157,6 +157,20 @@ function boot() {
     .choice .num { flex: none; width: 2em; height: 2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; }
     .timer { font-family: var(--display); font-weight: 700; font-size: clamp(2.6rem, 10vw, 4rem); text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
     .timer.over { color: var(--warm); }
+    /* outils d'apaisement guidés */
+    .guide { align-items: center; text-align: center; }
+    .guide .cardhead { align-self: stretch; text-align: left; }
+    .gstage { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 6px 0 2px; }
+    .sq { position: relative; width: min(64vw, 280px); aspect-ratio: 1; border: 6px solid var(--accent); border-radius: 18px; margin: 14px; }
+    .sq i { position: absolute; width: 30px; height: 30px; margin: -15px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 8px var(--accent-soft); left: 0; top: 100%; }
+    .sq .ph { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+    .sq .ph b { display: block; font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 6vw, 2.2rem); line-height: 1.1; }
+    .sq .ph span { display: block; font-family: var(--display); font-weight: 700; font-size: clamp(2.4rem, 10vw, 3.6rem); line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gnum { display: flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 50%; border: 6px solid var(--accent); font-family: var(--display); font-weight: 700; font-size: 3rem; font-variant-numeric: tabular-nums; background: var(--accent-soft); }
+    .gnum.warm { border-color: var(--warm); background: var(--warm-soft); }
+    .gtext { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(1.4rem, 5vw, 1.9rem); line-height: 1.25; max-width: 22em; }
+    .gbar { width: 100%; height: 10px; border-radius: 99px; background: var(--surface-alt); overflow: hidden; }
+    .gbar i { display: block; height: 100%; width: 0; background: var(--accent); }
     .chrono { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 1.1rem; }
     .taskline { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
     .taskline .ic { width: 34px; height: 34px; color: var(--accent); }
@@ -246,6 +260,10 @@ function boot() {
     loop: '<path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 5v4h-4"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 19v-4h4"/>',
     more: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 9v6M9 12h6"/>',
     storm: '<path d="M7 15a4 4 0 0 1 .5-8 5 5 0 0 1 9.6 1.2A3.5 3.5 0 0 1 17 15"/><path d="M12.5 12l-2 4h3l-1.5 4"/>',
+    square: '<rect x="5" y="5" width="14" height="14" rx="3"/><circle cx="5" cy="19" r="1.5"/>',
+    ground: '<path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 20h14"/>',
+    squeeze: '<path d="M3 12h5"/><path d="M16 12h5"/><path d="M6 9l3 3-3 3"/><path d="M18 9l-3 3 3 3"/>',
+    place: '<path d="M12 21s6-5.2 6-10a6 6 0 0 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2"/>',
     pin: '<path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/>',
     notebook: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/>',
     pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
@@ -300,8 +318,9 @@ function boot() {
     F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C07", "C08"], then: "F2" },
     F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C12"] },
     F3c: { fam: "F3", label: "Je suis fatigué ou agité", pre: [
-      { when: { place: "classe" }, seq: ["E01", "C12", "C20"] },
-      { when: { place: "maison" }, seq: ["E02", "C12", "E04"] }], seq: ["C11", "C12", "C20"] },
+      { when: { place: "classe" }, seq: ["E01", "A02", "C12", "C20"] },
+      { when: { place: "maison" }, seq: ["E02", "A02", "C12", "E04"] }], seq: ["C11", "A02", "C12", "C20"] },
+    F3d: { fam: "F3", label: "Je stresse", seq: ["A01", "A04", "A03"], then: "F2" },
     F4a: { fam: "F4", label: "J’ai fait une erreur, je sais où", seq: ["C13", "C14", "C19"] },
     F4b: { fam: "F4", label: "C’est faux, je ne sais pas où", pre: [
       { when: { subject: "Maths" }, ids: ["X06", "X07"] },
@@ -310,7 +329,7 @@ function boot() {
     F4c: { fam: "F4", label: "Ma façon de faire ne marche pas", pre: [
       { when: { type: "reviser" }, ids: ["R01", "R02", "R03", "R04"] },
       { when: { type: "ecrire" }, ids: ["M12"] }], seq: ["C21", "C03", "C19"] },
-    F4d: { fam: "F4", label: "Tout est faux", seq: ["E05", "E06", "C14", "C19"] },
+    F4d: { fam: "F4", label: "Tout est faux", seq: ["E05", "A01", "E06", "C14", "C19"] },
     F4e: { fam: "F4", label: "Je bloque sur un calcul", only: { subject: "Maths" }, seq: ["X05", "X06", "C19"] },
     F4f: { fam: "F4", label: "Je crois savoir, mais je rate", only: { type: "reviser" }, seq: ["R03", "R04", "R01", "C19"] },
     F5a: { fam: "F5", label: "Je peux faire la prochaine action", seq: ["C05", "C19"] }
@@ -322,7 +341,7 @@ function boot() {
     F1q2: { text: "Qu’est-ce qui se passe avec le texte ?", options: [{ line: "F1d" }, { line: "F1e" }] },
     F2: { text: "Tu sais quelle est la première chose à faire ?", options: [{ label: "Oui", next: "F2q2" }, { label: "Non", line: "F2a" }] },
     F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2b" }, { line: "F2c" }, { line: "F2d" }, { line: "F2e" }] },
-    F3: { text: "Qu’est-ce qui s’est passé ?", options: [{ line: "F3a" }, { line: "F3b" }, { line: "F3c" }] },
+    F3: { text: "Qu’est-ce qui s’est passé ?", options: [{ line: "F3a" }, { line: "F3b" }, { line: "F3c" }, { line: "F3d" }] },
     F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4e" }, { line: "F4f" }, { line: "F4c" }, { line: "F4d" }] },
     /* tri de « Je ne sais pas » : comprendre, puis planifier, puis initier */
     F5: { text: "Tu peux dire ce qu’il faut rendre à la fin ?", options: [{ label: "Oui", next: "F5q2" }, { label: "Non", line: "F1b" }] },
@@ -420,8 +439,25 @@ function boot() {
   /* Sans adulte disponible : une stratégie de plus avant l'écran d'aide, prise dans la ligne en cours,
      sinon parmi ces cartes générales, par famille (ressources que l'élève peut utiliser seul). */
   var ALONE = { F1: ["C17", "C03"], F2: ["C03", "C15", "C05"], F3: ["C08", "C12", "C15"], F4: ["C03", "C14", "C17"], F5: ["C03", "C15"] };
+  /* Outils d'apaisement : repris du site PL-CPS’ (mois « Gestion du stress »), durées et consignes d'origine.
+     Les titres pour l'élève et le découpage en phases sont à valider par l'enseignante. */
+  var TOOLS = [
+    { id: "A01", kind: "breath", cycles: 4, title: "Respiration carrée", durTxt: "1 min", text: "Inspire, retiens, expire, retiens. Quatre secondes chaque fois.",
+      steps: ["Inspire 4 secondes.", "Retiens 4 secondes.", "Expire 4 secondes.", "Retiens 4 secondes. Répète 4 fois."] },
+    { id: "A02", kind: "phases", title: "Les pieds au sol", durTxt: "30 s", text: "Les deux pieds bien posés au sol. Sens leur poids.", sub: "Respire normalement.",
+      phases: [{ t: "Les deux pieds bien posés au sol.", s: 8 }, { t: "Sens le contact pieds / sol.", s: 11 }, { t: "Sens le poids de tes pieds.", s: 11 }],
+      steps: ["Les deux pieds bien posés au sol.", "Sens le contact pieds / sol, 30 secondes.", "Respire normalement."] },
+    { id: "A03", kind: "phases", title: "Je serre, je relâche", durTxt: "1 min", text: "Serre un muscle fort, puis relâche d’un coup.", rounds: 3,
+      phases: [{ t: "Choisis un groupe musculaire.", s: 6 }, { t: "Serre fort.", s: 5, warm: true, round: 1 }, { t: "Relâche d’un coup en expirant.", s: 10, round: 1 },
+        { t: "Serre fort.", s: 5, warm: true, round: 2 }, { t: "Relâche d’un coup en expirant.", s: 10, round: 2 }, { t: "Serre fort.", s: 5, warm: true, round: 3 }, { t: "Relâche d’un coup en expirant.", s: 10, round: 3 }],
+      steps: ["Choisis un groupe musculaire.", "Serre-le fort 5 secondes.", "Relâche d’un coup en expirant, 10 secondes. Répète 3 fois."] },
+    { id: "A04", kind: "phases", title: "Mon endroit calme", durTxt: "1 min", text: "Ferme les yeux. Imagine un endroit où tu te sens calme.", sub: "Dans ton endroit calme.",
+      phases: [{ t: "Ferme les yeux. Imagine un endroit où tu te sens totalement calme.", s: 12 }, { t: "Un son.", s: 12 }, { t: "Une couleur.", s: 12 }, { t: "Une sensation.", s: 12 }, { t: "Reste dans cet endroit.", s: 12 }],
+      steps: ["Ferme les yeux. Imagine un endroit où tu te sens totalement calme.", "Pense à trois détails : un son, une couleur, une sensation.", "Reste une minute dans cet endroit."] }
+  ];
+  var CALM_TOOLS = [["A01", "Je respire", "square"], ["A02", "Mes pieds au sol", "ground"], ["A03", "Je serre, je relâche", "squeeze"], ["A04", "Mon endroit calme", "place"]];
   var DOMAINS = [["fr", "Boîte à stratégies de français"], ["maths", "Maths"], ["reviser", "Réviser et mémoriser"], ["langues", "Langues"], ["etat", "Fatigue et stress"], ["gen", "Cartes générales"]];
-  var DOM_SHORT = { maths: "Maths", reviser: "Réviser", langues: "Langues", etat: "Énergie et stress" };
+  var DOM_SHORT = { maths: "Maths", reviser: "Réviser", langues: "Langues", etat: "Énergie et stress", calme: "Pour se calmer" };
   var METHOD_STATES = ["Pas encore vue", "Guidée, étape par étape", "Avec la carte", "Seul"];
   var MODE_NAMES = { 1: "guidée", 2: "avec la carte", 3: "seul" };
   var DICO = [["Relève", "Je recopie des mots exacts du texte."], ["Cite", "Je recopie des mots du texte entre « guillemets »."], ["Souligne", "Je trace un trait sous les mots."],
@@ -517,6 +553,8 @@ function boot() {
   function card(id) {
     var m = byId(METHODS, id), d, o, text;
     if (m) return { id: id, dom: m.dom, num: m.num || "", title: m.title, label: m.label || m.title, text: m.when || "", steps: m.steps, truc: m.truc || "", annex: m.annex, min: m.min, active: true, replaces: m.replaces, stop: !!m.stop };
+    d = byId(TOOLS, id);
+    if (d) return { id: id, dom: "calme", num: "", title: d.title, label: d.title, text: d.text, steps: d.steps, truc: "", min: 1, durTxt: d.durTxt, active: true, guide: d, stop: false };
     d = byId(CARDS, id); if (!d) return null;
     o = S.labels.cards[id] || {};
     text = o.text || (d.alone && U.block && adultOf(U.block) === false ? d.alone : d.text);
@@ -729,7 +767,9 @@ function boot() {
   document.body.innerHTML = '<div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div>';
   var pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main");
   var ticker = null, pendingTimeout = null;
+  var guideRaf = 0, G = null;
   function clearTimers() {
+    if (guideRaf) { cancelAnimationFrame(guideRaf); guideRaf = 0; }
     if (ticker) { clearInterval(ticker); ticker = null; }
     if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
   }
@@ -1129,10 +1169,7 @@ function boot() {
     var b = U.block, st = student(b.sid);
     if (FAMILY_SUBJECT[fid] && !context(b).subject) { U.pending = { family: fid }; return screenAsk("subject"); }
     b.family = fid;
-    if (fid === "F0") {
-      b.level = 1; b.line = "F0"; U.line = { fam: "F0", seq: ["C18"] }; save();
-      return proposeCard("C18", "proposee");
-    }
+    if (fid === "F0") { b.level = 1; b.line = "F0"; U.line = { fam: "F0", seq: CALM_TOOLS.map(function (x) { return x[0]; }) }; save(); return screenCalm(); }
     var level = (fid === "F5" || !st) ? 1 : (st.levels[fid] || 1);
     b.level = level; save();
     if (level >= 2 && familyCards(fid, b).length) return screenPickCard(fid, level);
@@ -1193,6 +1230,13 @@ function boot() {
     if (!next) return goHelp();
     proposeCard(next, "proposee");
   }
+  /* « Ça ne va pas du tout » : quatre outils d'apaisement, ou un adulte. Après l'outil, on passe à l'écran d'aide. */
+  function screenCalm() {
+    show(title("On se calme d’abord.") + '<div class="choices">' + CALM_TOOLS.map(function (x) {
+      return choice("calmPick", { id: x[0] }, x[1], x[2], null, "calm");
+    }).join("") + "</div>" +
+      '<div class="foot">' + backLink() + '<button class="link" data-a="calmHelp">' + svg("people") + "Je veux un adulte</button></div>");
+  }
   function proposeCard(id, origin, cheer) {
     if (id === "C19") return goHelp();
     var c = card(id), b = U.block, alts, back;
@@ -1229,10 +1273,11 @@ function boot() {
   /* view : « preview » (écran « Essaie ça »), « try » (pendant l'essai), « full » (carte entière, hors blocage).
      mode d'une stratégie : 1 étapes une par une, 2 carte entière, 3 nom seul avec carte à la demande. */
   function cardHtml(c, mode, view) {
-    var dur = view === "preview" ? '<span class="dur">' + svg("timer") + c.min + " min</span>" : "";
+    var dur = view === "preview" ? '<span class="dur">' + svg("timer") + (c.durTxt || c.min + " min") + "</span>" : "";
     var one = c.steps.length === 1, over = c.dom === "fr" ? "Stratégie " + c.num : (DOM_SHORT[c.dom] || ""), body, say;
     say = c.title + ". " + c.steps.join(" ");
-    if (view === "full" || mode === 2 || (one && mode !== 3)) body = stepsHtml(c);
+    if (c.guide && view !== "full") body = "<p>" + esc(c.text) + "</p>";
+    else if (view === "full" || mode === 2 || (one && mode !== 3)) body = stepsHtml(c);
     else if (mode === 3) {
       body = "<p>" + (one ? "Tu te souviens de ce qu’il faut faire ?" : "Tu te souviens des étapes ?") + "</p>" +
         '<details class="annex" data-peek="1"><summary>Voir la carte</summary><div class="in">' + stepsHtml(c) + "</div></details>";
@@ -1248,8 +1293,69 @@ function boot() {
       '<div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(say, true) + "</div></div>" + body + annexHtml(c.annex) + dur + "</div>";
   }
   function startTry() { U.tryStart = now(); U.step = 0; renderTry(); }
+  /* Outils d'apaisement : un guide minuté (le point parcourt le carré pour la respiration, sinon une consigne à la fois). */
+  function guideDef(c) {
+    var g = c.guide, segs, total = 0;
+    if (g.kind === "breath") return { total: g.cycles * 16000, at: function (t) {
+      var inC = t % 16000, side = Math.floor(inC / 4000), f = (inC % 4000) / 4000;
+      return { text: ["Inspire", "Retiens", "Expire", "Retiens"][side], n: 4 - Math.floor(f * 4), pos: [[0, 1 - f], [f, 0], [1, f], [1 - f, 1]][side], count: "Cycle " + (Math.floor(t / 16000) + 1) + " sur " + g.cycles };
+    } };
+    segs = g.phases; segs.forEach(function (x) { total += x.s * 1000; });
+    return { total: total, at: function (t) {
+      var acc = 0, p = segs[segs.length - 1], end = total, k;
+      for (k = 0; k < segs.length; k++) { if (t < acc + segs[k].s * 1000) { p = segs[k]; end = acc + segs[k].s * 1000; break; } acc += segs[k].s * 1000; }
+      return { text: p.t, n: Math.ceil((end - t) / 1000), prog: t / total, count: p.round ? "Tour " + p.round + " sur " + g.rounds : "", warm: !!p.warm };
+    } };
+  }
+  function startGuide() {
+    var c = card(U.cardId);
+    G = { c: c, def: guideDef(c), t: 0 };
+    var br = c.guide.kind === "breath";
+    show('<h1 class="sr-only">J’essaie : ' + esc(c.title) + "</h1>" +
+      '<div class="card guide"><div class="cardhead"><span class="overline">' + esc(DOM_SHORT.calme) + '</span><div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(c.title + ". " + c.steps.join(" "), true) + "</div></div>" +
+      '<div class="gstage">' + (br
+        ? '<div class="sq"><i id="gDot"></i><div class="ph"><div><b id="gPh">Prêt ?</b><span id="gN">4</span></div></div></div>'
+        : '<div class="gnum" id="gNum" aria-hidden="true">0</div><p class="gtext" id="gPh" aria-live="polite"></p>' + (c.guide.sub ? '<p class="sub">' + esc(c.guide.sub) + "</p>" : "") + '<div class="gbar" aria-hidden="true"><i id="gBar"></i></div>') +
+      '<p class="small" id="gCount"></p></div></div>' +
+      '<div id="gStop" class="foot"><span></span><button class="link" data-a="guideStop">' + svg("pause") + "J’arrête</button></div>" +
+      '<div id="gEnd" hidden><button class="big" data-a="tried">' + svg("check") + "Continuer</button>" +
+      '<div class="foot"><span></span><button class="link" data-a="guideAgain">' + svg("loop") + "Encore un tour</button></div></div>");
+    paintGuide(0); runGuide();
+  }
+  function paintGuide(t) {
+    var r = G.def.at(Math.min(t, G.def.total - 1)), set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }, el;
+    set("gPh", r.text); set("gCount", r.count);
+    if (G.c.guide.kind === "breath") {
+      set("gN", r.n);
+      el = document.getElementById("gDot");
+      if (el && !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) { el.style.left = r.pos[0] * 100 + "%"; el.style.top = r.pos[1] * 100 + "%"; }
+    } else {
+      set("gNum", r.n);
+      el = document.getElementById("gNum"); if (el) el.className = "gnum" + (r.warm ? " warm" : "");
+      el = document.getElementById("gBar"); if (el) el.style.width = Math.round(r.prog * 100) + "%";
+    }
+  }
+  function runGuide() {
+    var t0 = performance.now() - G.t;
+    function step(nowT) {
+      var t = Math.min(nowT - t0, G.def.total);
+      G.t = t;
+      if (t >= G.def.total) { guideRaf = 0; return finishGuide(); }
+      paintGuide(t);
+      guideRaf = requestAnimationFrame(step);
+    }
+    guideRaf = requestAnimationFrame(step);
+  }
+  function finishGuide() {
+    var br = G.c.guide.kind === "breath", set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    set("gPh", "C’est fini."); set("gCount", "");
+    if (br) { set("gN", "✓"); } else { set("gNum", "✓"); var bar = document.getElementById("gBar"); if (bar) bar.style.width = "100%"; }
+    document.getElementById("gStop").hidden = true; document.getElementById("gEnd").hidden = false;
+    beep();
+  }
   function renderTry() {
     var c = card(U.cardId), total = c.min * 60 * 1000, rang = now() - U.tryStart >= total;
+    if (c.guide) return startGuide();
     var last = U.mode !== 1 || U.step >= c.steps.length - 1;
     show('<h1 class="sr-only">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, U.mode, "try") +
       (S.settings.timer ? '<div class="timer" id="timer" role="timer" aria-live="off"></div>' : "") +
@@ -1642,7 +1748,8 @@ function boot() {
       "<p><b>Juste un coup de main.</b> On arrive droit sur « Où ça coince ? ». Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
       '<div class="panel"><h2>Comment l’outil choisit</h2>' +
       "<p>Il croise le blocage, la tâche, la matière et le lieu. S’il lui manque une information qui change la stratégie, il la demande en un écran.</p>" +
-      "<p>Cinq domaines de stratégies : le dossier de français (14), les maths (7), réviser et mémoriser (6), les langues (6), la fatigue et le stress (6). S’y ajoutent les cartes générales.</p></div>" +
+      "<p>Cinq domaines de stratégies : le dossier de français (14), les maths (7), réviser et mémoriser (6), les langues (6), la fatigue et le stress (6). S’y ajoutent les cartes générales et quatre outils d’apaisement guidés, repris du site PL-CPS’.</p>" +
+      "<p><b>Outils d’apaisement</b> : respiration carrée (le point parcourt le carré, 4 cycles d’environ une minute), pieds au sol (30 s), je serre, je relâche (3 tours), mon endroit calme (1 min). Ils s’ouvrent depuis « Ça ne va pas du tout » (l’élève en choisit un, ou demande un adulte) et sont proposés dans « Je stresse », « Je suis fatigué ou agité » et « Tout est faux ».</p></div>" +
       '<div class="panel"><h2>Le retrait de l’aide</h2>' +
       "<p>Chaque stratégie a quatre états par élève : pas encore vue, guidée étape par étape, avec la carte, seul. Le dossier de français commence « pas encore vu » ; le reste commence « guidé ».</p>" +
       "<p>Après trois reprises de suite avec une stratégie, « Suivi » vous suggère d’alléger. Après deux échecs de suite, ou deux cartes rouvertes au niveau « seul », il suggère de renforcer. Rien ne change sans votre validation. Ces seuils sont des valeurs de départ, sans base empirique.</p></div>" +
@@ -1781,6 +1888,10 @@ function boot() {
     pickCard: function (d) { proposeCardChosen(d.id); },
     answer: function (d) { answer(parseInt(d.i, 10)); },
     try: function () { startTry(); },
+    calmPick: function (d) { var b = U.block; U.cardId = d.id; U.origin = "choisie"; U.peek = false; U.mode = 1; U.line = { fam: "F0", seq: [d.id] }; save(); startTry(); },
+    calmHelp: function () { goHelp(); },
+    guideStop: function () { clearTimers(); tried(); },
+    guideAgain: function () { startGuide(); },
     other: function () { var a = alternatives(U.block, U.cardId); if (a.length) proposeCard(a[0], "choisie"); },
     tried: function () { tried(); },
     result: function (d) { result(parseFloat(d.r)); },

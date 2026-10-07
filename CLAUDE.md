@@ -36,6 +36,12 @@ README.md, LICENSE, CLAUDE.md
 - Issues d'un blocage (`end`) : `reprise`, `aide`, `passe` (« ? » dans la marge), `stop`, `abandon`, `annule`.
 - Les noms, numéros et étapes des stratégies viennent du dossier de l'enseignante (français) ou ont été validés par elle (quatre autres domaines) : ne pas les reformuler sans demande.
 
+## Outils d'apaisement (v6)
+
+- `TOOLS` (A01 à A04, repris du site PL-CPS’) : cartes comme les autres (`card(id)` renvoie `guide` et `dom: "calme"`), hors `METHODS` (pas d'état par élève) et hors `strategyIds()`. `renderTry()` ouvre `startGuide()` : minuteur `requestAnimationFrame` (`guideDef`, `paintGuide`, `runGuide`, `finishGuide`), nettoyé par `clearTimers()`.
+- « Ça ne va pas du tout » : `screenCalm()` (`CALM_TOOLS`), puis `tried()` → `goHelp()` comme avant. Lignes `F3d` (« Je stresse »), `F3c` et `F4d` y font aussi appel.
+- Durées et consignes d'origine ; titres élève et phases à valider par l'enseignante : ne pas les reformuler sans demande.
+
 ## Données entre appareils (v5)
 
 - `st.cfgAt` : date du dernier réglage de l'enseignante pour l'élève (`touchCfg(st)` à chaque réglage) ; la fusion garde la version la plus récente de `CFG_FIELDS` ; `pinned` : union.

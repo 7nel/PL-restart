@@ -65,6 +65,14 @@ Les transferts se font à la main (clé, messagerie de l'école) : l'outil n'env
 
 L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni texte libre de l'élève. Utilisez des pseudonymes. Même ainsi, ces données décrivent le fonctionnement de mineurs : vérifiez le cadre applicable dans votre établissement avant tout usage au-delà de votre classe.
 
+## Outils d'apaisement
+
+Quatre outils guidés, repris du site PL-CPS’ (mois « Gestion du stress »), avec les durées et consignes d'origine : **respiration carrée** (le point parcourt le carré, 4 secondes par côté, 4 cycles), **pieds au sol** (30 s), **je serre, je relâche** (serrer 5 s, relâcher 10 s, 3 tours), **mon endroit calme** (1 min, trois détails : un son, une couleur, une sensation). Chacun se déroule seul, avec un signal à la fin et « Encore un tour ».
+
+- « Ça ne va pas du tout » ouvre un écran « On se calme d'abord » : l'élève choisit un outil, ou demande un adulte. Après l'outil, on passe à l'écran d'aide comme avant.
+- Dans les questions : « Je stresse » (réponse de « J'ai décroché » : respiration, endroit calme, serrer/relâcher), « Je suis fatigué ou agité » (pieds au sol en plus) et « Tout est faux » (respiration après « Stop, respire, choisis »).
+- Titres pour l'élève et découpage en phases : propositions à valider.
+
 ## Limites connues
 
 - La cause choisie par l'élève est une hypothèse, pas un diagnostic.
@@ -76,6 +84,7 @@ L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni 
 - En mode coup de main, la réponse « Je crois savoir, mais je rate » n'apparaît que si la tâche « Réviser » est déjà connue.
 - Le carnet affiche des comptes, sans classement.
 - Le texte des stratégies (dossier et quatre domaines) n'est pas modifiable depuis l'espace enseignante ; les exemples de Léo ne sont pas repris.
+- Outils d'apaisement : les effets annoncés (respiration lente, visualisation) viennent des « Repères » du site PL-CPS’ (Zaccaro et al., 2018 ; Balban et al., 2023 : la respiration carrée n'est pas la technique la mieux étayée) et n'ont pas été recoupés ici. L'outil ne promet pas de soulager ; en cas de détresse, un adulte reste la réponse.
 - La voix naturelle a été testée dans un navigateur automatisé (génération et lecture) ; sa vitesse et son fonctionnement sur tablettes d'école ne sont pas vérifiés.
 - Non réalisés dans ce prototype : choix pondéré des cartes selon l'historique, niveau « sans l'outil », écran de bilan partagé élève et enseignante.
 
