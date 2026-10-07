@@ -485,7 +485,7 @@ function boot() {
   var STORE_KEY = "pl-restart-v1";
   var storageOk = true;
   /* code de départ de l'espace enseignante, à changer dans Réglages */
-  var DEFAULT_PIN = "311095";
+  var OLD_DEFAULT_PIN = "311095", DEFAULT_PIN = "@REstart2020";
   function fresh() {
     return { version: 1, settings: { audio: true, chrono: true, timer: true, beep: true, autoLevel: false, demoMethods: true, place: "classe", v3: true, pin: DEFAULT_PIN, pinDefault: true, theme: "", voice: "", rate: 0.92 },
       labels: { families: {}, lines: {}, cards: {} }, students: [], tasks: [], blocks: [] };
@@ -500,6 +500,8 @@ function boot() {
     if (!s.settings.v3) { s.settings.autoLevel = false; s.settings.v3 = true; }
     /* anciennes sauvegardes sans code : le code de départ est posé une seule fois ; effacé ensuite à la main, il le reste */
     if (!s.settings.pinDefault) { s.settings.pinDefault = true; if (!s.settings.pin) s.settings.pin = DEFAULT_PIN; }
+    /* l'ancien code de départ est remplacé par le nouveau ; un code choisi par l'enseignante n'est jamais touché */
+    if (s.settings.pin === OLD_DEFAULT_PIN) s.settings.pin = DEFAULT_PIN;
     for (k in f.settings) if (!(k in s.settings)) s.settings[k] = f.settings[k];
     s.labels = s.labels || {};
     s.labels.families = s.labels.families || {};
@@ -511,7 +513,7 @@ function boot() {
     s.students.forEach(function (st) {
       st.levels = st.levels || {}; st.lock = st.lock || {}; st.since = st.since || {}; st.pinned = st.pinned || [];
       st.methods = st.methods || {}; st.plan = !!st.plan; st.check = !!st.check;
-      st.msince = st.msince || {}; st.mdismiss = st.mdismiss || {}; st.cfgAt = st.cfgAt || 0;
+      st.msince = st.msince || {}; st.mdismiss = st.mdismiss || {}; st.cfgAt = st.cfgAt || 0; st.code = typeof st.code === "string" ? st.code : "";
     });
     s.tasks.forEach(function (t) { t.plan = t.plan || []; if (!("planHelped" in t)) t.planHelped = null; if (!("adult" in t)) t.adult = null; });
     s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.teacher = b.teacher || {}; if (!("adult" in b)) b.adult = null; });
@@ -979,8 +981,7 @@ function boot() {
     U.sid = null; U.task = null; U.block = null; U.unlocked = false; U.free = false; U.pinLater = false;
     var html = title("Qui travaille ?");
     if (!S.students.length) {
-      html += '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>' +
-        '<div class="row"><button class="btn primary" data-a="teacher">' + svg("board") + "Ouvrir l’espace enseignante</button></div>";
+      html += '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>';
     } else {
       html += '<div class="tiles">' + S.students.map(function (st) {
         return '<button class="tile" data-a="pick" data-id="' + esc(st.id) + '">' + svg(st.icon) + "<span>" + esc(st.name) + "</span></button>";
@@ -1001,6 +1002,15 @@ function boot() {
     if (t) S.blocks.push(b);
     U.block = b; U.line = null; U.pendingLine = null;
     return b;
+  }
+  /* code facultatif de l'élève : évite d'ouvrir le carnet d'un camarade ; le code de l'enseignante ouvre aussi */
+  function screenStudentCode(sid) {
+    var st = student(sid); U.codeFor = sid;
+    show(title("Ton code") + '<label class="field"><span>' + esc(st.name) + '</span><input type="password" id="scode" autocomplete="off" maxlength="20"></label>' +
+      '<p class="note" id="scerr" hidden>Ce n’est pas le bon code.</p>' +
+      '<button class="big" data-a="codeOk">' + svg("play") + "Ouvrir</button>" +
+      '<div class="foot"><button class="link" data-a="home">' + svg("back") + "Retour</button><span></span></div>", { who: false });
+    var el = document.getElementById("scode"); if (el) el.focus();
   }
   function pickStudent(sid) {
     U.sid = sid; draft.step = 1;
@@ -1660,6 +1670,7 @@ function boot() {
     S.students.forEach(function (st) {
       html += '<div class="panel"><div class="formrow"><span class="who fit">' + svg(st.icon) + esc(st.name) + "</span><span></span>" +
         '<button class="btn danger fit" data-a="delStudent" data-id="' + esc(st.id) + '">Supprimer</button></div>' +
+        '<label class="field" style="max-width:340px"><span>Code de ' + esc(st.name) + ' (facultatif)</span><input type="text" data-c="stCode" data-id="' + esc(st.id) + '" maxlength="20" value="' + esc(st.code || "") + '" autocomplete="off"></label>' +
         '<label class="check"><input type="checkbox" data-c="planOn" data-id="' + esc(st.id) + '"' + (st.plan ? " checked" : "") + ">Écran « Mon plan d’attaque » au démarrage d’une tâche</label>" +
         '<label class="check"><input type="checkbox" data-c="checkOn" data-id="' + esc(st.id) + '"' + (st.check ? " checked" : "") + ">Liste « Avant de rendre » quand la tâche est terminée</label>" +
         '<details class="annex"' + (U.openBox === st.id ? " open" : "") + '><summary>Stratégies : où en est ' + esc(st.name) + ' (' + knownMethods(st.id, "fr").length + ' sur 14 du dossier de français)</summary><div class="in">' +
@@ -1729,7 +1740,7 @@ function boot() {
     var notes = (U.importNotes || []).map(function (n) { return '<li class="' + (n.ok ? "" : "bad") + '">' + esc(n.text) + "</li>"; }).join("");
     return '<div class="panel"><h2>Où sont les données</h2><p>Tout est enregistré dans le navigateur de cet appareil. Rien n’est envoyé. Un autre appareil, ou un autre navigateur, repart de zéro.</p>' +
       "<p>" + S.students.length + " élève(s) · " + S.tasks.length + " tâche(s) · " + S.blocks.length + " blocage(s).</p></div>" +
-      '<div class="panel"><h2>Exporter un élève</h2><p class="small">Un fichier par élève : sa fiche, ses réglages, ses tâches et ses blocages. Le code de l’espace enseignante n’y figure pas. À vous envoyer par la messagerie de l’école, ou à copier sur une clé.</p>' + sel + "</div>" +
+      '<div class="panel"><h2>Exporter un élève</h2><p class="small">Un fichier par élève : sa fiche, ses réglages, ses tâches et ses blocages. Le code de l’espace enseignante n’y figure pas ; le code de l’élève, s’il en a un, y figure (en clair). À vous envoyer par la messagerie de l’école, ou à copier sur une clé.</p>' + sel + "</div>" +
       '<div class="panel"><h2>Importer et fusionner</h2><p class="small">Rien n’est effacé : le fichier est ajouté à ce qui est déjà là, un ou plusieurs fichiers à la fois.</p>' +
       '<ul class="small plain"><li>Un élève est reconnu par son identifiant interne. Exporté d’ici puis réimporté, il est mis à jour ; venant d’un autre appareil, il est ajouté.</li>' +
       '<li>Ses réglages (niveaux, stratégies, plan, « Avant de rendre ») : la version réglée en dernier l’emporte.</li>' +
@@ -1760,7 +1771,7 @@ function boot() {
       "<p>4. Après un « Non », l’outil dit une phrase courte qui reconnaît l’effort (« Pas grave. On essaie autre chose. »). Il ne donne ni points ni récompenses. « Ça ne va pas du tout » est toujours visible, à part des cinq familles.</p>" +
       "<p>5. Pour poser une question, l’élève voit au plus quatre réponses : « Autre chose » ouvre les suivantes. « Étape précédente » corrige une erreur de tap sans abandonner le blocage.</p></div>" +
       '<div class="panel"><h2>Le code de cet espace</h2>' +
-      "<p>Le code de départ est " + DEFAULT_PIN + ". Changez-le dans « Réglages » : il est lisible dans le code source du site. Si vous l’effacez, tout élève qui touche le bouton « tableau » en haut de l’accueil entre ici, et un rappel s’affiche en haut de cet espace (« Plus tard » le masque jusqu’au prochain retour à l’accueil).</p></div>" +
+      "<p>Le code de départ est " + DEFAULT_PIN + ". Changez-le dans « Réglages » : il est lisible dans le code source du site. Chaque élève peut aussi avoir son propre code (« Élèves ») : il est demandé quand on touche sa vignette, et le code de l’espace enseignante l’ouvre aussi. Si vous effacez le code de l’espace enseignante, tout élève qui touche le bouton « tableau » en haut de l’accueil entre ici, et un rappel s’affiche en haut de cet espace (« Plus tard » le masque jusqu’au prochain retour à l’accueil).</p></div>" +
       '<div class="panel"><h2>Adulte disponible ou non</h2>' +
       "<p>L’élève l’indique au démarrage de la tâche et peut le changer sur l’écran de travail. S’il ne l’a pas dit, l’outil le demande au moment de l’aide (toujours le cas en coup de main).</p>" +
       "<p>Sans adulte : l’outil propose une stratégie de plus (la suite prévue, sinon une carte générale utilisable seul : chercher dans le cours, regarder un exemple, commencer par le facile…), puis l’élève prépare sa question et met un « ? » dans la marge. « Suivi » indique les blocages sans adulte disponible.</p></div>" +
@@ -1830,7 +1841,12 @@ function boot() {
     piperRm: function () { piperRemove(); },
     home: function () { goHome(); },
     teacher: function () { openTeacher(); },
-    pick: function (d) { pickStudent(d.id); },
+    pick: function (d) { var st = student(d.id); if (st && st.code) screenStudentCode(d.id); else pickStudent(d.id); },
+    codeOk: function () {
+      var el = document.getElementById("scode"), st = student(U.codeFor), v = el ? el.value.trim() : "";
+      if (st && (v === st.code || (S.settings.pin && v === S.settings.pin))) { U.codeFor = null; pickStudent(st.id); }
+      else { var er = document.getElementById("scerr"); if (er) er.hidden = false; if (el) { el.value = ""; el.focus(); } }
+    },
     resume: function () { U.task = openTask(U.sid); if (U.task) screenWork(); else screenTask(); },
     newTask: function () { var t = openTask(U.sid); if (t) { closeTask(t, "abandonnee"); save(); } draft.step = 1; screenTask(); },
     type: function (d) { draft.type = d.id; screenTask(); },
@@ -1921,7 +1937,7 @@ function boot() {
     addStudent: function () {
       var n = document.getElementById("newName"), name = n ? n.value.trim() : "";
       if (!name) { if (n) n.focus(); return; }
-      S.students.push({ id: uid("s"), name: name, icon: newAvatar, levels: {}, lock: {}, since: {}, pinned: [], methods: {}, msince: {}, mdismiss: {}, plan: false, check: false, cfgAt: now() });
+      S.students.push({ id: uid("s"), name: name, icon: newAvatar, levels: {}, lock: {}, since: {}, pinned: [], methods: {}, msince: {}, mdismiss: {}, plan: false, check: false, code: "", cfgAt: now() });
       newAvatar = AVATARS[S.students.length % AVATARS.length];
       save(); openTeacher();
     },
@@ -1975,6 +1991,7 @@ function boot() {
     level: function (el) { var st = student(el.dataset.id); if (st) { st.levels[el.dataset.f] = parseInt(el.value, 10); st.since[el.dataset.f] = now(); touchCfg(st); save(); } },
     lock: function (el) { var st = student(el.dataset.id); if (st) { st.lock[el.dataset.f] = el.checked; touchCfg(st); save(); } },
     setting: function (el) { S.settings[el.dataset.f] = el.checked; save(); },
+    stCode: function (el) { var st = student(el.dataset.id); if (st) { st.code = el.value.trim().slice(0, 20); touchCfg(st); save(); } },
     planOn: function (el) { var st = student(el.dataset.id); if (st) { st.plan = el.checked; touchCfg(st); save(); } },
     checkOn: function (el) { var st = student(el.dataset.id); if (st) { st.check = el.checked; touchCfg(st); save(); } },
     methodState: function (el) { var st = student(el.dataset.id); if (st) { st.methods[el.dataset.m] = parseInt(el.value, 10) || 0; st.msince[el.dataset.m] = now(); touchCfg(st); save(); } },
@@ -2006,7 +2023,7 @@ function boot() {
     if (fn) fn(el);
   });
   /* ---------- fusion d'un fichier dans les données de l'appareil (aucune suppression) ---------- */
-  var CFG_FIELDS = ["name", "icon", "levels", "lock", "since", "methods", "msince", "mdismiss", "plan", "check"];
+  var CFG_FIELDS = ["name", "icon", "levels", "lock", "since", "methods", "msince", "mdismiss", "plan", "check", "code"];
   function blockScore(b) { return (b.end ? 1000 : 0) + (b.tries || []).length * 10 + (b.resumedAt ? 1 : 0); }
   function taskScore(t) { return (t.end ? 100 : 0) + (t.status ? 10 : 0) + (t.plan && t.plan.length ? 1 : 0); }
   function fillTeacher(w, o) {
@@ -2099,6 +2116,7 @@ function boot() {
   document.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target && e.target.id === "pin") ACTIONS.unlock();
     if (e.key === "Enter" && e.target && e.target.id === "newName") ACTIONS.addStudent();
+    if (e.key === "Enter" && e.target && e.target.id === "scode") ACTIONS.codeOk();
   });
 
   /* hors ligne : uniquement sur un vrai serveur (GitHub Pages), pas en file:// */

@@ -47,6 +47,7 @@ README.md, LICENSE, CLAUDE.md
 - `st.cfgAt` : date du dernier réglage de l'enseignante pour l'élève (`touchCfg(st)` à chaque réglage) ; la fusion garde la version la plus récente de `CFG_FIELDS` ; `pinned` : union.
 - `exportData(sid)` : jamais `settings.pin`. `mergeData()` : ne supprime rien ; tâches et blocages par id (`blockScore`, `taskScore`), notes enseignante conservées ; libellés complétés seulement ; réglages de l'appareil jamais importés (sauf sauvegarde complète sur appareil vide, sans le code).
 - Voix : `settings.voice` ("" = automatique, "piper" ou `voiceURI`) et `settings.rate` ; Piper dans `voix/` (cache `plrestart-voix-v1`, import map dans `<head>`) ; notices dans `NOTICE.md`.
+- `st.code` : code facultatif de l'élève (`screenStudentCode`, `codeOk`), fait partie de `CFG_FIELDS` donc voyage dans l'export de l'élève ; le code enseignante l'ouvre aussi. Code de départ de l'enseignante `DEFAULT_PIN` ; l'ancien (`OLD_DEFAULT_PIN`) est migré dans `normalize()`.
 - Le code de l'espace enseignante est en clair (`settings.pin`), lettres autorisées : choix assumé.
 
 ## Conventions
