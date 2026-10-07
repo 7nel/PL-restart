@@ -22,14 +22,18 @@ README.md, LICENSE, CLAUDE.md
 
 ## Modèle
 
-- **Contenu** (constantes) : `FAMILIES` (F1 à F5, plus `F0`), `LINES` (une réponse de l'élève = une suite de cartes `seq`, `then` = famille proposée après deux « non », `byType` = stratégies placées en tête selon la tâche), `QUESTIONS`, `CARDS` (C01 à C23, cartes génériques), `METHODS` (M01 à M14, stratégies du dossier de français : trois étapes, un « truc », annexe éventuelle).
+- **Contenu** (constantes) : `FAMILIES` (F1 à F5, plus `F0`), `LINES` (une réponse de l'élève = une suite de cartes `seq` ; `then` = famille proposée après deux « non » ; `pre` = règles `{ when, not, ids, seq }` qui placent des stratégies en tête selon la matière `subject`, la tâche `type` et le lieu `place` ; `only` = réponse visible dans ce seul contexte), `QUESTIONS`, `CARDS` (C01 à C23, cartes générales), `METHODS` (M01 à M14 : dossier de français, `dom: "fr"` ; X01 à X07 maths, R01 à R06 réviser, L01 à L06 langues, E01 à E06 fatigue et stress ; trois étapes, parfois un « truc », une annexe, `replaces`, `stop`).
+- **Format unique** : `card(id)` rend toute carte ou stratégie sous la même forme (`dom`, `title`, `label`, `steps`, `truc`, `min`, `stop`, `replaces`, `twin`).
+- **Contexte** : `context(b)` = matière, tâche, lieu (tâche en mode suivi, sinon réponses données en route) ; `needsCtx()` ne pose la question que si elle change la stratégie ; `FAMILY_SUBJECT` = familles qui demandent la matière avant leur question.
 - **Deux modes** : avec suivi (`U.task` défini) et coup de main (`U.free`, blocage non enregistré tant qu'il n'est pas rattaché à un élève ; `tid` reste `null`).
-- **Stratégies** : état par élève dans `st.methods[id]` (0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul). `available()` écarte une stratégie non vue et une carte générique dont le `twin` est connu ; `effectiveSeq()` calcule la suite réelle d'une ligne. `st.plan` active l'écran « Mon plan d'attaque » au démarrage (`task.plan`, `task.planHelped`).
-- **État** `S` (clé `pl-restart-v1`) : `settings`, `labels` (libellés réécrits par l'enseignante), `students`, `tasks`, `blocks` (chaque blocage contient ses `tries`).
-- **Règles** : au plus trois « non » par blocage, puis écran d'aide ; niveau d'aide par famille (N1 guidé, N2 et N3 choix par l'élève), ajusté dans `updateLevel()` ; deux garde-fous dans `blocked()`.
+- **Stratégies** : état par élève dans `st.methods[id]` (0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul) ; par défaut 0 pour le dossier de français, 1 pour tout le reste. `available()` écarte une stratégie non vue et une carte générale dont le `twin` est connu ; `effectiveSeq()` calcule la suite réelle d'une ligne (règles `pre`, doublons, `replaces`).
+- **Retrait de l'aide** : `suggestions(sid)` propose (3 reprises de suite, 2 échecs de suite, 2 cartes rouvertes au niveau « seul ») ; seule l'enseignante valide (`sugOk`, `sugNo`, `st.msince`, `st.mdismiss`). Ne jamais changer un état sans validation.
+- **Écrans par élève** : `st.plan` (« Mon plan d'attaque » au démarrage : `task.plan`, `task.planHelped`, stratégies filtrées par `planIds()`), `st.check` (« Avant de rendre » : `task.checked`).
+- **État** `S` (clé `pl-restart-v1`) : `settings` (dont `place`, dernier lieu choisi, et `autoLevel`, désactivé par défaut), `labels` (libellés réécrits par l'enseignante), `students`, `tasks`, `blocks` (chaque blocage contient ses `tries`).
+- **Règles** : au plus trois « non » par blocage, puis écran d'aide ; niveau par famille (N1 guidé, N2 et N3 choix par l'élève), réglé à la main ou par `updateLevel()` si `autoLevel` ; deux garde-fous dans `blocked()`.
 - Un essai : `{ card, origin: "proposee" | "choisie", at, dur, result: 1 | 0.5 | 0 | null }`, plus `mode` (1 à 3) et `peek` pour une stratégie.
 - Issues d'un blocage (`end`) : `reprise`, `aide`, `passe` (« ? » dans la marge), `stop`, `abandon`, `annule`.
-- Les noms, numéros et étapes des stratégies viennent du dossier de l'enseignante : ne pas les reformuler sans demande.
+- Les noms, numéros et étapes des stratégies viennent du dossier de l'enseignante (français) ou ont été validés par elle (quatre autres domaines) : ne pas les reformuler sans demande.
 
 ## Conventions
 
@@ -46,7 +50,9 @@ README.md, LICENSE, CLAUDE.md
 - [ ] La page s'ouvre sans erreur dans la console (`file://` inclus)
 - [ ] Ajouter un élève, lancer une tâche, parcourir un blocage jusqu'à la reprise, puis jusqu'à l'écran d'aide
 - [ ] Coup de main sans élève (stratégies guidées), puis rattaché à un élève
-- [ ] Élève avec stratégies réglées (guidée, avec la carte, seul) et plan d'attaque activé
+- [ ] Coup de main en maths, en langues, en révision, « fatigué » en classe puis à la maison : la bonne stratégie, la bonne question de contexte
+- [ ] Élève avec stratégies réglées (guidée, avec la carte, seul), plan d'attaque et « Avant de rendre » activés
+- [ ] Trois reprises avec une stratégie : la suggestion apparaît dans « Suivi », « Valider » change l'état
 - [ ] Rechargement : les données persistent, la tâche en cours peut être reprise
 - [ ] Suivi, export `.json` et `.csv`, import d'une sauvegarde
 - [ ] Clair et sombre, largeur téléphone et tablette

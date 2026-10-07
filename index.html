@@ -123,6 +123,8 @@ function boot() {
     details.annex td:first-child { font-weight: 700; }
     details.annex p { margin: 0; font-size: 1rem; }
     .choice.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .choice[data-a="checkToggle"] svg { opacity: 0.25; }
+    .choice[data-a="checkToggle"].sel svg { opacity: 1; }
     .choice .num { flex: none; width: 2em; height: 2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; }
     .timer { font-family: var(--display); font-weight: 700; font-size: clamp(2.6rem, 10vw, 4rem); text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
     .timer.over { color: var(--warm); }
@@ -214,6 +216,7 @@ function boot() {
     pin: '<path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/>',
     notebook: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/>',
     pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
+    home: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',
     star: '<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-3-5.4 3 1.1-6L3.2 9.4l6.1-.8z"/>',
     moon: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>',
     leaf: '<path d="M5 19C5 10 10 5 20 4c-1 10-6 15-15 15z"/><path d="M5 19l8-8"/>',
@@ -241,32 +244,53 @@ function boot() {
   var F0 = { id: "F0", label: "Ça ne va pas du tout", icon: "storm" };
   /* Une ligne = une réponse de l'élève + l'ordre des cartes. « then » = famille proposée après deux « non ». */
   var LINES = {
-    F1a: { fam: "F1", label: "Un mot", seq: ["M06", "C01", "C19"] },
-    F1b: { fam: "F1", label: "La consigne", seq: ["M01", "M02", "C02", "C03"], then: "F2" },
+    /* « pre » : règles qui placent des stratégies en tête de ligne selon la matière (subject), la tâche (type) et le lieu (place).
+       « when » exige une valeur, « not » l'exclut, « seq » remplace la suite de base. « only » : réponse visible dans ce seul contexte. */
+    F1a: { fam: "F1", label: "Un mot", pre: [{ when: { subject: "Langues" }, ids: ["L01"] }], seq: ["M06", "C01", "C19"] },
+    F1b: { fam: "F1", label: "La consigne", pre: [{ when: { subject: "Maths" }, ids: ["X01"] }], seq: ["M01", "M02", "C02", "C03"], then: "F2" },
     F1c: { fam: "F1", label: "Je n’ai jamais appris ça", seq: ["C17", "C19"] },
-    F1d: { fam: "F1", label: "Je ne sais plus ce que j’ai lu", seq: ["M05", "C22", "C19"] },
-    F1e: { fam: "F1", label: "Je ne trouve pas la réponse", seq: ["M07", "M04", "C23", "C19"] },
-    /* « byType » : stratégies du dossier placées en tête de ligne selon la tâche (« autres » = toute autre tâche) */
-    F2a: { fam: "F2", label: "Je ne vois pas par quoi commencer", byType: { ecrire: ["M09", "M10", "M11"], autres: ["M13"] }, seq: ["C04", "C03"], then: "F1" },
-    F2b: { fam: "F2", label: "C’est trop long", seq: ["C12", "C15", "C20"] },
-    F2c: { fam: "F2", label: "C’est trop dur", seq: ["C15", "C03"], then: "F1" },
+    F1d: { fam: "F1", label: "Je ne sais plus ce que j’ai lu", pre: [{ when: { subject: "Langues" }, ids: ["L02"] }], seq: ["M05", "C22", "C19"] },
+    F1e: { fam: "F1", label: "Je ne trouve pas la réponse", pre: [{ when: { subject: "Langues" }, ids: ["L02"] }], seq: ["M07", "M04", "C23", "C19"] },
+    F1f: { fam: "F1", label: "Ce que j’entends", only: { subject: "Langues" }, seq: ["L03", "C19"] },
+    F2a: { fam: "F2", label: "Je ne vois pas par quoi commencer", pre: [
+      { when: { subject: "Maths" }, ids: ["X02", "X04"] },
+      { when: { subject: "Langues", type: "ecrire" }, ids: ["L04"] },
+      { when: { type: "ecrire" }, not: { subject: "Maths" }, ids: ["M09", "M10", "M11"] },
+      { not: { type: "ecrire" }, ids: ["M13"] }], seq: ["C04", "C03"], then: "F1" },
+    F2b: { fam: "F2", label: "C’est trop long", pre: [
+      { when: { type: "reviser" }, ids: ["R05"] },
+      { when: { type: "reviser", place: "maison" }, ids: ["R06"] },
+      { ids: ["E03"] }], seq: ["C12", "C15", "C20"] },
+    F2c: { fam: "F2", label: "C’est trop dur", pre: [{ when: { subject: "Maths" }, ids: ["X03"] }], seq: ["C15", "C03"], then: "F1" },
     F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", seq: ["C05", "C16", "C11"] },
-    F3a: { fam: "F3", label: "J’ai perdu le fil", byType: { lire: ["M05"], ecrire: ["M11"] }, seq: ["C07", "C08"], then: "F2" },
+    F2e: { fam: "F2", label: "Je cherche mes mots", only: { subject: "Langues" }, seq: ["L06", "C19"] },
+    F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C07", "C08"], then: "F2" },
     F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C12"] },
-    F3c: { fam: "F3", label: "Je suis fatigué ou agité", seq: ["C11", "C12", "C20"] },
+    F3c: { fam: "F3", label: "Je suis fatigué ou agité", pre: [
+      { when: { place: "classe" }, seq: ["E01", "C12", "C20"] },
+      { when: { place: "maison" }, seq: ["E02", "C12", "E04"] }], seq: ["C11", "C12", "C20"] },
     F4a: { fam: "F4", label: "J’ai fait une erreur, je sais où", seq: ["C13", "C14", "C19"] },
-    F4b: { fam: "F4", label: "C’est faux, je ne sais pas où", byType: { ecrire: ["M08"] }, seq: ["C14", "C03", "C19"] },
-    F4c: { fam: "F4", label: "Ma façon de faire ne marche pas", byType: { ecrire: ["M12"] }, seq: ["C21", "C03", "C19"] },
-    F4d: { fam: "F4", label: "Tout est faux", seq: ["C18", "C14", "C19"] },
+    F4b: { fam: "F4", label: "C’est faux, je ne sais pas où", pre: [
+      { when: { subject: "Maths" }, ids: ["X06", "X07"] },
+      { when: { subject: "Langues" }, ids: ["L05"] },
+      { when: { type: "ecrire" }, not: { subject: "Maths" }, ids: ["M08"] }], seq: ["C14", "C03", "C19"] },
+    F4c: { fam: "F4", label: "Ma façon de faire ne marche pas", pre: [
+      { when: { type: "reviser" }, ids: ["R01", "R02", "R03", "R04"] },
+      { when: { type: "ecrire" }, ids: ["M12"] }], seq: ["C21", "C03", "C19"] },
+    F4d: { fam: "F4", label: "Tout est faux", seq: ["E05", "E06", "C14", "C19"] },
+    F4e: { fam: "F4", label: "Je bloque sur un calcul", only: { subject: "Maths" }, seq: ["X05", "X06", "C19"] },
+    F4f: { fam: "F4", label: "Je crois savoir, mais je rate", only: { type: "reviser" }, seq: ["R03", "R04", "R01", "C19"] },
     F5a: { fam: "F5", label: "Je peux faire la prochaine action", seq: ["C05", "C19"] }
   };
+  /* familles dont une réponse dépend de la matière : on la demande avant la question si elle n'est pas connue */
+  var FAMILY_SUBJECT = { F1: true, F2: true, F4: true };
   var QUESTIONS = {
-    F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1c" }] },
+    F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1f" }, { line: "F1c" }] },
     F1q2: { text: "Qu’est-ce qui se passe avec le texte ?", options: [{ line: "F1d" }, { line: "F1e" }] },
     F2: { text: "Tu sais quelle est la première chose à faire ?", options: [{ label: "Oui", next: "F2q2" }, { label: "Non", line: "F2a" }] },
-    F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2b" }, { line: "F2c" }, { line: "F2d" }] },
+    F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2b" }, { line: "F2c" }, { line: "F2d" }, { line: "F2e" }] },
     F3: { text: "Qu’est-ce qui s’est passé ?", options: [{ line: "F3a" }, { line: "F3b" }, { line: "F3c" }] },
-    F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4c" }, { line: "F4d" }] },
+    F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4e" }, { line: "F4c" }, { line: "F4f" }, { line: "F4d" }] },
     /* tri de « Je ne sais pas » : comprendre, puis planifier, puis initier */
     F5: { text: "Tu peux dire ce qu’il faut rendre à la fin ?", options: [{ label: "Oui", next: "F5q2" }, { label: "Non", line: "F1b" }] },
     F5q2: { text: "Tu sais quelle est la prochaine action ?", options: [{ label: "Oui", next: "F5q3" }, { label: "Non", line: "F2a" }] },
@@ -292,7 +316,7 @@ function boot() {
     { id: "C17", title: "Chercher dans le cours", text: "Trouve la page de ton cours qui parle de ça.", min: 3 },
     { id: "C18", title: "Respirer d’abord", text: "Respire lentement cinq fois. Puis montre cet écran à un adulte.", min: 1 },
     { id: "C19", title: "Demande précise", text: "Complète : j’ai compris… je bloque sur… j’ai essayé… Demande une explication ou un indice, pas la réponse.", min: 2 },
-    { id: "C20", title: "Stop propre", text: "Note où tu t’arrêtes et la prochaine action.", min: 2 },
+    { id: "C20", title: "Stop propre", text: "Note où tu t’arrêtes et la prochaine action.", min: 2, stop: true },
     { id: "C21", title: "Cacher et dire", text: "Cache ta feuille. Dis ou écris ce que tu te rappelles.", min: 3 },
     { id: "C22", title: "Un paragraphe à la fois", text: "Relis un seul paragraphe. Dis de quoi il parle.", min: 3, twin: "M05" },
     { id: "C23", title: "Les mots de la question", text: "Souligne les mots importants de la question. Cherche-les dans le texte.", min: 3, twin: "M07" }
@@ -330,6 +354,38 @@ function boot() {
     { id: "M14", num: "★", title: "Le schéma narratif en couleurs", when: "Quand je lis une histoire ou quand j’en invente une.", min: 10,
       steps: ["Je LIS toute l’histoire une première fois.", "Je SURLIGNE chaque partie avec sa couleur.", "Je RÉSUME chaque partie en une phrase dans le schéma."], truc: "Je cherche d’abord l’élément perturbateur (le problème). Avant = début. Après = la suite." }
   ];
+  METHODS.forEach(function (m) { m.dom = "fr"; });
+  /* Stratégies des quatre autres domaines : noms et étapes validés par l'enseignante dans le dossier de conception.
+     « replaces » : cartes que la stratégie rend inutiles dans la même ligne. « stop » : la stratégie clôt la tâche pour aujourd'hui. */
+  METHODS = METHODS.concat([
+    { id: "X01", dom: "maths", title: "J’organise la lecture de l’énoncé", min: 3, steps: ["J’ENTOURE ce que je connais.", "Je SOULIGNE ce que je cherche.", "J’ÉCRIS : « Je cherche… »"] },
+    { id: "X02", dom: "maths", title: "J’illustre", min: 4, steps: ["Je CHOISIS : dessin, tableau ou droite graduée.", "Je PLACE les nombres de l’énoncé.", "Je REGARDE ce qui manque."] },
+    { id: "X03", dom: "maths", title: "Des nombres plus simples", min: 4, steps: ["Je REMPLACE les nombres par des petits.", "Je RÉSOUS ce problème simple.", "Je REFAIS pareil avec les vrais nombres."] },
+    { id: "X04", dom: "maths", title: "L’exercice jumeau", min: 4, replaces: ["C03"], steps: ["Je CHERCHE un exercice qui ressemble dans mon cahier.", "Je REPÈRE ses étapes.", "Je fais les MÊMES étapes ici."] },
+    { id: "X05", dom: "maths", title: "Mes outils de calcul", min: 3, steps: ["Je POSE le calcul, je prends une table de multiplication. En dernier recours, ma calculatrice.", "Je TROUVE la ligne dont j’ai besoin.", "Je CALCULE, puis je range l’outil."] },
+    { id: "X06", dom: "maths", title: "Je pose tout", min: 4, steps: ["J’ÉCRIS une ligne par étape.", "Je POSE le calcul au lieu de le faire de tête.", "Je REFAIS seulement l’étape qui cloche."] },
+    { id: "X07", dom: "maths", title: "Est-ce possible ?", min: 2, steps: ["J’ESTIME : à peu près combien ?", "Je COMPARE avec mon résultat.", "Je VÉRIFIE l’unité."] },
+    { id: "R01", dom: "reviser", title: "Cacher, dire, vérifier", min: 5, replaces: ["C21"], steps: ["Je LIS un petit bout.", "Je CACHE et je DIS ce que je retiens.", "Je VÉRIFIE et je reprends ce qui manque."] },
+    { id: "R02", dom: "reviser", title: "J’explique", min: 4, steps: ["Je FERME mon cahier.", "J’EXPLIQUE la leçon à voix basse, comme à un plus jeune.", "Je NOTE ce que je n’ai pas su expliquer."] },
+    { id: "R03", dom: "reviser", title: "Mes trois questions", min: 6, steps: ["J’ÉCRIS trois questions sur la leçon.", "Je RÉPONDS sans regarder.", "Je GARDE celles que j’ai ratées."] },
+    { id: "R04", dom: "reviser", title: "Je refais sans regarder", min: 6, steps: ["Je CHOISIS un exercice déjà corrigé.", "Je CACHE la correction et je le refais.", "Je COMPARE étape par étape."] },
+    { id: "R05", dom: "reviser", title: "Je trie ce que je sais", min: 4, steps: ["Je COCHE ce que je sais déjà.", "J’ENTOURE ce que je ne sais pas encore.", "Je travaille SEULEMENT ce qui est entouré."] },
+    { id: "R06", dom: "reviser", title: "Un peu, plusieurs fois", min: 3, steps: ["Je COUPE la leçon en petits morceaux.", "J’en fais UN aujourd’hui.", "Je NOTE quand je fais le suivant."] },
+    { id: "L01", dom: "langues", title: "Le mot mystère, en langue", min: 2, replaces: ["M06", "C01"], steps: ["Je REGARDE les mots autour.", "Il RESSEMBLE à un mot français, ou à un mot que je connais ?", "Je CONTINUE avec mon idée. Sinon, le dictionnaire."] },
+    { id: "L02", dom: "langues", title: "Je découpe la phrase", min: 3, steps: ["Je CHERCHE le verbe.", "Je CHERCHE qui fait l’action.", "Je CHERCHE le reste : quoi, où, quand."] },
+    { id: "L03", dom: "langues", title: "Les trois écoutes", min: 5, steps: ["1re écoute : de quoi ça parle ?", "2e écoute : les informations importantes.", "3e écoute : les détails."] },
+    { id: "L04", dom: "langues", title: "Ma phrase en briques", min: 4, steps: ["J’ÉCRIS le sujet.", "J’AJOUTE le verbe, au bon temps.", "Je COMPLÈTE, puis je vérifie l’accord."] },
+    { id: "L05", dom: "langues", title: "Les indices de temps", min: 3, steps: ["Je CHERCHE un mot de temps : hier, demain, chaque jour.", "Je DÉCIDE : passé, présent ou futur ?", "Je CHOISIS la forme du verbe."] },
+    { id: "L06", dom: "langues", title: "Je le dis autrement", min: 2, steps: ["Je ne m’ARRÊTE pas.", "Je DIS un mot plus simple, ou j’EXPLIQUE le mot.", "Je CONTINUE ma phrase."] },
+    { id: "E01", dom: "etat", title: "Je recharge", label: "Je recharge (en classe)", min: 5, replaces: ["C11"], steps: ["Je PRENDS mon stylo en main, j’ouvre mes affaires.", "Je me REDRESSE, pieds au sol, je regarde au loin.", "Je me donne CINQ minutes sur une seule chose."] },
+    { id: "E02", dom: "etat", title: "Je recharge", label: "Je recharge (à la maison)", min: 12, replaces: ["C11"], steps: ["Je me LÈVE et je bouge deux minutes.", "Je BOIS, j’aère la pièce.", "Je reprends DIX minutes sur une seule tâche."] },
+    { id: "E03", dom: "etat", title: "Une seule priorité", min: 5, steps: ["Je REGARDE tout ce que j’ai à faire.", "Je CHOISIS le plus important.", "Je fais SEULEMENT ça."] },
+    { id: "E04", dom: "etat", title: "Mode minimum", min: 10, stop: true, replaces: ["C20"], steps: ["Je fais l’INDISPENSABLE pour demain.", "Je NOTE où je m’arrête.", "J’ARRÊTE et je me repose."] },
+    { id: "E05", dom: "etat", title: "Stop, respire, choisis", min: 2, replaces: ["C18"], steps: ["STOP : je pose mon crayon.", "Je RESPIRE : j’expire lentement, trois fois.", "Je CHOISIS la plus petite chose à faire, et je commence."] },
+    { id: "E06", dom: "etat", title: "Pas encore", min: 3, steps: ["Je DIS : « Je ne sais pas encore. »", "Je CHERCHE où je bloque exactement.", "Je fais UNE question que je sais faire."] }
+  ]);
+  var DOMAINS = [["fr", "Boîte à stratégies de français"], ["maths", "Maths"], ["reviser", "Réviser et mémoriser"], ["langues", "Langues"], ["etat", "Fatigue et stress"], ["gen", "Cartes générales"]];
+  var DOM_SHORT = { maths: "Maths", reviser: "Réviser", langues: "Langues", etat: "Énergie et stress" };
   var METHOD_STATES = ["Pas encore vue", "Guidée, étape par étape", "Avec la carte", "Seul"];
   var MODE_NAMES = { 1: "guidée", 2: "avec la carte", 3: "seul" };
   var DICO = [["Relève", "Je recopie des mots exacts du texte."], ["Cite", "Je recopie des mots du texte entre « guillemets »."], ["Souligne", "Je trace un trait sous les mots."],
@@ -357,7 +413,7 @@ function boot() {
   var STORE_KEY = "pl-restart-v1";
   var storageOk = true;
   function fresh() {
-    return { version: 1, settings: { audio: true, chrono: true, timer: true, beep: true, autoLevel: true, demoMethods: true, pin: "" },
+    return { version: 1, settings: { audio: true, chrono: true, timer: true, beep: true, autoLevel: false, demoMethods: true, place: "classe", v3: true, pin: "" },
       labels: { families: {}, lines: {}, cards: {} }, students: [], tasks: [], blocks: [] };
   }
   /* Rétrocompatibilité : toute propriété absente d'une ancienne sauvegarde reçoit sa valeur par défaut. */
@@ -366,6 +422,8 @@ function boot() {
     if (!s || typeof s !== "object") return f;
     s.version = 1;
     s.settings = s.settings || {};
+    /* passage à la troisième version : plus aucun changement de niveau sans validation de l'enseignante */
+    if (!s.settings.v3) { s.settings.autoLevel = false; s.settings.v3 = true; }
     for (k in f.settings) if (!(k in s.settings)) s.settings[k] = f.settings[k];
     s.labels = s.labels || {};
     s.labels.families = s.labels.families || {};
@@ -376,7 +434,8 @@ function boot() {
     s.blocks = Array.isArray(s.blocks) ? s.blocks : [];
     s.students.forEach(function (st) {
       st.levels = st.levels || {}; st.lock = st.lock || {}; st.since = st.since || {}; st.pinned = st.pinned || [];
-      st.methods = st.methods || {}; st.plan = !!st.plan;
+      st.methods = st.methods || {}; st.plan = !!st.plan; st.check = !!st.check;
+      st.msince = st.msince || {}; st.mdismiss = st.mdismiss || {};
     });
     s.tasks.forEach(function (t) { t.plan = t.plan || []; if (!("planHelped" in t)) t.planHelped = null; });
     s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.teacher = b.teacher || {}; });
@@ -401,29 +460,32 @@ function boot() {
   function famDef(id) { return id === "F0" ? F0 : byId(FAMILIES, id); }
   function famLabel(id) { var o = S.labels.families[id]; var d = famDef(id); return (o && o.label) || (d ? d.label : id); }
   function lineLabel(id) { var o = S.labels.lines[id]; return (o && o.label) || (LINES[id] ? LINES[id].label : id); }
+  /* Format unique : toute carte a un titre, une à trois étapes, parfois un « truc », et un état par élève. */
   function card(id) {
-    var m = byId(METHODS, id);
-    if (m) return { id: id, method: true, num: m.num, title: m.title, text: m.when, steps: m.steps, truc: m.truc, annex: m.annex, min: m.min, active: true };
-    var d = byId(CARDS, id); if (!d) return null;
-    var o = S.labels.cards[id] || {};
-    return { id: id, title: o.title || d.title, text: o.text || d.text, min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin };
+    var m = byId(METHODS, id), d, o, text;
+    if (m) return { id: id, dom: m.dom, num: m.num || "", title: m.title, label: m.label || m.title, text: m.when || "", steps: m.steps, truc: m.truc || "", annex: m.annex, min: m.min, active: true, replaces: m.replaces, stop: !!m.stop };
+    d = byId(CARDS, id); if (!d) return null;
+    o = S.labels.cards[id] || {}; text = o.text || d.text;
+    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin, stop: !!d.stop };
   }
   /* Où en est l'élève avec une stratégie : 0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul.
-     Sans élève (coup de main sans suivi), les stratégies sont montrées guidées si le réglage le permet. */
+     Par défaut : le dossier de français commence « pas encore vu », tout le reste « guidé ».
+     Sans élève (coup de main), tout est guidé ; le dossier de français seulement si le réglage le permet. */
   function methodState(id, sid) {
-    var st = sid ? student(sid) : null;
-    if (!st) return S.settings.demoMethods ? 1 : 0;
-    return st.methods[id] || 0;
+    var st = sid ? student(sid) : null, m = byId(METHODS, id), fr = !!m && m.dom === "fr";
+    if (!st) return fr ? (S.settings.demoMethods ? 1 : 0) : 1;
+    if (id in st.methods) return st.methods[id];
+    return fr ? 0 : 1;
   }
-  function knownMethods(sid) {
-    return METHODS.filter(function (m) { return methodState(m.id, sid) > 0; }).map(function (m) { return m.id; });
+  function knownMethods(sid, dom) {
+    return METHODS.filter(function (m) { return (!dom || m.dom === dom) && methodState(m.id, sid) > 0; }).map(function (m) { return m.id; });
   }
   function available(id, b) {
     var c = card(id);
-    if (!c || !c.active) return false;
-    if (c.method) return methodState(id, b.sid) > 0;
+    if (!c || !c.active || methodState(id, b.sid) === 0) return false;
     return !(c.twin && methodState(c.twin, b.sid) > 0);
   }
+
   function student(id) { return byId(S.students, id); }
   function fmtClock(ms) {
     var s = Math.max(0, Math.round(ms / 1000)), m = Math.floor(s / 60); s = s % 60;
@@ -539,20 +601,53 @@ function boot() {
   function usable(id, b) {
     return available(id, b) && triedIn(b).indexOf(id) < 0;
   }
-  function blockType(b) { return U.task ? U.task.type : (b.type || null); }
-  /* Suite réelle d'une ligne pour ce blocage : stratégies du dossier selon la tâche, puis cartes génériques. */
-  function effectiveSeq(lid, b) {
-    var L = LINES[lid], type = blockType(b), ids = [];
-    if (L.byType) ids = (L.byType[type] || L.byType.autres || []).slice();
-    ids = ids.concat(L.seq);
-    return ids.filter(function (id, i) { return ids.indexOf(id) === i && (id === "C19" || available(id, b)); });
+  /* Contexte d'un blocage : matière, tâche, lieu. Vient de la tâche (mode suivi) ou des réponses données en route. */
+  var CTX_KEYS = ["subject", "type", "place"];
+  function context(b) {
+    var t = U.task || {};
+    return { subject: t.subject || b.subject || "", type: t.type || b.type || "", place: t.place || b.place || "" };
   }
-  /* En coup de main, la tâche n'est pas connue : on la demande seulement si elle change la carte proposée. */
-  function needsType(lid, b) {
-    var L = LINES[lid], k, i;
-    if (!L.byType || blockType(b)) return false;
-    for (k in L.byType) for (i = 0; i < L.byType[k].length; i++) if (available(L.byType[k][i], b)) return true;
-    return false;
+  function ruleOk(r, c) {
+    var k;
+    for (k in (r.when || {})) if (c[k] !== r.when[k]) return false;
+    for (k in (r.not || {})) if (c[k] === r.not[k]) return false;
+    return true;
+  }
+  function lineOpen(lid, b) {
+    var L = LINES[lid];
+    return !L.only || ruleOk({ when: L.only }, context(b));
+  }
+  /* Suite réelle d'une ligne pour ce blocage : stratégies du contexte d'abord, puis suite de base, sans doublon ni carte remplacée. */
+  function effectiveSeq(lid, b) {
+    var L = LINES[lid], c = context(b), ids = [], seq = L.seq, drop = [];
+    (L.pre || []).forEach(function (r) {
+      if (!ruleOk(r, c)) return;
+      if (r.seq) seq = r.seq;
+      if (r.ids) ids = ids.concat(r.ids);
+    });
+    ids = ids.concat(seq);
+    ids = ids.filter(function (id, i) { return ids.indexOf(id) === i && (id === "C19" || available(id, b)); });
+    ids.forEach(function (id) { var m = card(id); if (m && m.replaces) drop = drop.concat(m.replaces); });
+    return ids.filter(function (id) { return drop.indexOf(id) < 0; });
+  }
+  /* Quelle information manque pour choisir ? On ne la demande que si elle change la stratégie proposée. */
+  function needsCtx(lid, b) {
+    var L = LINES[lid], c = context(b), i, j, k, q, r, other;
+    if (!L.pre) return null;
+    for (i = 0; i < CTX_KEYS.length; i++) {
+      k = CTX_KEYS[i];
+      if (c[k]) continue;
+      for (j = 0; j < L.pre.length; j++) {
+        r = L.pre[j];
+        if (!r.when || !(k in r.when)) continue;
+        other = true;
+        for (q in r.when) if (q !== k && c[q] && c[q] !== r.when[q]) other = false;
+        for (q in (r.not || {})) if (c[q] && c[q] === r.not[q]) other = false;
+        if (!other) continue;
+        if (r.seq || (r.ids || []).some(function (id) { return available(id, b); })) return k;
+      }
+    }
+    return null;
   }
   function nextUntried(seq, b) {
     for (var i = 0; i < seq.length; i++) if (seq[i] === "C19" || usable(seq[i], b)) return seq[i];
@@ -561,10 +656,11 @@ function boot() {
   /* Cartes de remplacement quand l'élève refuse la carte proposée : la ligne d'abord, puis le reste de la famille. */
   function alternatives(b, current) {
     var out = [], fam = U.line ? U.line.fam : b.family, ids = (U.line ? U.line.seq : []).slice(), k;
-    for (k in LINES) if (LINES[k].fam === fam) ids = ids.concat(effectiveSeq(k, b));
+    for (k in LINES) if (LINES[k].fam === fam && lineOpen(k, b)) ids = ids.concat(effectiveSeq(k, b));
     ids.forEach(function (id) {
-      if (id === "C19" || id === "C20" || id === current) return;
-      if (out.indexOf(id) < 0 && usable(id, b)) out.push(id);
+      if (id === "C19" || id === current) return;
+      var c = card(id);
+      if (c && !c.stop && out.indexOf(id) < 0 && usable(id, b)) out.push(id);
     });
     return out;
   }
@@ -578,8 +674,9 @@ function boot() {
   }
   function familyCards(fam, b) {
     var out = [], k;
-    for (k in LINES) if (LINES[k].fam === fam) effectiveSeq(k, b).forEach(function (id) {
-      if (id !== "C19" && id !== "C20" && out.indexOf(id) < 0) out.push(id);
+    for (k in LINES) if (LINES[k].fam === fam && lineOpen(k, b)) effectiveSeq(k, b).forEach(function (id) {
+      var c = card(id);
+      if (id !== "C19" && c && !c.stop && out.indexOf(id) < 0) out.push(id);
     });
     return out;
   }
@@ -650,11 +747,15 @@ function boot() {
   }
   var draft = { type: null, subject: "" };
   function screenTask() {
+    var place = S.settings.place || "classe";
     var html = title("Tu fais quoi ?") + '<div class="tiles">' + TASK_TYPES.map(function (t) {
       return '<button class="tile' + (draft.type === t.id ? " sel" : "") + '" data-a="type" data-id="' + t.id + '" aria-pressed="' + (draft.type === t.id) + '">' + svg(t.icon) + "<span>" + esc(t.label) + "</span></button>";
     }).join("") + "</div>" +
-      '<p class="sub">Matière, si tu veux :</p><div class="chips">' + SUBJECTS.map(function (s) {
+      '<p class="sub">Matière :</p><div class="chips">' + SUBJECTS.map(function (s) {
         return '<button class="chip' + (draft.subject === s ? " sel" : "") + '" data-a="subject" data-id="' + esc(s) + '" aria-pressed="' + (draft.subject === s) + '">' + esc(s) + "</button>";
+      }).join("") + "</div>" +
+      '<p class="sub">Tu es où ?</p><div class="chips">' + [["classe", "En classe"], ["maison", "À la maison"]].map(function (x) {
+        return '<button class="chip' + (place === x[0] ? " sel" : "") + '" data-a="place" data-id="' + x[0] + '" aria-pressed="' + (place === x[0]) + '">' + x[1] + "</button>";
       }).join("") + "</div>" +
       '<button class="big" data-a="start"' + (draft.type ? "" : " disabled style=\"opacity:.45\"") + ">" + svg("play") + "Je commence</button>" + footHome();
     show(html);
@@ -663,28 +764,45 @@ function boot() {
   function startTask() {
     if (!draft.type) return;
     var old = openTask(U.sid), st = student(U.sid); if (old) closeTask(old, "abandonnee");
-    U.task = { id: uid("t"), sid: U.sid, type: draft.type, subject: draft.subject, start: now(), end: null, status: null, plan: [], planHelped: null };
+    U.task = { id: uid("t"), sid: U.sid, type: draft.type, subject: draft.subject, place: S.settings.place || "classe", start: now(), end: null, status: null, plan: [], planHelped: null };
     S.tasks.push(U.task); save();
     draft = { type: null, subject: "" }; draftPlan = [];
-    if (st && st.plan && knownMethods(U.sid).length) screenPlan(); else screenWork();
+    if (st && st.plan && planIds(U.sid, U.task).length) screenPlan(); else screenWork();
+  }
+  /* Stratégies proposées dans le plan d'attaque : celles du domaine de la tâche, connues de l'élève. */
+  function planIds(sid, t) {
+    var doms = t.type === "reviser" ? ["reviser"] : (t.subject === "Maths" ? ["maths"] : (t.subject === "Langues" ? ["langues"] : ["fr"]));
+    var extra = t.type !== "reviser" && (t.subject === "Maths" || t.subject === "Langues") ? ["M01", "M02"] : [];
+    return METHODS.filter(function (m) {
+      return m.id !== "M13" && (doms.indexOf(m.dom) >= 0 || extra.indexOf(m.id) >= 0) && methodState(m.id, sid) > 0;
+    }).map(function (m) { return m.id; });
   }
   /* « Mon plan d'attaque » (stratégie 13) au démarrage : facultatif, activé par élève dans l'espace enseignante. */
   function screenPlan() {
     show(title("Mon plan d’attaque") + '<p class="sub">Regarde ta tâche. Quelles stratégies vas-tu utiliser ?</p><div class="choices">' +
-      knownMethods(U.sid).filter(function (id) { return id !== "M13"; }).map(function (id) { /* la stratégie 13 est le plan lui-même */
+      planIds(U.sid, U.task).map(function (id) {
         var c = card(id);
-        return '<div class="choice-row"><button class="choice" data-a="planToggle" data-id="' + id + '" aria-pressed="false"><span class="num">' + esc(c.num) + "</span><span>" + esc(c.title) + "</span></button>" + sayBtn(c.title) + "</div>";
+        return '<div class="choice-row"><button class="choice" data-a="planToggle" data-id="' + id + '" aria-pressed="false">' + (c.num ? '<span class="num">' + esc(c.num) + "</span>" : "") + "<span>" + esc(c.title) + "</span></button>" + sayBtn(c.title) + "</div>";
       }).join("") + '</div><button class="big" data-a="planGo">' + svg("play") + "C’est parti</button>" +
       '<div class="foot"><span></span><button class="link" data-a="planGo" data-skip="1">Sans plan cette fois</button></div>');
   }
   function screenViewMethod(id) {
     var c = card(id), t = U.task; if (!c || !t) return;
     t.viewed = t.viewed || []; t.viewed.push(id); save();
-    show(title("Stratégie " + c.num) + cardHtml(c, 2, "full") +
+    show(title(c.num ? "Stratégie " + c.num : "Ma stratégie") + cardHtml(c, 2, "full") +
       '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Retour à ma tâche</button></div>");
   }
+  /* « Avant de rendre » : courte vérification avant de clore une tâche terminée, activable par élève. */
+  function screenCheck() {
+    var t = U.task, items = ["J’ai répondu à toutes les questions.", "J’ai relu la consigne."];
+    items.push(t.subject === "Maths" ? "J’ai mis les unités." : (t.type === "ecrire" ? "J’ai relu avec une clé de relecture." : "Mon travail est lisible."));
+    show(title("Avant de rendre") + '<div class="choices">' + items.map(function (x) {
+      return '<div class="choice-row"><button class="choice" data-a="checkToggle" aria-pressed="false">' + svg("check") + "<span>" + esc(x) + "</span></button>" + sayBtn(x) + "</div>";
+    }).join("") + '</div><button class="big" data-a="checkOk">' + svg("check") + "C’est vérifié</button>" +
+      '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Je corrige encore</button></div>");
+  }
   function screenWork(msg) {
-    U.block = null; U.line = null;
+    U.block = null; U.line = null; U.checkDone = false;
     var t = U.task, tt = byId(TASK_TYPES, t.type) || TASK_TYPES[4];
     show((msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
       '<div class="taskline">' + svg(tt.icon) + "<span>" + esc(tt.label) + (t.subject ? " · " + esc(t.subject) : "") + "</span>" +
@@ -693,7 +811,7 @@ function boot() {
       '<button class="big" data-a="blocked">' + svg("buoy") + "Je suis bloqué</button>" +
       '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
       (t.plan && t.plan.length ? '<p class="sub">Mon plan :</p><div class="chips">' + t.plan.map(function (id) {
-        var c = card(id); return c ? '<button class="chip" data-a="viewMethod" data-id="' + id + '">' + esc(c.num) + " · " + esc(c.title) + "</button>" : "";
+        var c = card(id); return c ? '<button class="chip" data-a="viewMethod" data-id="' + id + '">' + (c.num ? esc(c.num) + " · " : "") + esc(c.title) + "</button>" : "";
       }).join("") + "</div>" : ""), { center: true });
     if (S.settings.chrono) {
       var el = document.getElementById("chrono");
@@ -731,13 +849,20 @@ function boot() {
       return '<button class="tile" data-a="attachPick" data-id="' + esc(st.id) + '">' + svg(st.icon) + "<span>" + esc(st.name) + "</span></button>";
     }).join("") + '</div><div class="foot"><button class="link" data-a="families">' + svg("back") + "Retour</button></div>");
   }
-  function screenAskType() {
-    show(title("C’est pour quelle tâche ?") + '<div class="tiles">' + TASK_TYPES.map(function (t) {
-      return '<button class="tile" data-a="btype" data-id="' + t.id + '">' + svg(t.icon) + "<span>" + esc(t.label) + "</span></button>";
+  /* Question de contexte posée en route (matière, tâche ou lieu), seulement quand elle change la stratégie. */
+  function screenAsk(key) {
+    var opts, q;
+    if (key === "subject") { q = "C’est en quelle matière ?"; opts = SUBJECTS.map(function (x) { return [x, x, null]; }); }
+    else if (key === "type") { q = "C’est pour quelle tâche ?"; opts = TASK_TYPES.map(function (t) { return [t.id, t.label, t.icon]; }); }
+    else { q = "Tu es où ?"; opts = [["classe", "En classe", "book"], ["maison", "À la maison", "home"]]; }
+    U.askKey = key;
+    show(title(q) + '<div class="tiles">' + opts.map(function (o) {
+      return '<button class="tile" data-a="ctxPick" data-id="' + esc(o[0]) + '">' + (o[2] ? svg(o[2]) : "") + "<span>" + esc(o[1]) + "</span></button>";
     }).join("") + "</div>" + backToTask());
   }
   function pickFamily(fid) {
     var b = U.block, st = student(b.sid);
+    if (FAMILY_SUBJECT[fid] && !context(b).subject) { U.pending = { family: fid }; return screenAsk("subject"); }
     b.family = fid;
     if (fid === "F0") {
       b.level = 1; b.line = "F0"; U.line = { fam: "F0", seq: ["C18"] }; save();
@@ -766,23 +891,24 @@ function boot() {
     show(html);
   }
   function askQuestion(qid) {
-    var q = QUESTIONS[qid]; U.qid = qid;
-    show(title(q.text) + '<div class="choices">' + q.options.map(function (o, i) {
+    var q = QUESTIONS[qid], b = U.block; U.qid = qid;
+    U.opts = q.options.filter(function (o) { return !o.line || lineOpen(o.line, b); });
+    show(title(q.text) + '<div class="choices">' + U.opts.map(function (o, i) {
       var label = o.label || lineLabel(o.line);
       var cls = o.label === "Oui" ? "yes" : (o.label === "Non" ? "no" : "");
       return choice("answer", { i: i }, label, o.label === "Oui" ? "check" : (o.label === "Non" ? "cross" : null), null, cls);
     }).join("") + "</div>" + backToTask());
   }
   function answer(i) {
-    var q = QUESTIONS[U.qid], o = q.options[i], b = U.block;
+    var o = (U.opts || [])[i], b = U.block;
     if (!o) return;
     b.answers.push(o.label || lineLabel(o.line));
     if (o.next) { save(); return askQuestion(o.next); }
     setLine(o.line);
   }
   function setLine(lid) {
-    var b = U.block, L = LINES[lid];
-    if (needsType(lid, b)) { U.pendingLine = lid; return screenAskType(); }
+    var b = U.block, L = LINES[lid], need = needsCtx(lid, b);
+    if (need) { U.pending = { line: lid }; return screenAsk(need); }
     b.line = b.line && b.switched ? b.line + ">" + lid : lid;
     U.line = { fam: L.fam, seq: effectiveSeq(lid, b), then: L.then };
     save();
@@ -794,7 +920,7 @@ function boot() {
     if (id === "C19") return screenHelp();
     var c = card(id), b = U.block, alts;
     U.cardId = id; U.origin = origin; U.peek = false; U.step = 0;
-    U.mode = c.method ? (methodState(id, b.sid) || 1) : 0;
+    U.mode = methodState(id, b.sid) || 1;
     alts = alternatives(b, id);
     show(title("Essaie ça.") + cardHtml(c, U.mode, "preview") +
       '<button class="big" data-a="try">' + svg("play") + "J’essaie</button>" +
@@ -802,8 +928,9 @@ function boot() {
       (alts.length && b.family !== "F0" ? '<button class="link" data-a="other">' + svg("loop") + "Une autre idée</button>" : "") + "</div>");
   }
   function stepsHtml(c) {
-    return '<ol class="steps">' + c.steps.map(function (s) { return "<li><span>" + esc(s) + "</span></li>"; }).join("") +
-      '</ol><p class="truc"><b>Mon truc :</b> ' + esc(c.truc) + "</p>";
+    return (c.steps.length === 1 ? "<p>" + esc(c.steps[0]) + "</p>"
+      : '<ol class="steps">' + c.steps.map(function (s) { return "<li><span>" + esc(s) + "</span></li>"; }).join("") + "</ol>") +
+      (c.truc ? '<p class="truc"><b>Mon truc :</b> ' + esc(c.truc) + "</p>" : "");
   }
   function annexHtml(kind) {
     var sid = U.block ? U.block.sid : U.sid, ids;
@@ -813,7 +940,7 @@ function boot() {
     if (kind === "cles") return '<details class="annex"><summary>Mon trousseau de clés</summary><div class="in"><table><tbody>' +
       CLES.map(function (r) { return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>"; }).join("") + "</tbody></table></div></details>";
     if (kind === "boite") {
-      ids = knownMethods(sid);
+      ids = knownMethods(sid, "fr");
       return ids.length ? '<details class="annex"><summary>Ma boîte à outils</summary><div class="in">' + ids.map(function (id) {
         var m = card(id); return "<p><b>" + esc(m.num) + "</b> · " + esc(m.title) + "</p>";
       }).join("") + "</div></details>" : "";
@@ -823,24 +950,26 @@ function boot() {
   /* view : « preview » (écran « Essaie ça »), « try » (pendant l'essai), « full » (carte entière, hors blocage).
      mode d'une stratégie : 1 étapes une par une, 2 carte entière, 3 nom seul avec carte à la demande. */
   function cardHtml(c, mode, view) {
-    var dur = view === "preview" ? '<span class="dur">' + svg("timer") + c.min + " min</span>" : "", body, say;
-    if (!c.method) return '<div class="card"><div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(c.title + ". " + c.text, true) + "</div><p>" + esc(c.text) + "</p>" + dur + "</div>";
+    var dur = view === "preview" ? '<span class="dur">' + svg("timer") + c.min + " min</span>" : "";
+    var one = c.steps.length === 1, over = c.dom === "fr" ? "Stratégie " + c.num : (DOM_SHORT[c.dom] || ""), body, say;
     say = c.title + ". " + c.steps.join(" ");
-    if (view === "full" || mode === 2) body = stepsHtml(c);
+    if (view === "full" || mode === 2 || (one && mode !== 3)) body = stepsHtml(c);
     else if (mode === 3) {
-      body = "<p>Tu te souviens des trois étapes ?</p>" + '<details class="annex" data-peek="1"><summary>Voir la carte</summary><div class="in">' + stepsHtml(c) + "</div></details>";
-      say = c.title + ". Tu te souviens des trois étapes ?";
+      body = "<p>" + (one ? "Tu te souviens de ce qu’il faut faire ?" : "Tu te souviens des étapes ?") + "</p>" +
+        '<details class="annex" data-peek="1"><summary>Voir la carte</summary><div class="in">' + stepsHtml(c) + "</div></details>";
+      say = c.title + ". " + (one ? "Tu te souviens de ce qu’il faut faire ?" : "Tu te souviens des étapes ?");
     } else if (view === "try") {
-      body = '<p class="stepnum">Étape ' + (U.step + 1) + " sur " + c.steps.length + "</p><p>" + esc(c.steps[U.step]) + '</p><p class="truc"><b>Mon truc :</b> ' + esc(c.truc) + "</p>";
+      body = '<p class="stepnum">Étape ' + (U.step + 1) + " sur " + c.steps.length + "</p><p>" + esc(c.steps[U.step]) + "</p>" +
+        (c.truc ? '<p class="truc"><b>Mon truc :</b> ' + esc(c.truc) + "</p>" : "");
       say = c.steps[U.step];
-    } else body = "<p>" + esc(c.text) + '</p><p class="sub">' + c.steps.length + " étapes, une par une.</p>";
-    return '<div class="card"><span class="overline">Stratégie ' + esc(c.num) + '</span><div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(say, true) + "</div>" +
-      body + annexHtml(c.annex) + dur + "</div>";
+    } else body = (c.text ? "<p>" + esc(c.text) + "</p>" : "") + '<p class="sub">' + c.steps.length + " étapes, une par une.</p>";
+    return '<div class="card">' + (over ? '<span class="overline">' + esc(over) + "</span>" : "") +
+      '<div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(say, true) + "</div>" + body + annexHtml(c.annex) + dur + "</div>";
   }
   function startTry() { U.tryStart = now(); U.step = 0; renderTry(); }
   function renderTry() {
     var c = card(U.cardId), total = c.min * 60 * 1000, rang = now() - U.tryStart >= total;
-    var last = !(c.method && U.mode === 1) || U.step >= c.steps.length - 1;
+    var last = U.mode !== 1 || U.step >= c.steps.length - 1;
     show('<h1 style="position:absolute;left:-9999px">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, U.mode, "try") +
       (S.settings.timer ? '<div class="timer" id="timer" role="timer" aria-live="off"></div>' : "") +
       (last ? '<button class="big" data-a="tried">' + svg("check") + "C’est fait</button>"
@@ -860,7 +989,7 @@ function boot() {
     var b = U.block; U.tryDur = now() - U.tryStart;
     /* cartes sans question « ça repart ? » : retour au calme (on passe à l'aide) et arrêt propre (on clôt la tâche) */
     if (b.family === "F0") { pushTry(null); return screenHelp(); }
-    if (U.cardId === "C20") { pushTry(null); endBlock("stop"); return U.task ? finishAs("reportee") : goHome(); }
+    if (card(U.cardId).stop) { pushTry(null); endBlock("stop"); return U.task ? finishAs("reportee") : goHome(); }
     show(title("Ça repart ?") + '<div class="choices">' +
       choice("result", { r: "1" }, "Oui", "check", null, "yes") +
       choice("result", { r: "0.5" }, "Un peu", "half", null, "mid") +
@@ -1048,6 +1177,7 @@ function boot() {
       stat(s.delay === null ? "–" : fmtClock(s.delay), "délai médian de reprise") + stat(s.observed, "reprises observées") +
       stat(s.agree, "accord sur la cause") + stat(pct(s.own), "cartes choisies par l’élève") + stat(s.help, "recours à l’aide") + stat(s.never, "« jamais appris ça »") + stat(s.plans + " / " + s.tasks, "tâches avec plan d’attaque") +
       '</div><p class="small">Les reprises déclarées viennent de l’élève. Seules vos observations (colonnes de droite) disent si le travail a vraiment repris.</p></div>';
+    html += suggestionsHtml(sid);
     if (!bs.length) return html + '<div class="panel"><p>Aucun blocage enregistré pour cet élève.</p></div>';
     html += '<div class="panel"><h2>Blocages, du plus récent au plus ancien</h2>' + bs.map(function (b) {
       var t = byId(S.tasks, b.tid) || {}, tt = byId(TASK_TYPES, t.type || b.type) || { label: b.tid ? "?" : "Tâche non précisée" };
@@ -1055,17 +1185,54 @@ function boot() {
       var tries = b.tries.map(function (x) {
         var c = card(x.card), r = x.result === null ? "" : (x.result === 1 ? "oui" : (x.result === 0.5 ? "un peu" : "non"));
         return esc(c ? c.title : x.card) + (r ? ' <span class="tag ' + (x.result === 1 ? "ok" : (x.result === 0 ? "ko" : "mid")) + '">' + r + "</span>" : "") + (x.origin === "choisie" ? ' <span class="tag">son choix</span>' : "") +
-          (x.mode ? ' <span class="tag">' + MODE_NAMES[x.mode] + "</span>" : "") + (x.peek ? ' <span class="tag mid">a rouvert la carte</span>' : "");
+          (x.mode > 1 ? ' <span class="tag">' + MODE_NAMES[x.mode] + "</span>" : "") + (x.peek ? ' <span class="tag mid">a rouvert la carte</span>' : "");
       }).join(", ") || "aucune";
       var issue = '<span class="tag ' + (b.end === "reprise" ? "ok" : "mid") + '">' + (END_LABELS[b.end] || b.end) + "</span>" +
         (b.end === "reprise" ? ' <span class="small">en ' + fmtClock(b.resumedAt - b.at) + "</span>" : "") + (rebound(b) ? ' <span class="tag ko">nouveau blocage &lt; 5 min</span>' : "");
       return '<div class="blk"><div class="blk-main">' +
-        '<p class="small">' + fmtDate(b.at) + " · " + esc(tt.label) + (t.subject ? " · " + esc(t.subject) : "") + (b.tid ? " · à " + Math.round(b.t / 60000) + " min" : " · coup de main") + (LEVEL_NAMES[b.level] ? " · " + LEVEL_NAMES[b.level] : "") + (b.unfolded ? " · a demandé à être guidé" : "") + "</p>" +
+        '<p class="small">' + fmtDate(b.at) + " · " + esc(tt.label) + (t.subject || b.subject ? " · " + esc(t.subject || b.subject) : "") + ((t.place || b.place) === "maison" ? " · à la maison" : "") + (b.tid ? " · à " + Math.round(b.t / 60000) + " min" : " · coup de main") + (LEVEL_NAMES[b.level] ? " · " + LEVEL_NAMES[b.level] : "") + (b.unfolded ? " · a demandé à être guidé" : "") + "</p>" +
         "<p><b>" + cause + "</b></p><p>Cartes : " + tries + "</p><p>" + issue + "</p></div>" +
         '<div class="blk-note"><label class="field"><span>Votre avis sur la cause</span>' + sel("avis", b, [["", "–"], ["accord", "D’accord"], ["autre", "Autre famille"], ["nonobs", "Pas observé"]]) + "</label>" +
         '<label class="field"><span>Reprise observée en 5 min</span>' + sel("reprise", b, [["", "–"], ["oui", "Oui"], ["non", "Non"]]) + "</label></div></div>";
     }).join("") + "</div>";
     return html;
+  }
+  /* Retrait de l'aide : l'outil propose, l'enseignante valide. Seuils de départ arbitraires :
+     3 reprises de suite pour alléger ; 2 échecs de suite, ou 2 cartes rouvertes au niveau « seul », pour renforcer. */
+  function strategyIds() {
+    return METHODS.map(function (m) { return m.id; }).concat(CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19"; }).map(function (d) { return d.id; }));
+  }
+  function strategyTries(sid, id) {
+    var st = student(sid), since = st.msince[id] || 0, out = [];
+    S.blocks.forEach(function (b) {
+      if (b.sid !== sid) return;
+      b.tries.forEach(function (t) { if (t.card === id && t.result !== null && t.at > since) out.push(t); });
+    });
+    return out.sort(function (a, b) { return a.at - b.at; });
+  }
+  function suggestions(sid) {
+    var st = student(sid), out = [];
+    if (!st) return out;
+    strategyIds().forEach(function (id) {
+      var state = methodState(id, sid), c = card(id), tr, n, to = 0, why = "";
+      if (!state || !c) return;
+      tr = strategyTries(sid, id); n = tr.length;
+      if (!n || (st.mdismiss[id] || 0) >= tr[n - 1].at) return;
+      if (state < 3 && n >= 3 && tr.slice(-3).every(function (t) { return t.result >= 0.5; })) { to = c.steps.length === 1 ? 3 : state + 1; why = "3 reprises de suite"; }
+      else if (state > 1 && n >= 2 && tr.slice(-2).every(function (t) { return t.result === 0; })) { to = state - 1; why = "2 échecs de suite"; }
+      else if (state === 3 && n >= 2 && tr.slice(-2).every(function (t) { return t.peek; })) { to = 2; why = "carte rouverte 2 fois de suite"; }
+      if (to) out.push({ id: id, from: state, to: to, why: why });
+    });
+    return out;
+  }
+  function suggestionsHtml(sid) {
+    var list = suggestions(sid);
+    if (!list.length) return "";
+    return '<div class="panel"><h2>Retrait de l’aide : suggestions</h2><p class="small">Rien ne change tant que vous ne validez pas.</p>' + list.map(function (g) {
+      var c = card(g.id);
+      return '<div class="blk"><div class="blk-main"><p><b>' + esc(c.label) + "</b></p><p>" + METHOD_STATES[g.from] + " → " + METHOD_STATES[g.to] + ' <span class="small">· ' + g.why + "</span></p></div>" +
+        '<div class="blk-note"><button class="btn primary" data-a="sugOk" data-id="' + g.id + '" data-to="' + g.to + '">Valider</button><button class="btn" data-a="sugNo" data-id="' + g.id + '">Pas maintenant</button></div></div>';
+    }).join("") + "</div>";
   }
   function stat(v, l) { return '<div class="stat"><b>' + v + "</b><span>" + l + "</span></div>"; }
   function sel(field, b, opts) {
@@ -1085,22 +1252,29 @@ function boot() {
       return METHOD_STATES.map(function (n, i) { return '<option value="' + i + '"' + (i === cur ? " selected" : "") + ">" + n + "</option>"; }).join("");
     }
     S.students.forEach(function (st) {
-      var known = knownMethods(st.id).length;
       html += '<div class="panel"><div class="formrow"><span class="who fit">' + svg(st.icon) + esc(st.name) + "</span><span></span>" +
         '<button class="btn danger fit" data-a="delStudent" data-id="' + esc(st.id) + '">Supprimer</button></div>' +
-        '<div class="tw"><table><thead><tr><th>Famille</th><th>Niveau d’aide</th><th>Verrouiller</th></tr></thead><tbody>' +
+        '<label class="check"><input type="checkbox" data-c="planOn" data-id="' + esc(st.id) + '"' + (st.plan ? " checked" : "") + ">Écran « Mon plan d’attaque » au démarrage d’une tâche</label>" +
+        '<label class="check"><input type="checkbox" data-c="checkOn" data-id="' + esc(st.id) + '"' + (st.check ? " checked" : "") + ">Liste « Avant de rendre » quand la tâche est terminée</label>" +
+        '<details class="annex"' + (U.openBox === st.id ? " open" : "") + '><summary>Stratégies : où en est ' + esc(st.name) + ' (' + knownMethods(st.id, "fr").length + ' sur 14 du dossier de français)</summary><div class="in">' +
+        '<p class="small">« Pas encore vue » : jamais proposée. « Guidée » : les étapes une par une. « Avec la carte » : la carte entière. « Seul » : seulement le nom, carte à la demande. Les suggestions de changement apparaissent dans « Suivi ».</p>' +
+        DOMAINS.map(function (dm) {
+          var ids = dm[0] === "gen" ? CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19"; }).map(function (d) { return d.id; })
+            : METHODS.filter(function (m) { return m.dom === dm[0]; }).map(function (m) { return m.id; });
+          return "<h2>" + dm[1] + "</h2>" +
+            '<label class="field" style="max-width:340px"><span>Tout ce domaine sur…</span><select data-c="methodDom" data-id="' + esc(st.id) + '" data-d="' + dm[0] + '"><option value="">–</option>' + states(-1) + "</select></label>" +
+            '<div class="tw"><table><tbody>' + ids.map(function (id) {
+              var c = card(id);
+              return "<tr><td>" + (c.num ? "<b>" + esc(c.num) + "</b> · " : "") + esc(c.label) + '</td><td><select data-c="methodState" data-id="' + esc(st.id) + '" data-m="' + id + '" aria-label="' + esc(c.label) + '">' + states(methodState(id, st.id)) + "</select></td></tr>";
+            }).join("") + "</tbody></table></div>";
+        }).join("") + "</div></details>" +
+        '<details class="annex"><summary>Qui choisit la carte, par famille de blocage</summary><div class="in"><p class="small">N1 : l’outil pose les questions et propose. N2 et N3 : l’élève choisit lui-même parmi trois cartes.</p>' +
+        '<div class="tw"><table><thead><tr><th>Famille</th><th>Niveau</th><th>Verrouiller</th></tr></thead><tbody>' +
         FAMILIES.filter(function (f) { return f.id !== "F5"; }).map(function (f) {
           var lv = st.levels[f.id] || 1;
           return "<tr><td>" + esc(famLabel(f.id)) + '</td><td><select data-c="level" data-id="' + esc(st.id) + '" data-f="' + f.id + '" aria-label="Niveau pour ' + esc(famLabel(f.id)) + '">' +
             [1, 2, 3].map(function (n) { return '<option value="' + n + '"' + (n === lv ? " selected" : "") + ">" + LEVEL_NAMES[n] + "</option>"; }).join("") +
             '</select></td><td><input type="checkbox" data-c="lock" data-id="' + esc(st.id) + '" data-f="' + f.id + '"' + (st.lock[f.id] ? " checked" : "") + ' aria-label="Verrouiller le niveau"></td></tr>';
-        }).join("") + "</tbody></table></div>" +
-        '<details class="annex"' + (U.openBox === st.id ? " open" : "") + '><summary>Boîte à stratégies : ' + known + " sur " + METHODS.length + ' vues</summary><div class="in">' +
-        '<p class="small">Une stratégie « pas encore vue » n’est jamais proposée à cet élève. « Guidée » montre les étapes une par une, « Avec la carte » la carte entière, « Seul » seulement le nom.</p>' +
-        '<label class="check"><input type="checkbox" data-c="planOn" data-id="' + esc(st.id) + '"' + (st.plan ? " checked" : "") + ">Écran « Mon plan d’attaque » au démarrage d’une tâche</label>" +
-        '<label class="field" style="max-width:340px"><span>Régler toutes les stratégies sur…</span><select data-c="methodAll" data-id="' + esc(st.id) + '"><option value="">–</option>' + states(-1) + "</select></label>" +
-        '<div class="tw"><table><thead><tr><th>Stratégie</th><th>Où en est l’élève</th></tr></thead><tbody>' + METHODS.map(function (m) {
-          return "<tr><td><b>" + esc(m.num) + "</b> · " + esc(m.title) + '</td><td><select data-c="methodState" data-id="' + esc(st.id) + '" data-m="' + m.id + '" aria-label="' + esc(m.title) + '">' + states(st.methods[m.id] || 0) + "</select></td></tr>";
         }).join("") + "</tbody></table></div></div></details>" +
         '<p class="small">Épinglées : ' + (st.pinned.length ? st.pinned.map(function (id) { var c = card(id); return esc(c ? c.title : id); }).join(", ") : "aucune") + "</p></div>";
     });
@@ -1115,9 +1289,9 @@ function boot() {
       check("chrono", "Chrono discret pendant le travail") +
       check("timer", "Minuteur sur les cartes") +
       check("beep", "Signal sonore à la fin du minuteur") +
-      check("demoMethods", "Coup de main sans élève : proposer les stratégies de la boîte, étape par étape") + "</div>" +
-      '<div class="panel"><h2>Niveau d’aide</h2>' + check("autoLevel", "Ajuster le niveau automatiquement") +
-      '<p class="small">Montée après 5 reprises sur les 6 derniers blocages d’une famille. Descente après 2 échecs de suite, ou 3 sur 5. Ces seuils sont des valeurs de départ, sans base empirique. Vous pouvez verrouiller un niveau par élève dans l’onglet « Élèves ».</p></div>' +
+      check("demoMethods", "Coup de main sans élève : proposer aussi les stratégies du dossier de français") + "</div>" +
+      '<div class="panel"><h2>Qui choisit la carte</h2>' + check("autoLevel", "Changer automatiquement le niveau par famille (désactivé par défaut)") +
+      '<p class="small">Si la case est cochée : montée après 5 reprises sur les 6 derniers blocages d’une famille, descente après 2 échecs de suite ou 3 sur 5. Sinon, le niveau se règle à la main dans « Élèves ». Le retrait de l’aide par stratégie, lui, passe toujours par vos validations dans « Suivi ».</p></div>' +
       '<div class="panel"><h2>Code de l’espace enseignante</h2><p class="small">Facultatif. Il évite qu’un élève entre ici par curiosité ; ce n’est pas une protection des données.</p>' +
       '<div class="formrow"><label class="field"><span>Code (chiffres)</span><input type="text" inputmode="numeric" id="newPin" maxlength="8" value="' + esc(S.settings.pin) + '" autocomplete="off"></label>' +
       '<button class="btn fit" data-a="savePin">Enregistrer le code</button></div></div>';
@@ -1152,20 +1326,23 @@ function boot() {
   }
   function tabAide() {
     return '<div class="panel"><h2>Deux façons de l’utiliser</h2>' +
-      "<p><b>Avec suivi.</b> L’élève choisit sa vignette et indique sa tâche. L’outil enregistre les blocages, les cartes essayées et les reprises.</p>" +
-      "<p><b>Juste un coup de main.</b> On arrive droit sur « Où ça coince ? ». Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est aussi le mode à projeter pour montrer la démarche au groupe.</p></div>" +
+      "<p><b>Avec suivi.</b> L’élève choisit sa vignette, sa tâche, sa matière et le lieu. L’outil enregistre les blocages, les stratégies essayées et les reprises.</p>" +
+      "<p><b>Juste un coup de main.</b> On arrive droit sur « Où ça coince ? ». Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
+      '<div class="panel"><h2>Comment l’outil choisit</h2>' +
+      "<p>Il croise le blocage, la tâche, la matière et le lieu. S’il lui manque une information qui change la stratégie, il la demande en un écran.</p>" +
+      "<p>Cinq domaines de stratégies : le dossier de français (14), les maths (7), réviser et mémoriser (6), les langues (6), la fatigue et le stress (6). S’y ajoutent les cartes générales.</p></div>" +
+      '<div class="panel"><h2>Le retrait de l’aide</h2>' +
+      "<p>Chaque stratégie a quatre états par élève : pas encore vue, guidée étape par étape, avec la carte, seul. Le dossier de français commence « pas encore vu » ; le reste commence « guidé ».</p>" +
+      "<p>Après trois reprises de suite avec une stratégie, « Suivi » vous suggère d’alléger. Après deux échecs de suite, ou deux cartes rouvertes au niveau « seul », il suggère de renforcer. Rien ne change sans votre validation. Ces seuils sont des valeurs de départ, sans base empirique.</p></div>" +
       '<div class="panel"><h2>En classe</h2>' +
-      "<p>1. Présentez d’abord les cartes vous-même, sur une vraie tâche : l’outil rappelle une stratégie, il ne l’enseigne pas.</p>" +
+      "<p>1. Présentez d’abord les stratégies vous-même, sur une vraie tâche : l’outil rappelle une stratégie, il ne l’enseigne pas.</p>" +
       "<p>2. Donnez une règle simple : « deux minutes sans avancer, j’appuie ».</p>" +
-      "<p>3. L’écran ne sert qu’au moment du blocage. Après trois essais sans reprise, l’outil aide à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p></div>" +
-      '<div class="panel"><h2>La boîte à stratégies</h2>' +
-      "<p>Les quatorze stratégies du dossier de français sont intégrées avec leurs trois étapes et leur « truc ». Dans l’onglet « Élèves », indiquez pour chacune où en est l’élève : une stratégie pas encore vue n’est jamais proposée.</p>" +
-      "<p>Quand une stratégie est connue, elle passe avant la carte générique. Les stratégies 3 et ★ ne sont proposées que dans « Mon plan d’attaque », activable par élève : au démarrage, l’élève choisit ses stratégies ; à la fin, il dit si son plan l’a aidé.</p></div>" +
+      "<p>3. Après trois essais sans reprise, l’outil aide à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p></div>" +
       '<div class="panel"><h2>Ce que vous notez</h2>' +
       "<p>Dans « Suivi », pour les blocages que vous avez vus : votre avis sur la cause, et si le travail a réellement repris dans les cinq minutes. Ce sont les deux mesures qui comptent ; les réponses de l’élève ne suffisent pas.</p></div>" +
       '<div class="panel"><h2>Limites du prototype</h2>' +
       "<p>La cause choisie par l’élève est une hypothèse, pas un diagnostic. L’outil ignore le contenu de la tâche : il ne vérifie ni la compréhension ni la justesse.</p>" +
-      "<p>Le carnet affiche des comptes, sans classement : avec peu d’essais, l’écart entre deux cartes ne se distingue pas du hasard.</p>" +
+      "<p>Il ne donne aucun conseil de sommeil ni de santé. Des blocages « fatigué » fréquents se discutent avec l’élève.</p>" +
       "<p>Aucune preuve n’établit encore que cet outil aide. Il sert à le vérifier avec vos élèves.</p></div>";
   }
   function download(name, text, mime) {
@@ -1177,13 +1354,13 @@ function boot() {
   }
   function stamp() { var d = new Date(); function p(n) { return (n < 10 ? "0" : "") + n; } return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
   function csv() {
-    var head = ["eleve", "date", "tache", "matiere", "statut_tache", "blocage", "minute_dans_tache", "famille", "reponses", "ligne", "niveau", "aide_a_choisir", "garde_fou", "rang_essai", "carte", "titre_carte", "origine", "duree_essai_s", "resultat", "issue", "delai_reprise_s", "rebond_5min", "avis_enseignante", "reprise_observee", "mode_strategie", "carte_rouverte", "plan_attaque", "plan_a_aide"];
+    var head = ["eleve", "date", "tache", "matiere", "statut_tache", "blocage", "minute_dans_tache", "famille", "reponses", "ligne", "niveau", "aide_a_choisir", "garde_fou", "rang_essai", "carte", "titre_carte", "origine", "duree_essai_s", "resultat", "issue", "delai_reprise_s", "rebond_5min", "avis_enseignante", "reprise_observee", "mode_strategie", "carte_rouverte", "plan_attaque", "plan_a_aide", "lieu"];
     var rows = [head];
     S.blocks.forEach(function (b) {
       if (!b.end || b.end === "annule") return;
       var st = student(b.sid) || { name: "?" }, t = byId(S.tasks, b.tid) || {};
-      var plan = [(t.plan || []).join(" "), t.planHelped === null || t.planHelped === undefined ? "" : String(t.planHelped).replace(".", ",")];
-      var base = [st.name, fmtDate(b.at), t.type || b.type || "", t.subject || "", t.status || (b.tid ? "" : "coup de main"), b.id, b.tid ? Math.round(b.t / 60000) : "", b.family === "garde" ? "garde" : famLabel(b.family), b.answers.join(" | "), b.line || "", b.level || "", b.unfolded ? "oui" : "non", b.guard || ""];
+      var plan = [(t.plan || []).join(" "), t.planHelped === null || t.planHelped === undefined ? "" : String(t.planHelped).replace(".", ","), t.place || b.place || ""];
+      var base = [st.name, fmtDate(b.at), t.type || b.type || "", t.subject || b.subject || "", t.status || (b.tid ? "" : "coup de main"), b.id, b.tid ? Math.round(b.t / 60000) : "", b.family === "garde" ? "garde" : famLabel(b.family), b.answers.join(" | "), b.line || "", b.level || "", b.unfolded ? "oui" : "non", b.guard || ""];
       var tail = [END_LABELS[b.end] || b.end, b.resumedAt ? Math.round((b.resumedAt - b.at) / 1000) : "", rebound(b) ? "oui" : "non", (b.teacher && b.teacher.avis) || "", (b.teacher && b.teacher.reprise) || ""];
       if (!b.tries.length) rows.push(base.concat(["", "", "", "", "", ""], tail, ["", ""], plan));
       b.tries.forEach(function (x, i) {
@@ -1212,7 +1389,17 @@ function boot() {
     families: function () { screenFamilies(); },
     attach: function () { screenAttach(); },
     attachPick: function (d) { var b = U.block; if (b && !b.sid && student(d.id)) { b.sid = d.id; U.sid = d.id; S.blocks.push(b); save(); } screenFamilies(); },
-    btype: function (d) { var l = U.pendingLine; U.block.type = d.id; U.pendingLine = null; save(); if (l) setLine(l); },
+    ctxPick: function (d) {
+      var b = U.block, k = U.askKey, pend = U.pending; U.pending = null;
+      if (!b || !k) return;
+      b[k] = d.id; if (U.task && !U.task[k]) U.task[k] = d.id; save();
+      if (pend && pend.line) setLine(pend.line); else if (pend && pend.family) pickFamily(pend.family);
+    },
+    place: function (d) { S.settings.place = d.id; save(); screenTask(); },
+    checkToggle: function (d, el) { var on = el.className.indexOf(" sel") < 0; el.className = "choice" + (on ? " sel" : ""); el.setAttribute("aria-pressed", String(on)); },
+    checkOk: function () { U.task.checked = document.querySelectorAll(".choice.sel").length; U.checkDone = true; save(); finishAs("terminee"); },
+    sugOk: function (d) { var st = student(U.teacherSid); if (st) { st.methods[d.id] = parseInt(d.to, 10); st.msince[d.id] = now(); save(); } openTeacher(); },
+    sugNo: function (d) { var st = student(U.teacherSid); if (st) { st.mdismiss[d.id] = now(); save(); } openTeacher(); },
     nextStep: function () { U.step++; renderTry(); },
     viewMethod: function (d) { screenViewMethod(d.id); },
     planToggle: function (d, el) {
@@ -1237,7 +1424,11 @@ function boot() {
     helped: function () { endBlock("aide"); backToWork("C’est reparti."); },
     stopClean: function () { endBlock("stop"); finishAs("reportee"); },
     finish: function () { screenFinish(); },
-    finishAs: function (d) { finishAs(d.s); },
+    finishAs: function (d) {
+      var st = student(U.sid);
+      if (d.s === "terminee" && st && st.check && !U.checkDone) return screenCheck();
+      finishAs(d.s);
+    },
     helpedMost: function (d) { helpedMost(d.id); },
     plan: function (d) { var st = student(U.sid); if (st.pinned.indexOf(d.id) < 0) togglePin(st, d.id); screenBye(); },
     bye: function () { screenBye(); },
@@ -1254,7 +1445,7 @@ function boot() {
     addStudent: function () {
       var n = document.getElementById("newName"), name = n ? n.value.trim() : "";
       if (!name) { if (n) n.focus(); return; }
-      S.students.push({ id: uid("s"), name: name, icon: newAvatar, levels: {}, lock: {}, since: {}, pinned: [], methods: {}, plan: false });
+      S.students.push({ id: uid("s"), name: name, icon: newAvatar, levels: {}, lock: {}, since: {}, pinned: [], methods: {}, msince: {}, mdismiss: {}, plan: false, check: false });
       newAvatar = AVATARS[S.students.length % AVATARS.length];
       save(); openTeacher();
     },
@@ -1280,9 +1471,9 @@ function boot() {
     }
   };
   function proposeCardChosen(id) {
-    var b = U.block, c = card(id); b.line = "libre"; save();
+    var b = U.block; b.line = "libre"; save();
     U.cardId = id; U.origin = "choisie"; U.peek = false;
-    U.mode = c.method ? (methodState(id, b.sid) || 1) : 0;
+    U.mode = methodState(id, b.sid) || 1;
     startTry();
   }
   /* « Voir la carte » ouvert par un élève réglé sur « Seul » : noté avec l'essai (l'événement toggle ne remonte pas, d'où la capture) */
@@ -1304,10 +1495,12 @@ function boot() {
     lock: function (el) { var st = student(el.dataset.id); if (st) { st.lock[el.dataset.f] = el.checked; save(); } },
     setting: function (el) { S.settings[el.dataset.f] = el.checked; save(); },
     planOn: function (el) { var st = student(el.dataset.id); if (st) { st.plan = el.checked; save(); } },
-    methodState: function (el) { var st = student(el.dataset.id); if (st) { st.methods[el.dataset.m] = parseInt(el.value, 10) || 0; save(); } },
-    methodAll: function (el) {
-      var st = student(el.dataset.id); if (!st || el.value === "") return;
-      METHODS.forEach(function (m) { st.methods[m.id] = parseInt(el.value, 10) || 0; });
+    checkOn: function (el) { var st = student(el.dataset.id); if (st) { st.check = el.checked; save(); } },
+    methodState: function (el) { var st = student(el.dataset.id); if (st) { st.methods[el.dataset.m] = parseInt(el.value, 10) || 0; st.msince[el.dataset.m] = now(); save(); } },
+    methodDom: function (el) {
+      var st = student(el.dataset.id), dom = el.dataset.d, v = parseInt(el.value, 10) || 0, t = now();
+      if (!st || el.value === "") return;
+      strategyIds().forEach(function (id) { var c = card(id); if (c && c.dom === dom) { st.methods[id] = v; st.msince[id] = t; } });
       save(); U.openBox = st.id; openTeacher();
     },
     famLabel: function (el) { setLabel("families", el.dataset.id, "label", el.value); },

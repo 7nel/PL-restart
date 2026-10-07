@@ -6,27 +6,40 @@ Prototype d'outil de classe : aider un élève à repartir quand il bloque sur u
 
 ## Ce que fait l'outil
 
-L'élève choisit sa vignette, indique sa tâche, puis travaille. L'écran ne sert qu'au moment du blocage :
+L'élève choisit sa vignette, indique sa tâche, la matière et le lieu (en classe ou à la maison), puis travaille. L'écran ne sert qu'au moment du blocage :
 
 1. « Je suis bloqué »
 2. « Où ça coince ? » : cinq familles (comprendre, commencer, décrocher, ça ne marche pas, je ne sais pas)
-3. une ou deux questions de précision
-4. une carte de stratégie : une seule action, une à dix minutes
+3. une ou deux questions de précision (et, si elle change la stratégie, la matière, la tâche ou le lieu)
+4. une stratégie : une à trois étapes, une à douze minutes
 5. « Ça repart ? » : oui, un peu, non
 6. après trois « non », l'outil aide à formuler une demande d'aide précise, ou à mettre un « ? » dans la marge et à passer à la suite
 
 Deux façons de l'utiliser :
 
-- **Avec suivi** : l'élève choisit sa vignette et sa tâche ; blocages, cartes essayées et reprises sont enregistrés.
-- **Juste un coup de main** : on arrive droit sur « Où ça coince ? », sans rien enregistrer (sauf rattachement à un élève). C'est aussi le mode à projeter pour montrer la démarche.
+- **Avec suivi** : l'élève choisit sa vignette et sa tâche ; blocages, stratégies essayées et reprises sont enregistrés.
+- **Juste un coup de main** : on arrive droit sur « Où ça coince ? », sans rien enregistrer (sauf rattachement à un élève). C'est le mode à projeter pour montrer la démarche, et celui qui convient à la maison : chaque appareil garde ses propres données, l'enseignante ne voit pas ce qui s'y passe.
 
-### Boîte à stratégies
+### Stratégies
 
-Les quatorze stratégies du dossier de français « Ma boîte à stratégies » (comprendre une consigne, comprendre un texte, relire, planifier et écrire) sont intégrées avec leurs trois étapes et leur « truc ». Pour chaque élève, l'enseignante indique où il en est : pas encore vue (jamais proposée), guidée étape par étape, avec la carte, seul. Une stratégie connue passe avant la carte générique équivalente.
+Cinq domaines, plus les cartes générales :
 
-L'écran « Mon plan d'attaque » (stratégie 13) peut être activé par élève : au démarrage d'une tâche, l'élève choisit ses stratégies ; à la fin, il dit si son plan l'a aidé.
+- **Dossier de français** « Ma boîte à stratégies » : quatorze stratégies (consigne, lecture, relecture, écriture), avec leurs trois étapes et leur « truc ».
+- **Maths** (7), **Réviser et mémoriser** (6), **Langues** (6), **Fatigue et stress** (6) : stratégies en trois étapes, rédigées et validées par l'enseignante.
 
-L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève, les niveaux d'aide, la boîte à stratégies, les libellés modifiables, l'export et l'effacement.
+L'outil choisit en croisant le blocage, la tâche, la matière et le lieu. Certaines réponses n'apparaissent que dans leur contexte (« Je bloque sur un calcul » en maths, « Ce que j'entends » en langues).
+
+### Retrait de l'aide
+
+Chaque stratégie a quatre états par élève : pas encore vue (jamais proposée), guidée étape par étape, avec la carte, seul (le nom seulement, carte à la demande). Le dossier de français commence « pas encore vu », le reste « guidé ».
+
+L'outil propose, l'enseignante valide : après trois reprises de suite avec une stratégie, l'onglet « Suivi » suggère d'alléger ; après deux échecs de suite, ou deux cartes rouvertes au niveau « seul », il suggère de renforcer. Rien ne change sans validation.
+
+### Plan d'attaque et vérification
+
+Deux écrans s'activent par élève : « Mon plan d'attaque » au démarrage d'une tâche (l'élève choisit ses stratégies ; à la fin, il dit si son plan l'a aidé) et « Avant de rendre » quand la tâche est terminée (trois points à vérifier).
+
+L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève, les suggestions de retrait de l'aide, l'état de chaque stratégie, les libellés modifiables, l'export et l'effacement.
 
 ## Utiliser l'application
 
@@ -44,9 +57,12 @@ L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni 
 
 - La cause choisie par l'élève est une hypothèse, pas un diagnostic.
 - L'outil ignore le contenu de la tâche : il ne vérifie ni la compréhension ni la justesse.
-- Les seuils de niveau d'aide (5 reprises sur 6, 2 échecs de suite) sont des valeurs de départ sans base empirique.
+- Les seuils des suggestions (3 reprises de suite, 2 échecs de suite) sont des valeurs de départ sans base empirique. Les « reprises » sont déclarées par l'élève.
+- Le retrait progressif de l'aide n'a pas montré d'avantage net dans les méta-analyses sur l'étayage informatisé : c'est un choix pédagogique, à observer.
+- À la maison, rien ne remonte à l'enseignante : pas de suivi partagé sans serveur.
+- En mode coup de main, la réponse « Je crois savoir, mais je rate » n'apparaît que si la tâche « Réviser » est déjà connue.
 - Le carnet affiche des comptes, sans classement.
-- Le texte des stratégies du dossier n'est pas modifiable depuis l'espace enseignante ; les exemples de Léo ne sont pas repris.
+- Le texte des stratégies (dossier et quatre domaines) n'est pas modifiable depuis l'espace enseignante ; les exemples de Léo ne sont pas repris.
 - Non réalisés dans ce prototype : choix pondéré des cartes selon l'historique, niveau « sans l'outil », écran de bilan partagé élève et enseignante.
 
 ## Polices
