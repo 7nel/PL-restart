@@ -65,6 +65,10 @@ Les transferts se font à la main (clé, messagerie de l'école) : l'outil n'env
 
 L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni texte libre de l'élève. Utilisez des pseudonymes. Même ainsi, ces données décrivent le fonctionnement de mineurs : vérifiez le cadre applicable dans votre établissement avant tout usage au-delà de votre classe.
 
+## Espace enseignante : replis
+
+Dans « Élèves », la fiche de chaque élève et chaque domaine de stratégies sont repliés, avec un résumé (par exemple « Maths · 6 guidées · 1 seul »). Un menu règle toutes les boîtes d'un élève d'un coup, un autre une seule boîte. Dans « Cartes et libellés », les familles et leurs réponses, puis les cartes générales rangées par famille, sont repliées. « Tout déplier » et « Tout replier » ouvrent ou ferment tout ; l'état des replis est gardé tant que l'on reste dans l'espace.
+
 ## Outils d'apaisement
 
 Quatre outils guidés, repris du site PL-CPS’ (mois « Gestion du stress »), avec les durées et consignes d'origine : **respiration carrée** (le point parcourt le carré, 4 secondes par côté, 4 cycles), **pieds au sol** (30 s), **je serre, je relâche** (serrer 5 s, relâcher 10 s, 3 tours), **mon endroit calme** (1 min, trois détails : un son, une couleur, une sensation). Chacun se déroule seul, avec un signal à la fin et « Encore un tour ».

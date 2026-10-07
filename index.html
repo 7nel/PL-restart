@@ -148,6 +148,11 @@ function boot() {
     details.annex table { font-size: 1rem; }
     details.annex td:first-child { font-weight: 700; }
     details.annex p { margin: 0; font-size: 1rem; }
+    details.annex details.annex { background: var(--surface-alt); border-color: transparent; }
+    details.annex details.annex summary { min-height: 44px; font-weight: 600; }
+    details.annex summary .sum { margin-left: 0.4em; font-weight: 400; color: var(--muted); font-size: 0.95rem; }
+    .foldbar { display: flex; gap: 8px; flex-wrap: wrap; }
+    .foldbar .btn { min-height: 40px; padding: 6px 14px; font-size: 0.95rem; }
     .plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.3; text-align: left; }
     .plan-item .num { flex: none; width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; }
@@ -1659,6 +1664,24 @@ function boot() {
     }).join("") + "</select>";
   }
   var newAvatar = AVATARS[0];
+  function isOpen(k) { return !!(U.open && U.open[k]); }
+  function fold(k, summary, inner) {
+    return '<details class="annex" data-k="' + esc(k) + '"' + (isOpen(k) ? " open" : "") + "><summary>" + summary + '</summary><div class="in">' + inner + "</div></details>";
+  }
+  function foldBar() {
+    return '<div class="foldbar"><button class="btn" data-a="foldAll" data-v="1">Tout déplier</button><button class="btn" data-a="foldAll" data-v="0">Tout replier</button></div>';
+  }
+  var STATE_SHORT = ["pas encore vues", "guidées", "avec la carte", "seul"];
+  function domIds(dom) {
+    return dom === "gen" ? CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19"; }).map(function (d) { return d.id; })
+      : METHODS.filter(function (m) { return m.dom === dom; }).map(function (m) { return m.id; });
+  }
+  function stateSummary(st, ids) {
+    var n = [0, 0, 0, 0], out = [];
+    ids.forEach(function (id) { n[methodState(id, st.id)]++; });
+    n.forEach(function (c, i) { if (c) out.push(c + " " + STATE_SHORT[i]); });
+    return out.join(" · ");
+  }
   function tabEleves() {
     var html = '<div class="panel"><h2>Ajouter un élève</h2><p class="small">Un pseudonyme suffit : n’inscrivez ni nom complet ni information personnelle.</p>' +
       '<div class="formrow"><label class="field"><span>Pseudonyme</span><input type="text" id="newName" maxlength="24" autocomplete="off"></label>' +
@@ -1668,32 +1691,35 @@ function boot() {
     function states(cur) {
       return METHOD_STATES.map(function (n, i) { return '<option value="' + i + '"' + (i === cur ? " selected" : "") + ">" + n + "</option>"; }).join("");
     }
+    if (S.students.length) html += foldBar();
     S.students.forEach(function (st) {
-      html += '<div class="panel"><div class="formrow"><span class="who fit">' + svg(st.icon) + esc(st.name) + "</span><span></span>" +
-        '<button class="btn danger fit" data-a="delStudent" data-id="' + esc(st.id) + '">Supprimer</button></div>' +
-        '<label class="field" style="max-width:340px"><span>Code de ' + esc(st.name) + ' (facultatif)</span><input type="text" data-c="stCode" data-id="' + esc(st.id) + '" maxlength="20" value="' + esc(st.code || "") + '" autocomplete="off"></label>' +
-        '<label class="check"><input type="checkbox" data-c="planOn" data-id="' + esc(st.id) + '"' + (st.plan ? " checked" : "") + ">Écran « Mon plan d’attaque » au démarrage d’une tâche</label>" +
-        '<label class="check"><input type="checkbox" data-c="checkOn" data-id="' + esc(st.id) + '"' + (st.check ? " checked" : "") + ">Liste « Avant de rendre » quand la tâche est terminée</label>" +
-        '<details class="annex"' + (U.openBox === st.id ? " open" : "") + '><summary>Stratégies : où en est ' + esc(st.name) + ' (' + knownMethods(st.id, "fr").length + ' sur 14 du dossier de français)</summary><div class="in">' +
-        '<p class="small">« Pas encore vue » : jamais proposée. « Guidée » : les étapes une par une. « Avec la carte » : la carte entière. « Seul » : seulement le nom, carte à la demande. Les suggestions de changement apparaissent dans « Suivi ».</p>' +
+      var sid = esc(st.id), allIds = strategyIds();
+      var strat = '<p class="small">« Pas encore vue » : jamais proposée. « Guidée » : les étapes une par une. « Avec la carte » : la carte entière. « Seul » : seulement le nom, carte à la demande. Les suggestions de changement apparaissent dans « Suivi ».</p>' +
+        '<label class="field" style="max-width:340px"><span>Toutes les boîtes d’un coup sur…</span><select data-c="methodAll" data-id="' + sid + '"><option value="">–</option>' + states(-1) + "</select></label>" +
         DOMAINS.map(function (dm) {
-          var ids = dm[0] === "gen" ? CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19"; }).map(function (d) { return d.id; })
-            : METHODS.filter(function (m) { return m.dom === dm[0]; }).map(function (m) { return m.id; });
-          return "<h2>" + dm[1] + "</h2>" +
-            '<label class="field" style="max-width:340px"><span>Tout ce domaine sur…</span><select data-c="methodDom" data-id="' + esc(st.id) + '" data-d="' + dm[0] + '"><option value="">–</option>' + states(-1) + "</select></label>" +
+          var ids = domIds(dm[0]);
+          return fold("dm:" + st.id + ":" + dm[0], "<b>" + esc(dm[1]) + '</b> <span class="sum">· ' + esc(stateSummary(st, ids)) + "</span>",
+            '<label class="field" style="max-width:340px"><span>Toute cette boîte sur…</span><select data-c="methodDom" data-id="' + sid + '" data-d="' + dm[0] + '"><option value="">–</option>' + states(-1) + "</select></label>" +
             '<div class="tw"><table><tbody>' + ids.map(function (id) {
               var c = card(id);
-              return "<tr><td>" + (c.num ? "<b>" + esc(c.num) + "</b> · " : "") + esc(c.label) + '</td><td><select data-c="methodState" data-id="' + esc(st.id) + '" data-m="' + id + '" aria-label="' + esc(c.label) + '">' + states(methodState(id, st.id)) + "</select></td></tr>";
-            }).join("") + "</tbody></table></div>";
-        }).join("") + "</div></details>" +
-        '<details class="annex"><summary>Qui choisit la carte, par famille de blocage</summary><div class="in"><p class="small">N1 : l’outil pose les questions et propose. N2 et N3 : l’élève choisit lui-même parmi trois cartes.</p>' +
+              return "<tr><td>" + (c.num ? "<b>" + esc(c.num) + "</b> · " : "") + esc(c.label) + '</td><td><select data-c="methodState" data-id="' + sid + '" data-m="' + id + '" aria-label="' + esc(c.label) + '">' + states(methodState(id, st.id)) + "</select></td></tr>";
+            }).join("") + "</tbody></table></div>");
+        }).join("");
+      var levels = '<p class="small">N1 : l’outil pose les questions et propose. N2 et N3 : l’élève choisit lui-même parmi trois cartes.</p>' +
         '<div class="tw"><table><thead><tr><th>Famille</th><th>Niveau</th><th>Verrouiller</th></tr></thead><tbody>' +
         FAMILIES.filter(function (f) { return f.id !== "F5"; }).map(function (f) {
           var lv = st.levels[f.id] || 1;
-          return "<tr><td>" + esc(famLabel(f.id)) + '</td><td><select data-c="level" data-id="' + esc(st.id) + '" data-f="' + f.id + '" aria-label="Niveau pour ' + esc(famLabel(f.id)) + '">' +
+          return "<tr><td>" + esc(famLabel(f.id)) + '</td><td><select data-c="level" data-id="' + sid + '" data-f="' + f.id + '" aria-label="Niveau pour ' + esc(famLabel(f.id)) + '">' +
             [1, 2, 3].map(function (n) { return '<option value="' + n + '"' + (n === lv ? " selected" : "") + ">" + LEVEL_NAMES[n] + "</option>"; }).join("") +
-            '</select></td><td><input type="checkbox" data-c="lock" data-id="' + esc(st.id) + '" data-f="' + f.id + '"' + (st.lock[f.id] ? " checked" : "") + ' aria-label="Verrouiller le niveau"></td></tr>';
-        }).join("") + "</tbody></table></div></div></details>" +
+            '</select></td><td><input type="checkbox" data-c="lock" data-id="' + sid + '" data-f="' + f.id + '"' + (st.lock[f.id] ? " checked" : "") + ' aria-label="Verrouiller le niveau"></td></tr>';
+        }).join("") + "</tbody></table></div>";
+      html += '<div class="panel"><div class="formrow"><span class="who fit">' + svg(st.icon) + esc(st.name) + "</span><span></span>" +
+        '<button class="btn danger fit" data-a="delStudent" data-id="' + sid + '">Supprimer</button></div>' +
+        '<label class="field" style="max-width:340px"><span>Code de ' + esc(st.name) + ' (facultatif)</span><input type="text" data-c="stCode" data-id="' + sid + '" maxlength="20" value="' + esc(st.code || "") + '" autocomplete="off"></label>' +
+        '<label class="check"><input type="checkbox" data-c="planOn" data-id="' + sid + '"' + (st.plan ? " checked" : "") + ">Écran « Mon plan d’attaque » au démarrage d’une tâche</label>" +
+        '<label class="check"><input type="checkbox" data-c="checkOn" data-id="' + sid + '"' + (st.check ? " checked" : "") + ">Liste « Avant de rendre » quand la tâche est terminée</label>" +
+        fold("st:" + st.id, "Stratégies de " + esc(st.name) + ' <span class="sum">· ' + knownMethods(st.id, "fr").length + " sur 14 du dossier de français vues</span>", strat) +
+        fold("lv:" + st.id, "Qui choisit la carte, par famille de blocage", levels) +
         '<p class="small">Épinglées : ' + (st.pinned.length ? st.pinned.map(function (id) { var c = card(id); return esc(c ? c.title : id); }).join(", ") : "aucune") + "</p></div>";
     });
     return html;
@@ -1716,20 +1742,34 @@ function boot() {
       (S.settings.pin ? pinPanel : "");
   }
   function tabCartes() {
-    var html = '<div class="panel"><h2>Familles et réponses</h2><p class="small">Réécrivez les libellés avec vos élèves. Un champ vidé reprend le libellé d’origine.</p>';
+    var html = foldBar() + '<div class="panel"><h2>Familles et réponses</h2><p class="small">Réécrivez les libellés avec vos élèves. Un champ vidé reprend le libellé d’origine.</p>';
     FAMILIES.concat([F0]).forEach(function (f) {
-      html += '<label class="field"><span>' + f.id + '</span><input type="text" data-c="famLabel" data-id="' + f.id + '" value="' + esc(famLabel(f.id)) + '" maxlength="60"></label>';
+      var keys = Object.keys(LINES).filter(function (k) { return LINES[k].fam === f.id; });
+      html += fold("fam:" + f.id, "<b>" + esc(famLabel(f.id)) + '</b> <span class="sum">· ' + (keys.length ? keys.length + " réponse(s)" : "famille seule") + "</span>",
+        '<label class="field"><span>Nom de la famille (' + f.id + ')</span><input type="text" data-c="famLabel" data-id="' + f.id + '" value="' + esc(famLabel(f.id)) + '" maxlength="60"></label>' +
+        keys.map(function (id) {
+          return '<label class="field"><span>Réponse ' + id + '</span><input type="text" data-c="lineLabel" data-id="' + id + '" value="' + esc(lineLabel(id)) + '" maxlength="60"></label>';
+        }).join(""));
     });
-    Object.keys(LINES).forEach(function (id) {
-      html += '<label class="field"><span>' + id + " · réponse dans « " + esc(famLabel(LINES[id].fam)) + ' »</span><input type="text" data-c="lineLabel" data-id="' + id + '" value="' + esc(lineLabel(id)) + '" maxlength="60"></label>';
-    });
-    html += '</div><div class="panel"><h2>Cartes de stratégie</h2><p class="small">Une seule action par carte, à l’impératif. Décochez une carte pour la retirer.</p>';
+    html += '</div><div class="panel"><h2>Cartes générales</h2><p class="small">Rangées selon la première famille où elles sont proposées. Une seule action par carte, à l’impératif. Décochez une carte pour la retirer.</p>';
+    var groups = {}, order = FAMILIES.map(function (f) { return f.id; }).concat(["autre"]);
     CARDS.forEach(function (d) {
-      var c = card(d.id);
-      html += '<div class="cardedit"><div class="code"><label class="check"><input type="checkbox" data-c="cardActive" data-id="' + d.id + '"' + (c.active ? " checked" : "") + ' aria-label="Carte active">' + d.id + "</label></div>" +
-        '<div class="in"><input type="text" data-c="cardTitle" data-id="' + d.id + '" value="' + esc(c.title) + '" maxlength="40" aria-label="Titre">' +
-        '<input type="number" min="1" max="30" data-c="cardMin" data-id="' + d.id + '" value="' + c.min + '" aria-label="Durée en minutes">' +
-        '<textarea data-c="cardText" data-id="' + d.id + '" maxlength="200" aria-label="Texte de la carte">' + esc(c.text) + "</textarea></div></div>";
+      var g = "autre", k;
+      for (k in LINES) {
+        var L = LINES[k], ids = (L.seq || []).concat((L.pre || []).reduce(function (a, r) { return a.concat(r.ids || [], r.seq || []); }, []));
+        if (ids.indexOf(d.id) >= 0) { g = L.fam; break; }
+      }
+      (groups[g] = groups[g] || []).push(d);
+    });
+    order.forEach(function (g) {
+      if (!groups[g]) return;
+      html += fold("cg:" + g, "<b>" + (g === "autre" ? "Autres cartes" : "Cartes de « " + esc(famLabel(g)) + " »") + '</b> <span class="sum">· ' + groups[g].length + "</span>", groups[g].map(function (d) {
+        var c = card(d.id);
+        return '<div class="cardedit"><div class="code"><label class="check"><input type="checkbox" data-c="cardActive" data-id="' + d.id + '"' + (c.active ? " checked" : "") + ' aria-label="Carte active">' + d.id + "</label></div>" +
+          '<div class="in"><input type="text" data-c="cardTitle" data-id="' + d.id + '" value="' + esc(c.title) + '" maxlength="40" aria-label="Titre">' +
+          '<input type="number" min="1" max="30" data-c="cardMin" data-id="' + d.id + '" value="' + c.min + '" aria-label="Durée en minutes">' +
+          '<textarea data-c="cardText" data-id="' + d.id + '" maxlength="200" aria-label="Texte de la carte">' + esc(c.text) + "</textarea></div></div>";
+      }).join(""));
     });
     html += '<div class="row"><button class="btn danger" data-a="resetLabels">Rétablir tous les textes d’origine</button></div></div>';
     return html;
@@ -1837,6 +1877,7 @@ function boot() {
       S.settings.theme = darkNow() ? "light" : "dark"; save(); applyTheme(); header(U.hdr);
       var b = topEl.querySelector("[data-a=theme]"); if (b) b.focus();
     },
+    foldAll: function (d) { var open = d.v === "1"; U.open = U.open || {}; Array.prototype.forEach.call(document.querySelectorAll("main details[data-k]"), function (x) { x.open = open; U.open[x.getAttribute("data-k")] = open; }); },
     testVoice: function () { speak("Bonjour. Voici la voix de l’outil. Si ça ne repart pas, appuie sur le bouton."); },
     piperDl: function () { piperDownload(); },
     piperRm: function () { piperRemove(); },
@@ -1995,14 +2036,26 @@ function boot() {
     stCode: function (el) { var st = student(el.dataset.id); if (st) { st.code = el.value.trim().slice(0, 20); touchCfg(st); save(); } },
     planOn: function (el) { var st = student(el.dataset.id); if (st) { st.plan = el.checked; touchCfg(st); save(); } },
     checkOn: function (el) { var st = student(el.dataset.id); if (st) { st.check = el.checked; touchCfg(st); save(); } },
-    methodState: function (el) { var st = student(el.dataset.id); if (st) { st.methods[el.dataset.m] = parseInt(el.value, 10) || 0; st.msince[el.dataset.m] = now(); touchCfg(st); save(); } },
+    methodState: function (el) {
+      var st = student(el.dataset.id), c, box, sum;
+      if (!st) return;
+      st.methods[el.dataset.m] = parseInt(el.value, 10) || 0; st.msince[el.dataset.m] = now(); touchCfg(st); save();
+      c = card(el.dataset.m); box = el.closest && el.closest("details"); sum = box && box.querySelector("summary .sum");
+      if (c && sum) { var ids = domIds(c.dom); sum.textContent = "· " + stateSummary(st, ids); }
+    },
     voice: function (el) { S.settings.voice = el.value; save(); },
     rate: function (el) { var n = parseFloat(el.value); S.settings.rate = n >= 0.5 && n <= 1.3 ? n : 0.92; save(); var o = document.getElementById("oRate"); if (o) o.textContent = rateText(); },
     methodDom: function (el) {
       var st = student(el.dataset.id), dom = el.dataset.d, v = parseInt(el.value, 10) || 0, t = now();
       if (!st || el.value === "") return;
       strategyIds().forEach(function (id) { var c = card(id); if (c && c.dom === dom) { st.methods[id] = v; st.msince[id] = t; } });
-      touchCfg(st); save(); U.openBox = st.id; openTeacher();
+      touchCfg(st); save(); openTeacher();
+    },
+    methodAll: function (el) {
+      var st = student(el.dataset.id), v = parseInt(el.value, 10) || 0, t = now();
+      if (!st || el.value === "") return;
+      strategyIds().forEach(function (id) { st.methods[id] = v; st.msince[id] = t; });
+      touchCfg(st); save(); openTeacher();
     },
     famLabel: function (el) { setLabel("families", el.dataset.id, "label", el.value); },
     lineLabel: function (el) { setLabel("lines", el.dataset.id, "label", el.value); },
@@ -2114,6 +2167,11 @@ function boot() {
     }
     next();
   }
+  /* l'état ouvert ou fermé d'un repli est gardé quand l'écran est reconstruit (« toggle » ne remonte pas : on l'écoute en capture) */
+  document.addEventListener("toggle", function (e) {
+    var d = e.target, k = d && d.getAttribute && d.getAttribute("data-k");
+    if (k) { U.open = U.open || {}; U.open[k] = d.open; }
+  }, true);
   document.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target && e.target.id === "pin") ACTIONS.unlock();
     if (e.key === "Enter" && e.target && e.target.id === "newName") ACTIONS.addStudent();
