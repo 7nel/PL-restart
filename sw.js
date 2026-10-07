@@ -1,6 +1,6 @@
 // Cache hors ligne : PL-restart’ fonctionne en classe sans réseau après une première visite.
 // Pour publier une nouvelle version : change le numéro de CACHE ci-dessous.
-const CACHE = "plrestart-v1";
+const CACHE = "plrestart-v2";
 const SHELL = ["./", "index.html", "manifest.json", "icon-32.png", "icon-180.png", "icon-512.png",
   "fonts/atkinson-400.woff2", "fonts/atkinson-700.woff2", "fonts/lexend.woff2"];
 

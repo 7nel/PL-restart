@@ -13,9 +13,20 @@ L'élève choisit sa vignette, indique sa tâche, puis travaille. L'écran ne se
 3. une ou deux questions de précision
 4. une carte de stratégie : une seule action, une à dix minutes
 5. « Ça repart ? » : oui, un peu, non
-6. après trois « non », l'outil aide à formuler une demande d'aide précise
+6. après trois « non », l'outil aide à formuler une demande d'aide précise, ou à mettre un « ? » dans la marge et à passer à la suite
 
-L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève, les niveaux d'aide, les libellés modifiables, l'export et l'effacement.
+Deux façons de l'utiliser :
+
+- **Avec suivi** : l'élève choisit sa vignette et sa tâche ; blocages, cartes essayées et reprises sont enregistrés.
+- **Juste un coup de main** : on arrive droit sur « Où ça coince ? », sans rien enregistrer (sauf rattachement à un élève). C'est aussi le mode à projeter pour montrer la démarche.
+
+### Boîte à stratégies
+
+Les quatorze stratégies du dossier de français « Ma boîte à stratégies » (comprendre une consigne, comprendre un texte, relire, planifier et écrire) sont intégrées avec leurs trois étapes et leur « truc ». Pour chaque élève, l'enseignante indique où il en est : pas encore vue (jamais proposée), guidée étape par étape, avec la carte, seul. Une stratégie connue passe avant la carte générique équivalente.
+
+L'écran « Mon plan d'attaque » (stratégie 13) peut être activé par élève : au démarrage d'une tâche, l'élève choisit ses stratégies ; à la fin, il dit si son plan l'a aidé.
+
+L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève, les niveaux d'aide, la boîte à stratégies, les libellés modifiables, l'export et l'effacement.
 
 ## Utiliser l'application
 
@@ -35,6 +46,7 @@ L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni 
 - L'outil ignore le contenu de la tâche : il ne vérifie ni la compréhension ni la justesse.
 - Les seuils de niveau d'aide (5 reprises sur 6, 2 échecs de suite) sont des valeurs de départ sans base empirique.
 - Le carnet affiche des comptes, sans classement.
+- Le texte des stratégies du dossier n'est pas modifiable depuis l'espace enseignante ; les exemples de Léo ne sont pas repris.
 - Non réalisés dans ce prototype : choix pondéré des cartes selon l'historique, niveau « sans l'outil », écran de bilan partagé élève et enseignante.
 
 ## Polices

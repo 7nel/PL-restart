@@ -22,10 +22,14 @@ README.md, LICENSE, CLAUDE.md
 
 ## Modèle
 
-- **Contenu** (constantes) : `FAMILIES` (F1 à F5, plus `F0`), `LINES` (une réponse de l'élève = une suite de cartes `seq`, et `then` = famille proposée après deux « non »), `QUESTIONS`, `CARDS` (C01 à C21).
+- **Contenu** (constantes) : `FAMILIES` (F1 à F5, plus `F0`), `LINES` (une réponse de l'élève = une suite de cartes `seq`, `then` = famille proposée après deux « non », `byType` = stratégies placées en tête selon la tâche), `QUESTIONS`, `CARDS` (C01 à C23, cartes génériques), `METHODS` (M01 à M14, stratégies du dossier de français : trois étapes, un « truc », annexe éventuelle).
+- **Deux modes** : avec suivi (`U.task` défini) et coup de main (`U.free`, blocage non enregistré tant qu'il n'est pas rattaché à un élève ; `tid` reste `null`).
+- **Stratégies** : état par élève dans `st.methods[id]` (0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul). `available()` écarte une stratégie non vue et une carte générique dont le `twin` est connu ; `effectiveSeq()` calcule la suite réelle d'une ligne. `st.plan` active l'écran « Mon plan d'attaque » au démarrage (`task.plan`, `task.planHelped`).
 - **État** `S` (clé `pl-restart-v1`) : `settings`, `labels` (libellés réécrits par l'enseignante), `students`, `tasks`, `blocks` (chaque blocage contient ses `tries`).
 - **Règles** : au plus trois « non » par blocage, puis écran d'aide ; niveau d'aide par famille (N1 guidé, N2 et N3 choix par l'élève), ajusté dans `updateLevel()` ; deux garde-fous dans `blocked()`.
-- Un essai : `{ card, origin: "proposee" | "choisie", at, dur, result: 1 | 0.5 | 0 | null }`.
+- Un essai : `{ card, origin: "proposee" | "choisie", at, dur, result: 1 | 0.5 | 0 | null }`, plus `mode` (1 à 3) et `peek` pour une stratégie.
+- Issues d'un blocage (`end`) : `reprise`, `aide`, `passe` (« ? » dans la marge), `stop`, `abandon`, `annule`.
+- Les noms, numéros et étapes des stratégies viennent du dossier de l'enseignante : ne pas les reformuler sans demande.
 
 ## Conventions
 
@@ -41,6 +45,8 @@ README.md, LICENSE, CLAUDE.md
 
 - [ ] La page s'ouvre sans erreur dans la console (`file://` inclus)
 - [ ] Ajouter un élève, lancer une tâche, parcourir un blocage jusqu'à la reprise, puis jusqu'à l'écran d'aide
+- [ ] Coup de main sans élève (stratégies guidées), puis rattaché à un élève
+- [ ] Élève avec stratégies réglées (guidée, avec la carte, seul) et plan d'attaque activé
 - [ ] Rechargement : les données persistent, la tâche en cours peut être reprise
 - [ ] Suivi, export `.json` et `.csv`, import d'une sauvegarde
 - [ ] Clair et sombre, largeur téléphone et tablette
