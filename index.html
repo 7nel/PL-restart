@@ -319,8 +319,12 @@ function boot() {
       { when: { type: "reviser", place: "maison" }, ids: ["R06"] },
       { ids: ["E03"] }], seq: ["C12", "C15", "C20"] },
     F2c: { fam: "F2", label: "C’est trop dur", pre: [{ when: { subject: "Maths" }, ids: ["X03"] }], seq: ["C15", "C03"], then: "F1" },
-    F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", seq: ["C05", "C16", "C11"] },
+    F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", pre: [{ when: { place: "maison" }, seq: ["C05", "C16", "C11"] }], seq: ["C05", "C16", "C12"] },
     F2e: { fam: "F2", label: "Je cherche mes mots", only: { subject: "Langues" }, seq: ["L06", "C19"] },
+    F2f: { fam: "F2", label: "Je suis fatigué", pre: [
+      { when: { place: "classe" }, seq: ["E01", "A02", "C12", "C20"] },
+      { when: { place: "maison" }, seq: ["E02", "A02", "C12", "E04"] }], seq: ["A02", "C12", "C20"] },
+    F2g: { fam: "F2", label: "Je stresse", seq: ["A01", "A04", "A03"], then: "F2" },
     F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C07", "C08"], then: "F2" },
     F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C12"] },
     F3c: { fam: "F3", label: "Je suis fatigué ou agité", pre: [
@@ -346,7 +350,7 @@ function boot() {
     F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1c" }, { line: "F1f" }] },
     F1q2: { text: "Qu’est-ce qui se passe avec le texte ?", options: [{ line: "F1d" }, { line: "F1e" }] },
     F2: { text: "Tu sais quelle est la première chose à faire ?", options: [{ label: "Oui", next: "F2q2" }, { label: "Non", line: "F2a" }] },
-    F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2b" }, { line: "F2c" }, { line: "F2d" }, { line: "F2e" }] },
+    F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2d" }, { line: "F2f" }, { line: "F2g" }, { line: "F2b" }, { line: "F2c" }, { line: "F2e" }] },
     F3: { text: "Qu’est-ce qui s’est passé ?", options: [{ line: "F3a" }, { line: "F3b" }, { line: "F3c" }, { line: "F3d" }] },
     F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4e" }, { line: "F4f" }, { line: "F4c" }, { line: "F4d" }] },
     /* tri de « Je ne sais pas » : comprendre, puis planifier, puis initier */
@@ -365,7 +369,7 @@ function boot() {
     { id: "C08", title: "Où j’en suis", text: "Relis le but. Coche ce qui est déjà fait.", min: 2 },
     { id: "C09", title: "Ranger autour", text: "Éloigne ce qui te distrait. Change de place si tu peux.", min: 1 },
     { id: "C10", title: "Parking à pensées", text: "Note ta pensée sur un papier. Tu y reviendras après.", min: 1 },
-    { id: "C11", title: "Pause courte", text: "Lève-toi, bouge, bois. Reviens quand ça sonne.", min: 3 },
+    { id: "C11", title: "Pause courte", text: "Lève-toi, bouge, bois. Reviens quand ça sonne.", min: 3, home: true },
     { id: "C12", title: "Tranche minutée", text: "Travaille dix minutes. Ensuite tu décides de continuer ou non.", min: 10 },
     { id: "C13", title: "Corriger et noter", text: "Corrige. Écris en une phrase ce que tu as changé.", min: 2 },
     { id: "C14", title: "Comparer pas à pas", text: "Compare chaque étape avec la consigne ou l’exemple. Arrête-toi à la première différence.", min: 3 },
@@ -555,7 +559,8 @@ function boot() {
   function touchCfg(st) { if (st) st.cfgAt = now(); }
   function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
   function famDef(id) { return id === "F0" ? F0 : byId(FAMILIES, id); }
-  function famLabel(id) { var o = S.labels.families[id]; var d = famDef(id); return (o && o.label) || (d ? d.label : id); }
+  function famLabel(id) {
+    if (id === "plan") return "Mon plan d’attaque"; var o = S.labels.families[id]; var d = famDef(id); return (o && o.label) || (d ? d.label : id); }
   function lineLabel(id) { var o = S.labels.lines[id]; return (o && o.label) || (LINES[id] ? LINES[id].label : id); }
   /* Format unique : toute carte a un titre, une à trois étapes, parfois un « truc », et un état par élève. */
   function card(id) {
@@ -566,7 +571,7 @@ function boot() {
     d = byId(CARDS, id); if (!d) return null;
     o = S.labels.cards[id] || {};
     text = o.text || (d.alone && U.block && adultOf(U.block) === false ? d.alone : d.text);
-    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin, stop: !!d.stop };
+    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin, home: !!d.home, stop: !!d.stop };
   }
   /* Où en est l'élève avec une stratégie : 0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul.
      Par défaut : le dossier de français commence « pas encore vu », tout le reste « guidé ».
@@ -583,6 +588,8 @@ function boot() {
   function available(id, b) {
     var c = card(id);
     if (!c || !c.active || methodState(id, b.sid) === 0) return false;
+    /* se lever et bouger : pas en classe (ni sans lieu connu) */
+    if (c.home && context(b).place !== "maison") return false;
     return !(c.twin && methodState(c.twin, b.sid) > 0);
   }
 
@@ -1130,7 +1137,7 @@ function boot() {
       '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
       adultChips("adultWork", t.adult === true || t.adult === false ? t.adult : null) +
       (t.plan && t.plan.length ? '<p class="sub">Mon plan :</p><div class="chips">' + t.plan.map(function (id) {
-        var c = card(id); return c ? '<button class="chip" data-a="viewMethod" data-id="' + id + '">' + (c.num ? esc(c.num) + " · " : "") + esc(c.title) + "</button>" : "";
+        var c = card(id); return c ? '<button class="chip" data-a="planTry" data-id="' + id + '">' + (c.num ? esc(c.num) + " · " : "") + esc(c.title) + "</button>" : "";
       }).join("") + "</div>" : ""), { center: true });
     if (S.settings.chrono) {
       var el = document.getElementById("chrono");
@@ -1420,6 +1427,7 @@ function boot() {
   function afterNon() {
     var b = U.block, n = nonCount(b), L = U.line, next;
     if (n >= 3) return goHelp();
+    if (b.family === "plan") { show(title("Pas grave. Où ça coince ?") + '<div class="choices">' + FAMILIES.map(function (f) { return choice("family", { id: f.id }, famLabel(f.id), f.icon); }).join("") + "</div>" + backToTask()); return; }
     next = nextUntried(L.seq, b);
     if (n === 1 && next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.");
     if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee", "Tu continues d’essayer. C’est ça qui compte.");
@@ -1919,6 +1927,7 @@ function boot() {
     sugNo: function (d) { var st = student(U.teacherSid); if (st) { st.mdismiss[d.id] = now(); touchCfg(st); save(); } openTeacher(); },
     nextStep: function () { U.step++; renderTry(); },
     viewMethod: function (d) { screenViewMethod(d.id); },
+    planTry: function (d) { planTry(d.id); },
     planToggle: function (d, el) {
       var i = draftPlan.indexOf(d.id);
       if (i >= 0) draftPlan.splice(i, 1); else draftPlan.push(d.id);
@@ -2009,6 +2018,15 @@ function boot() {
       S = fresh(); save(); U.teacherSid = null; openTeacher();
     }
   };
+  /* Une stratégie du plan d'attaque : l'élève est guidé, l'essai est noté comme un blocage (cause « Mon plan d'attaque »). */
+  function planTry(id) {
+    var t = U.task, c = card(id); if (!t || !c) return;
+    var b = newBlock(t); b.family = "plan"; b.line = "plan"; b.level = 1; b.adult = adultOf(b);
+    U.line = { fam: "plan", seq: [id], free: true };
+    U.cardId = id; U.origin = "choisie"; U.peek = false;
+    U.mode = methodState(id, b.sid) || 1;
+    save(); startTry();
+  }
   function proposeCardChosen(id) {
     var b = U.block; b.line = "libre"; save();
     U.cardId = id; U.origin = "choisie"; U.peek = false;
