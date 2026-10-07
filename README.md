@@ -6,13 +6,13 @@ Prototype d'outil de classe : aider un élève à repartir quand il bloque sur u
 
 ## Ce que fait l'outil
 
-L'élève choisit sa vignette, indique sa tâche, la matière, le lieu (en classe ou à la maison) et si un adulte peut l'aider, puis travaille. L'écran ne sert qu'au moment du blocage :
+L'élève choisit sa vignette, indique sa tâche et la matière, puis (deuxième écran, déjà rempli comme la dernière fois) le lieu et si un adulte peut l'aider, puis travaille. L'écran ne sert qu'au moment du blocage :
 
 1. « Je suis bloqué »
-2. « Où ça coince ? » : cinq familles (comprendre, commencer, décrocher, ça ne marche pas, je ne sais pas)
-3. une ou deux questions de précision (et, si elle change la stratégie, la matière, la tâche ou le lieu)
+2. « Où ça coince ? » : cinq familles (comprendre, commencer, décrocher, ça ne marche pas, je ne sais pas), et, à part, « Ça ne va pas du tout »
+3. une ou deux questions de précision, quatre réponses visibles au plus (« Autre chose » ouvre les suivantes ; « Étape précédente » revient d'un pas) et, si elle change la stratégie, la matière, la tâche ou le lieu
 4. une stratégie : une à trois étapes, une à douze minutes
-5. « Ça repart ? » : oui, un peu, non
+5. « Ça repart ? » : oui, un peu, non. Après un « non », une phrase courte reconnaît l'effort (« Pas grave. On essaie autre chose. ») ; quand ça repart, l'écran reprend le nom de la stratégie qui a aidé. Ni points ni récompenses.
 6. après trois « non », l'outil aide à formuler une demande d'aide précise, ou à mettre un « ? » dans la marge et à passer à la suite
 
 ### Adulte disponible ou non
@@ -59,7 +59,7 @@ Les données (pseudonymes, tâches, blocages, cartes essayées, notes de l'ensei
 - d'**importer et fusionner** un ou plusieurs fichiers, sans rien effacer : un élève est reconnu par son identifiant interne (option : même prénom) ; ses réglages, la version réglée en dernier l'emporte ; tâches et blocages sont ajoutés s'ils manquent, notes de l'enseignante conservées ; libellés des cartes complétés seulement ;
 - de tout effacer (pour repartir d'une sauvegarde).
 
-Le code de l'espace enseignante (lettres et chiffres) est gardé en clair dans le navigateur de l'appareil, n'est jamais écrit dans un fichier exporté ni repris à l'import. Les sauvegardes faites avant la version 5 le contiennent. Il évite qu'un élève entre par curiosité ; ce n'est pas une protection des données.
+Le code de l'espace enseignante (lettres et chiffres) est gardé en clair dans le navigateur de l'appareil, n'est jamais écrit dans un fichier exporté ni repris à l'import. Les sauvegardes faites avant la version 5 le contiennent. Il évite qu'un élève entre par curiosité ; ce n'est pas une protection des données. Tant qu'aucun code n'est défini et qu'il y a des élèves, l'espace enseignante affiche un rappel en haut.
 
 Les transferts se font à la main (clé, messagerie de l'école) : l'outil n'envoie rien.
 

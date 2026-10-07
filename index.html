@@ -12,7 +12,7 @@ function boot() {
     @font-face { font-family: "Lexend"; font-style: normal; font-weight: 100 900; font-display: swap; src: url(fonts/lexend.woff2) format("woff2"); }
 
     :root {
-      --bg: #eff2f0; --surface: #ffffff; --surface-alt: #e4e9e6; --ink: #253433; --muted: #5b6c6a;
+      --bg: #eff2f0; --surface: #ffffff; --surface-alt: #e4e9e6; --ink: #253433; --muted: #435452;
       --accent: #2f6f63; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
       --warm: #b97a3d; --warm-soft: color-mix(in srgb, var(--warm) 20%, var(--surface));
       --red: #b6503f; --red-soft: color-mix(in srgb, var(--red) 18%, var(--surface));
@@ -47,7 +47,7 @@ function boot() {
     header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     /* identité commune à la famille PL : monogramme, nom de l'outil, retour vers PL */
     .pl-id { display: flex; align-items: center; gap: 6px 12px; min-width: 0; }
-    .pl-name { font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: inherit; text-decoration: none; background: none; border: 0; padding: 0; }
+    .pl-name { min-height: 44px; font-weight: 700; font-size: 1.1rem; line-height: 1.3; color: inherit; text-decoration: none; background: none; border: 0; padding: 0; }
     .pl-logo { position: relative; display: inline-flex; flex: none; border-radius: 50%; line-height: 0; }
     .pl-logo::after { content: ""; position: absolute; inset: -8px; }
     .pl-mark { width: 1.6em; height: 1.6em; flex: none; }
@@ -69,11 +69,16 @@ function boot() {
 
     .choices { display: grid; gap: 12px; }
     .choice-row { display: flex; gap: 8px; align-items: stretch; }
-    .choice { flex: 1; display: flex; align-items: center; gap: 16px; min-height: 78px; padding: 14px 18px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.22rem; line-height: 1.25; text-align: left; box-shadow: var(--shadow); transition: transform .1s ease, border-color .1s ease; }
+    .choice { flex: 1; display: flex; align-items: center; gap: 16px; min-height: 78px; padding: 14px 18px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.22rem; line-height: 1.3; text-align: left; box-shadow: var(--shadow); transition: transform .1s ease, border-color .1s ease; }
     .choice:hover { border-color: var(--accent); }
     .choice:active { transform: scale(0.985); }
     .choice .ic { width: 38px; height: 38px; color: var(--accent); }
-    .choice small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; color: var(--muted); margin-top: 4px; }
+    .choice small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.4; color: var(--muted); margin-top: 4px; }
+    .choices.apart { margin-top: 10px; padding-top: 18px; border-top: 2px dashed var(--border); }
+    .choice.calm { background: var(--warm-soft); border-color: var(--warm); }
+    .choice.calm .ic { color: var(--warm); }
+    .cheer { flex: 1; margin: 0; padding: 14px 18px; border-radius: 14px; background: var(--accent-soft); font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.4; }
+    .sr-only { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
     .choice.yes .ic { color: var(--accent); } .choice.no .ic { color: var(--red); } .choice.mid .ic { color: var(--warm); }
     .say { flex: none; width: 58px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--border); background: var(--surface-alt); color: var(--muted); }
     .say .ic { width: 26px; height: 26px; }
@@ -81,6 +86,10 @@ function boot() {
 
     .big { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; min-height: 104px; padding: 18px 22px; border-radius: 24px; border: 0; background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 5vw, 2rem); box-shadow: var(--shadow); transition: transform .1s ease; }
     .big:active { transform: scale(0.985); }
+    .big:disabled { background: var(--surface-alt); color: var(--muted); box-shadow: none; cursor: default; }
+    .big:disabled:active { transform: none; }
+    .hint { margin: 0; color: var(--muted); font-size: 1rem; }
+    .big + .hint { margin-top: -6px; }
     .big .ic { width: 44px; height: 44px; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 12px 22px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
     .btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
@@ -96,12 +105,26 @@ function boot() {
     .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px; }
     .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 124px; padding: 16px 10px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.1rem; box-shadow: var(--shadow); text-align: center; }
     .tile .ic { width: 42px; height: 42px; color: var(--accent); }
-    .tile.sel, .chip.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .tile.sel, .chip.sel, .choice.sel, .plan-item.sel, .avatar.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent), var(--shadow); }
+    .tile.sel, .choice.sel, .plan-item.sel { position: relative; }
+    .tile.sel::after, .choice.sel::after, .plan-item.sel::after { content: ""; position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); }
+    .tile.sel::before, .choice.sel::before, .plan-item.sel::before { content: ""; position: absolute; z-index: 1; top: 13px; right: 17px; width: 6px; height: 11px; border: solid var(--on-accent); border-width: 0 3px 3px 0; transform: rotate(45deg); }
+    .chip.sel::before { content: ""; display: inline-block; width: 6px; height: 11px; margin: -4px 12px 0 3px; border: solid currentColor; border-width: 0 3px 3px 0; transform: rotate(45deg); vertical-align: middle; }
+    .plan-item.sel, .choice[data-a="checkToggle"] { padding-right: 46px; }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { min-height: 46px; padding: 8px 18px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-weight: 700; }
 
-    .card { background: var(--surface); border: 2px solid var(--accent); border-radius: 24px; padding: clamp(18px, 4vw, 30px); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+    .card { --pad: clamp(18px, 4vw, 30px); background: var(--surface); border: 2px solid var(--accent); border-radius: 24px; padding: var(--pad); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
     .card .cardtop { display: flex; align-items: flex-start; gap: 10px; }
+    .card .cardhead { display: flex; flex-direction: column; gap: 4px; margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 4px; padding: var(--pad) var(--pad) 14px; background: var(--accent-soft); border-radius: 22px 22px 0 0; }
+    .card .stephero { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+    .card .stephero .n { display: flex; align-items: center; justify-content: center; width: 2.2em; height: 2.2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 700; font-size: clamp(1.8rem, 6vw, 2.4rem); }
+    .card .stephero p { font-family: var(--display); font-weight: 600; font-size: clamp(1.4rem, 4.6vw, 1.85rem); line-height: 1.35; }
+    .card .dots { display: flex; align-items: center; gap: 8px; }
+    .card .dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
+    .card .dots i.done { background: var(--accent); }
+    .card .dots i.on { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 5px var(--accent); }
+    .card .dots span { margin-left: 4px; }
     .card h2 { flex: 1; font-size: clamp(1.4rem, 4vw, 1.8rem); }
     .card p { margin: 0; font-size: clamp(1.25rem, 3.6vw, 1.5rem); line-height: 1.45; }
     .card .dur { color: var(--muted); font-size: 1rem; display: inline-flex; align-items: center; gap: 6px; }
@@ -109,7 +132,7 @@ function boot() {
     .card.mini { border-width: 2px; border-color: var(--border); padding: 16px 18px; gap: 6px; }
     .card.mini p { font-size: 1.05rem; }
     .recall { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--accent-soft); font-weight: 700; }
-    .overline { font-weight: 700; font-size: 0.95rem; color: var(--accent); }
+    .overline { font-weight: 700; font-size: 1rem; color: var(--accent); }
     ol.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: st; }
     ol.steps li { counter-increment: st; display: grid; grid-template-columns: 2.1em 1fr; gap: 12px; align-items: start; font-size: clamp(1.1rem, 3.2vw, 1.3rem); line-height: 1.4; }
     ol.steps li::before { content: counter(st); display: flex; align-items: center; justify-content: center; width: 2em; height: 2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 700; font-size: 1rem; }
@@ -122,14 +145,12 @@ function boot() {
     details.annex table { font-size: 1rem; }
     details.annex td:first-child { font-weight: 700; }
     details.annex p { margin: 0; font-size: 1rem; }
-    .choice.sel { border-color: var(--accent); background: var(--accent-soft); }
     .plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.25; text-align: left; }
-    .plan-item.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.3; text-align: left; }
     .plan-item .num { flex: none; width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; }
     .center .chips { justify-content: center; }
     .center .sub { text-align: center; }
-    .choice[data-a="checkToggle"] svg { opacity: 0.25; }
+    .choice[data-a="checkToggle"] svg { opacity: 0.45; }
     .choice[data-a="checkToggle"].sel svg { opacity: 1; }
     .choice .num { flex: none; width: 2em; height: 2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; }
     .timer { font-family: var(--display); font-weight: 700; font-size: clamp(2.6rem, 10vw, 4rem); text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
@@ -158,6 +179,7 @@ function boot() {
     .tab.on { color: var(--ink); border-bottom-color: var(--accent); }
     .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
     .panel p { margin: 0; }
+    .panel.warn { background: var(--warm-soft); border-color: var(--warm); }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
     .stat { padding: 12px 14px; border-radius: 14px; background: var(--surface-alt); }
     .stat b { display: block; font-family: var(--display); font-size: 1.5rem; }
@@ -193,7 +215,6 @@ function boot() {
     .avatars { display: flex; gap: 8px; flex-wrap: wrap; }
     .avatar { width: 52px; height: 52px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; }
     .avatar .ic { width: 28px; height: 28px; color: var(--accent); }
-    .avatar.sel { border-color: var(--accent); background: var(--accent-soft); }
     @media (max-width: 520px) { .choice { font-size: 1.1rem; min-height: 72px; gap: 12px; padding: 12px 14px; } .say { width: 50px; } }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   `;
@@ -294,12 +315,12 @@ function boot() {
   /* familles dont une réponse dépend de la matière : on la demande avant la question si elle n'est pas connue */
   var FAMILY_SUBJECT = { F1: true, F2: true, F4: true };
   var QUESTIONS = {
-    F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1f" }, { line: "F1c" }] },
+    F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1c" }, { line: "F1f" }] },
     F1q2: { text: "Qu’est-ce qui se passe avec le texte ?", options: [{ line: "F1d" }, { line: "F1e" }] },
     F2: { text: "Tu sais quelle est la première chose à faire ?", options: [{ label: "Oui", next: "F2q2" }, { label: "Non", line: "F2a" }] },
     F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2b" }, { line: "F2c" }, { line: "F2d" }, { line: "F2e" }] },
     F3: { text: "Qu’est-ce qui s’est passé ?", options: [{ line: "F3a" }, { line: "F3b" }, { line: "F3c" }] },
-    F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4e" }, { line: "F4c" }, { line: "F4f" }, { line: "F4d" }] },
+    F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4e" }, { line: "F4f" }, { line: "F4c" }, { line: "F4d" }] },
     /* tri de « Je ne sais pas » : comprendre, puis planifier, puis initier */
     F5: { text: "Tu peux dire ce qu’il faut rendre à la fin ?", options: [{ label: "Oui", next: "F5q2" }, { label: "Non", line: "F1b" }] },
     F5q2: { text: "Tu sais quelle est la prochaine action ?", options: [{ label: "Oui", next: "F5q3" }, { label: "Non", line: "F2a" }] },
@@ -696,7 +717,7 @@ function boot() {
   }
 
   /* U = état de l'écran en cours (non enregistré). */
-  var U = { screen: "home", sid: null, task: null, block: null, line: null, qid: null, cardId: null, origin: null, tryStart: 0, teacherTab: "suivi", teacherSid: null, unlocked: false };
+  var U = { screen: "home", sid: null, task: null, block: null, line: null, qid: null, cardId: null, origin: null, tryStart: 0, teacherTab: "suivi", teacherSid: null, unlocked: false, qstack: [], rest: false };
 
   function header(opts) {
     opts = opts || {};
@@ -894,7 +915,7 @@ function boot() {
 
   /* ---------- écrans élève ---------- */
   function goHome() {
-    U.sid = null; U.task = null; U.block = null; U.unlocked = false; U.free = false;
+    U.sid = null; U.task = null; U.block = null; U.unlocked = false; U.free = false; U.pinLater = false;
     var html = title("Qui travaille ?");
     if (!S.students.length) {
       html += '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>' +
@@ -921,7 +942,7 @@ function boot() {
     return b;
   }
   function pickStudent(sid) {
-    U.sid = sid;
+    U.sid = sid; draft.step = 1;
     var t = openTask(sid);
     /* une tâche restée ouverte depuis moins de 3 heures peut être reprise ; plus ancienne, elle est classée abandonnée */
     if (t && now() - t.start > 3 * 3600 * 1000) { closeTask(t, "abandonnee"); save(); t = null; }
@@ -933,25 +954,37 @@ function boot() {
   function footHome() {
     return '<div class="foot"><button class="link" data-a="home">' + svg("back") + 'Changer d’élève</button><button class="link" data-a="notebook">' + svg("notebook") + "Mon carnet</button></div>";
   }
-  var draft = { type: null, subject: "", adult: null };
-  function adultChips(action, cur) {
+  var draft = { type: null, subject: "", adult: null, step: 1 };
+  function adultChips(action, cur, why) {
     return '<p class="sub">Un adulte peut t’aider ?</p><div class="chips">' + [[true, "1", "Oui"], [false, "0", "Non"]].map(function (x) {
       return '<button class="chip' + (cur === x[0] ? " sel" : "") + '" data-a="' + action + '" data-id="' + x[1] + '" aria-pressed="' + (cur === x[0]) + '">' + x[2] + "</button>";
-    }).join("") + "</div>";
+    }).join("") + "</div>" + (why ? '<p class="hint">' + why + "</p>" : "");
   }
+  function lastAdult(sid) {
+    for (var i = S.tasks.length - 1; i >= 0; i--) if (S.tasks[i].sid === sid && (S.tasks[i].adult === true || S.tasks[i].adult === false)) return S.tasks[i].adult;
+    return null;
+  }
+  /* Deux écrans : ce que je fais (tâche, matière), puis où je suis et si un adulte peut aider (déjà rempli comme la dernière fois). */
   function screenTask() {
-    var place = S.settings.place || "classe";
+    if (draft.step === 2 && draft.type) return screenWhere();
+    draft.step = 1;
     var html = title("Tu fais quoi ?") + '<div class="tiles">' + TASK_TYPES.map(function (t) {
       return '<button class="tile' + (draft.type === t.id ? " sel" : "") + '" data-a="type" data-id="' + t.id + '" aria-pressed="' + (draft.type === t.id) + '">' + svg(t.icon) + "<span>" + esc(t.label) + "</span></button>";
     }).join("") + "</div>" +
       '<p class="sub">Matière :</p><div class="chips">' + SUBJECTS.map(function (s) {
         return '<button class="chip' + (draft.subject === s ? " sel" : "") + '" data-a="subject" data-id="' + esc(s) + '" aria-pressed="' + (draft.subject === s) + '">' + esc(s) + "</button>";
       }).join("") + "</div>" +
-      '<p class="sub">Tu es où ?</p><div class="chips">' + [["classe", "En classe"], ["maison", "À la maison"]].map(function (x) {
-        return '<button class="chip' + (place === x[0] ? " sel" : "") + '" data-a="place" data-id="' + x[0] + '" aria-pressed="' + (place === x[0]) + '">' + x[1] + "</button>";
-      }).join("") + "</div>" + adultChips("adult", draft.adult) +
-      '<button class="big" data-a="start"' + (draft.type ? "" : " disabled style=\"opacity:.45\"") + ">" + svg("play") + "Je commence</button>" + footHome();
+      '<button class="big" data-a="next"' + (draft.type ? "" : " disabled") + ">" + svg("play") + "Suite</button>" +
+      (draft.type ? "" : '<p class="hint">Choisis d’abord ce que tu fais.</p>') + footHome();
     show(html);
+  }
+  function screenWhere() {
+    var place = S.settings.place || "classe";
+    show(title("Tu es où ?") + '<div class="chips">' + [["classe", "En classe"], ["maison", "À la maison"]].map(function (x) {
+      return '<button class="chip' + (place === x[0] ? " sel" : "") + '" data-a="place" data-id="' + x[0] + '" aria-pressed="' + (place === x[0]) + '">' + x[1] + "</button>";
+    }).join("") + "</div>" + adultChips("adult", draft.adult, "Pour choisir ce qu’on te propose.") +
+      '<button class="big" data-a="start">' + svg("play") + "Je commence</button>" +
+      '<div class="foot">' + prevLink("prevTask") + "</div>");
   }
   var draftPlan = [];
   function startTask() {
@@ -959,7 +992,7 @@ function boot() {
     var old = openTask(U.sid), st = student(U.sid); if (old) closeTask(old, "abandonnee");
     U.task = { id: uid("t"), sid: U.sid, type: draft.type, subject: draft.subject, place: S.settings.place || "classe", adult: draft.adult, start: now(), end: null, status: null, plan: [], planHelped: null };
     S.tasks.push(U.task); save();
-    draft = { type: null, subject: "", adult: null }; draftPlan = []; U.planAll = false;
+    draft = { type: null, subject: "", adult: null, step: 1 }; draftPlan = []; U.planAll = false;
     if (st && st.plan && planIds(U.sid, U.task).length) screenPlan(); else screenWork();
   }
   /* Stratégies proposées dans le plan d'attaque : celles du domaine de la tâche, connues de l'élève. */
@@ -1015,7 +1048,7 @@ function boot() {
     show((msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
       '<div class="taskline">' + svg(tt.icon) + "<span>" + esc(tt.label) + (t.subject ? " · " + esc(t.subject) : "") + "</span>" +
       (S.settings.chrono ? '<span class="chrono" id="chrono" aria-hidden="true"></span>' : "") + "</div>" +
-      '<h1 style="position:absolute;left:-9999px">Je travaille</h1>' +
+      '<h1 class="sr-only">Je travaille</h1>' +
       '<button class="big" data-a="blocked">' + svg("buoy") + "Je suis bloqué</button>" +
       '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
       adultChips("adultWork", t.adult === true || t.adult === false ? t.adult : null) +
@@ -1050,7 +1083,8 @@ function boot() {
     show(title("Où ça coince ?") + '<div class="choices">' + FAMILIES.map(function (f) {
       return choice("family", { id: f.id }, famLabel(f.id), f.icon);
     }).join("") + "</div>" +
-      '<div class="foot">' + backLink() + '<button class="link" data-a="family" data-id="F0">' + svg("storm") + esc(famLabel("F0")) + "</button></div>" +
+      '<div class="choices apart">' + choice("family", { id: "F0" }, famLabel("F0"), "storm", null, "calm") + "</div>" +
+      '<div class="foot">' + backLink() + "</div>" +
       (attach ? '<div class="foot"><button class="link" data-a="attach">' + svg("notebook") + "Enregistrer pour un élève</button></div>" : ""));
   }
   function screenAttach() {
@@ -1100,20 +1134,32 @@ function boot() {
       '<div class="foot">' + backLink() + '<button class="link" data-a="unfold">' + svg("question") + "Aide-moi à choisir</button></div>";
     show(html);
   }
-  function askQuestion(qid) {
-    var q = QUESTIONS[qid], b = U.block; U.qid = qid;
+  /* Au plus quatre choix à l'écran : au-delà de quatre réponses, trois d'abord puis « Autre chose » (le reste, même question). */
+  function askQuestion(qid, keep, rest) {
+    var q = QUESTIONS[qid], b = U.block, shown, more = false;
+    if (!keep) U.qstack = [];
+    U.qid = qid; U.rest = !!rest;
     U.opts = q.options.filter(function (o) { return !o.line || lineOpen(o.line, b); });
-    show(title(q.text) + '<div class="choices">' + U.opts.map(function (o, i) {
-      var label = o.label || lineLabel(o.line);
+    shown = U.opts.map(function (o, i) { return i; });
+    if (shown.length > 4) { if (rest) shown = shown.slice(3); else { shown = shown.slice(0, 3); more = true; } }
+    show(title(q.text) + '<div class="choices">' + shown.map(function (i) {
+      var o = U.opts[i], label = o.label || lineLabel(o.line);
       var cls = o.label === "Oui" ? "yes" : (o.label === "Non" ? "no" : "");
       return choice("answer", { i: i }, label, o.label === "Oui" ? "check" : (o.label === "Non" ? "cross" : null), null, cls);
-    }).join("") + "</div>" + backToTask());
+    }).join("") + (more ? choice("moreOpts", {}, "Autre chose", "dots") : "") + "</div>" +
+      '<div class="foot">' + prevLink(rest ? "lessOpts" : "prevQ") + backLink() + "</div>");
+  }
+  function prevLink(action) {
+    return '<button class="link" data-a="' + action + '">' + svg("back") + "Étape précédente</button>";
+  }
+  function cheerHtml(text) {
+    return '<div class="choice-row"><p class="cheer">' + esc(text) + "</p>" + sayBtn(text) + "</div>";
   }
   function answer(i) {
     var o = (U.opts || [])[i], b = U.block;
     if (!o) return;
     b.answers.push(o.label || lineLabel(o.line));
-    if (o.next) { save(); return askQuestion(o.next); }
+    if (o.next) { U.qstack.push(U.qid); save(); return askQuestion(o.next, true); }
     setLine(o.line);
   }
   function setLine(lid) {
@@ -1126,15 +1172,17 @@ function boot() {
     if (!next) return goHelp();
     proposeCard(next, "proposee");
   }
-  function proposeCard(id, origin) {
+  function proposeCard(id, origin, cheer) {
     if (id === "C19") return goHelp();
-    var c = card(id), b = U.block, alts;
+    var c = card(id), b = U.block, alts, back;
     U.cardId = id; U.origin = origin; U.peek = false; U.step = 0;
     U.mode = methodState(id, b.sid) || 1;
     alts = alternatives(b, id);
-    show(title("Essaie ça.") + cardHtml(c, U.mode, "preview") +
+    /* « Étape précédente » seulement tant que rien n'a été essayé : on revient à la question, la réponse est retirée */
+    back = !b.tries.length && !b.switched && !b.extra && !b.help && b.family !== "F0" && U.qid && b.answers.length && U.line && !U.line.free;
+    show(title("Essaie ça.") + (cheer ? cheerHtml(cheer) : "") + cardHtml(c, U.mode, "preview") +
       '<button class="big" data-a="try">' + svg("play") + "J’essaie</button>" +
-      '<div class="foot">' + backLink() +
+      '<div class="foot">' + (back ? prevLink("prevCard") : "") + backLink() +
       (alts.length && b.family !== "F0" ? '<button class="link" data-a="other">' + svg("loop") + "Une autre idée</button>" : "") + "</div>");
   }
   function stepsHtml(c) {
@@ -1169,18 +1217,20 @@ function boot() {
         '<details class="annex" data-peek="1"><summary>Voir la carte</summary><div class="in">' + stepsHtml(c) + "</div></details>";
       say = c.title + ". " + (one ? "Tu te souviens de ce qu’il faut faire ?" : "Tu te souviens des étapes ?");
     } else if (view === "try") {
-      body = '<p class="stepnum">Étape ' + (U.step + 1) + " sur " + c.steps.length + "</p><p>" + esc(c.steps[U.step]) + "</p>" +
+      body = '<div class="stephero"><span class="n" aria-hidden="true">' + (U.step + 1) + "</span><p>" + esc(c.steps[U.step]) + "</p></div>" +
+        '<div class="dots">' + c.steps.map(function (x, i) { return '<i aria-hidden="true" class="' + (i < U.step ? "done" : (i === U.step ? "on" : "")) + '"></i>'; }).join("") +
+        '<span class="small">Étape ' + (U.step + 1) + " sur " + c.steps.length + "</span></div>" +
         (c.truc ? '<p class="truc"><b>Mon truc :</b> ' + esc(c.truc) + "</p>" : "");
       say = c.steps[U.step];
     } else body = (c.text ? "<p>" + esc(c.text) + "</p>" : "") + '<p class="sub">' + c.steps.length + " étapes, une par une.</p>";
-    return '<div class="card">' + (over ? '<span class="overline">' + esc(over) + "</span>" : "") +
-      '<div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(say, true) + "</div>" + body + annexHtml(c.annex) + dur + "</div>";
+    return '<div class="card"><div class="cardhead">' + (over ? '<span class="overline">' + esc(over) + "</span>" : "") +
+      '<div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(say, true) + "</div></div>" + body + annexHtml(c.annex) + dur + "</div>";
   }
   function startTry() { U.tryStart = now(); U.step = 0; renderTry(); }
   function renderTry() {
     var c = card(U.cardId), total = c.min * 60 * 1000, rang = now() - U.tryStart >= total;
     var last = U.mode !== 1 || U.step >= c.steps.length - 1;
-    show('<h1 style="position:absolute;left:-9999px">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, U.mode, "try") +
+    show('<h1 class="sr-only">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, U.mode, "try") +
       (S.settings.timer ? '<div class="timer" id="timer" role="timer" aria-live="off"></div>' : "") +
       (last ? '<button class="big" data-a="tried">' + svg("check") + "C’est fait</button>"
             : '<button class="big" data-a="nextStep">' + svg("play") + "Étape suivante</button>"));
@@ -1216,9 +1266,10 @@ function boot() {
     if (r >= 0.5) {
       var c = card(U.cardId), mins = Math.max(1, Math.round((now() - b.at) / 60000));
       endBlock("reprise");
-      show('<div class="done">' + svg("check") + "<h1>Reparti en " + mins + " min avec « " + esc(c.title) + " ».</h1>" +
+      var said = "Tu as trouvé ce qui t’aide : « " + c.title + " ». C’était en " + mins + " min.";
+      show('<div class="done">' + svg("check") + '<div class="qrow"><h1>Tu es reparti !</h1>' + sayBtn("Tu es reparti ! " + said, true) + "</div>" +
+        '<p class="sub">' + esc(said) + "</p>" +
         '<button class="btn primary" data-a="work">' + (U.task ? "Je continue" : "Terminer") + "</button></div>", { center: true });
-      pendingTimeout = setTimeout(function () { backToWork(); }, 3500);
       return;
     }
     afterNon();
@@ -1227,15 +1278,15 @@ function boot() {
     var b = U.block, n = nonCount(b), L = U.line, next;
     if (n >= 3) return goHelp();
     next = nextUntried(L.seq, b);
-    if (n === 1 && next) return proposeCard(next, "proposee");
-    if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee");
+    if (n === 1 && next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.");
+    if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee", "Tu continues d’essayer. C’est ça qui compte.");
     if (L.then && !b.switched) {
       b.switched = L.then; b.answers.push("→ " + famLabel(L.then)); save();
-      show(title("Ça coince peut-être ailleurs.") + '<p class="sub">On regarde une autre piste.</p>' +
+      show(title("Ça coince peut-être ailleurs.") + '<p class="sub">Tu as bien essayé. On regarde une autre piste.</p>' +
         '<button class="big" data-a="switch">' + svg("loop") + "D’accord</button>" + backToTask());
       return;
     }
-    if (next) return proposeCard(next, "proposee");
+    if (next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.");
     goHelp();
   }
   /* Deux écrans d'aide : avec un adulte (demander), sans adulte (préparer sa question, « ? » dans la marge). */
@@ -1251,7 +1302,8 @@ function boot() {
         '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
     }
     var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
-    var starters = (msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
+    if (!msg && nonCount(b) >= 2) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
+    var starters = (msg ? cheerHtml(msg) : "") +
       '<div class="choice-row"><p class="starter" style="flex:1">J’ai compris…</p>' + sayBtn("J’ai compris") + "</div>" +
       '<div class="choice-row"><p class="starter" style="flex:1">Je bloque sur…</p>' + sayBtn("Je bloque sur") + "</div>" +
       '<div class="choice-row"><p class="starter" style="flex:1">J’ai essayé…' + (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</p>" + sayBtn("J’ai essayé " + tried.join(", ")) + "</div>";
@@ -1260,15 +1312,16 @@ function boot() {
     if (alone) {
       return show(title("Prépare ta question.") + starters +
         '<p class="tip">Tu la poseras dès qu’un adulte sera là.</p>' +
-        '<div class="row">' + passe + stop + "</div>" +
+        '<div class="row">' + passe + "</div>" +
+        (stop ? '<details class="annex"><summary>Autre chose</summary><div class="in">' + stop + "</div></details>" : "") +
         '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
     }
     show(title("Demande une aide précise.") + starters +
       '<p class="tip">Demande une explication ou un indice, pas la réponse.</p>' +
       '<p class="sub">Montre cet écran à un adulte ou à un camarade.</p>' +
-      '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + (U.task ? "J’ai eu de l’aide, je reprends" : "J’ai eu de l’aide") + "</button>" +
+      '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + (U.task ? "J’ai eu de l’aide, je reprends" : "J’ai eu de l’aide") + "</button></div>" +
       /* routine du dossier quand personne n'est disponible : un « ? » dans la marge, et on continue */
-      passe + stop + "</div>" +
+      '<details class="annex"><summary>Autre chose</summary><div class="in">' + passe + stop + "</div></details>" +
       '<div class="foot"><span></span><button class="link" data-a="adultNone">Aucun adulte n’est disponible</button></div>');
   }
   function screenFinish() {
@@ -1296,12 +1349,12 @@ function boot() {
     /* plan si-alors (carte C06) : l'élève s'engage sur une carte pour le prochain blocage, elle est épinglée dans son carnet */
     var c06 = card("C06"), c = card(id);
     if (!c06.active) return screenBye();
-    show(title("Pour la prochaine fois") + '<div class="card"><div class="cardtop"><h2>' + esc(c06.title) + "</h2>" +
-      sayBtn("Si je bloque encore, alors j’essaie " + c.title, true) + "</div><p>Si je bloque encore, alors j’essaie « " + esc(c.title) + " ».</p></div>" +
+    show(title("Pour la prochaine fois") + '<div class="card"><div class="cardhead"><div class="cardtop"><h2>' + esc(c06.title) + "</h2>" +
+      sayBtn("Si je bloque encore, alors j’essaie " + c.title, true) + "</div></div><p>Si je bloque encore, alors j’essaie « " + esc(c.title) + " ».</p></div>" +
       '<div class="row"><button class="btn primary" data-a="plan" data-id="' + esc(id) + '">' + svg("pin") + 'D’accord, je la garde</button><button class="btn" data-a="bye">Non merci</button></div>');
   }
   function screenBye() {
-    show('<div class="done">' + svg("check") + "<h1>C’est noté.</h1>" + '<button class="btn primary" data-a="home">Terminer</button></div>', { center: true });
+    show('<div class="done">' + svg("check") + "<h1>C’est noté.</h1>" + '<p class="sub">Bravo pour ton effort.</p>' + '<button class="btn primary" data-a="home">Terminer</button></div>', { center: true });
     U.task = null;
   }
   function togglePin(st, id) {
@@ -1352,7 +1405,10 @@ function boot() {
     if (!U.teacherSid && S.students.length) U.teacherSid = S.students[0].id;
     if (U.teacherSid && !student(U.teacherSid)) U.teacherSid = S.students.length ? S.students[0].id : null;
     var tabs = [["suivi", "Suivi"], ["eleves", "Élèves"], ["reglages", "Réglages"], ["cartes", "Cartes et libellés"], ["donnees", "Données"], ["aide", "Mode d’emploi"]];
-    var html = '<h1>Espace enseignante</h1><div class="tabs" role="tablist">' + tabs.map(function (t) {
+    var html = '<h1>Espace enseignante</h1>' + (S.settings.pin || U.pinLater || !S.students.length ? "" :
+      '<div class="panel warn"><p><b>Pas de code pour l’instant.</b> Un élève qui touche l’engrenage entre ici et voit les données de la classe.</p>' +
+      '<div class="row"><button class="btn primary" data-a="goPin">Définir un code</button><button class="btn" data-a="laterPin">Plus tard</button></div></div>') +
+      '<div class="tabs" role="tablist">' + tabs.map(function (t) {
       return '<button class="tab' + (U.teacherTab === t[0] ? " on" : "") + '" role="tab" aria-selected="' + (U.teacherTab === t[0]) + '" data-a="tab" data-id="' + t[0] + '">' + t[1] + "</button>";
     }).join("") + "</div>";
     html += { suivi: tabSuivi, eleves: tabEleves, reglages: tabReglages, cartes: tabCartes, donnees: tabDonnees, aide: tabAide }[U.teacherTab]();
@@ -1507,7 +1563,10 @@ function boot() {
     return '<label class="check"><input type="checkbox" data-c="setting" data-f="' + key + '"' + (S.settings[key] ? " checked" : "") + ">" + label + "</label>";
   }
   function tabReglages() {
-    return voicePanel() + '<div class="panel"><h2>Côté élève</h2>' +
+    var pinPanel = '<div class="panel"><h2>Code de l’espace enseignante</h2><p class="small">Facultatif, mais conseillé dès qu’il y a des élèves. Lettres et chiffres, jusqu’à 20 signes. Il évite qu’un élève entre ici par curiosité. Il est gardé tel quel dans le navigateur de l’appareil et n’est jamais écrit dans les fichiers exportés. Ce n’est pas une protection des données.</p>' +
+      '<div class="formrow"><label class="field"><span>Code</span><input type="text" id="newPin" maxlength="20" value="' + esc(S.settings.pin) + '" autocomplete="off"></label>' +
+      '<button class="btn fit" data-a="savePin">Enregistrer le code</button></div></div>';
+    return (S.settings.pin ? "" : pinPanel) + voicePanel() + '<div class="panel"><h2>Côté élève</h2>' +
       check("audio", "Bouton « Écouter » sur chaque choix" + (canTalk() ? "" : " (indisponible sur cet appareil)")) +
       check("chrono", "Chrono discret pendant le travail") +
       check("timer", "Minuteur sur les cartes") +
@@ -1515,9 +1574,7 @@ function boot() {
       check("demoMethods", "Coup de main sans élève : proposer aussi les stratégies du dossier de français") + "</div>" +
       '<div class="panel"><h2>Qui choisit la carte</h2>' + check("autoLevel", "Changer automatiquement le niveau par famille (désactivé par défaut)") +
       '<p class="small">Si la case est cochée : montée après 5 reprises sur les 6 derniers blocages d’une famille, descente après 2 échecs de suite ou 3 sur 5. Sinon, le niveau se règle à la main dans « Élèves ». Le retrait de l’aide par stratégie, lui, passe toujours par vos validations dans « Suivi ».</p></div>' +
-      '<div class="panel"><h2>Code de l’espace enseignante</h2><p class="small">Facultatif. Lettres et chiffres, jusqu’à 20 signes. Il évite qu’un élève entre ici par curiosité. Il est gardé tel quel dans le navigateur de l’appareil et n’est jamais écrit dans les fichiers exportés. Ce n’est pas une protection des données.</p>' +
-      '<div class="formrow"><label class="field"><span>Code</span><input type="text" id="newPin" maxlength="20" value="' + esc(S.settings.pin) + '" autocomplete="off"></label>' +
-      '<button class="btn fit" data-a="savePin">Enregistrer le code</button></div></div>';
+      (S.settings.pin ? pinPanel : "");
   }
   function tabCartes() {
     var html = '<div class="panel"><h2>Familles et réponses</h2><p class="small">Réécrivez les libellés avec vos élèves. Un champ vidé reprend le libellé d’origine.</p>';
@@ -1571,7 +1628,11 @@ function boot() {
       '<div class="panel"><h2>En classe</h2>' +
       "<p>1. Présentez d’abord les stratégies vous-même, sur une vraie tâche : l’outil rappelle une stratégie, il ne l’enseigne pas.</p>" +
       "<p>2. Donnez une règle simple : « deux minutes sans avancer, j’appuie ».</p>" +
-      "<p>3. Après trois essais sans reprise, l’outil aide à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p></div>" +
+      "<p>3. Après trois essais sans reprise, l’outil aide à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p>" +
+      "<p>4. Après un « Non », l’outil dit une phrase courte qui reconnaît l’effort (« Pas grave. On essaie autre chose. »). Il ne donne ni points ni récompenses. « Ça ne va pas du tout » est toujours visible, à part des cinq familles.</p>" +
+      "<p>5. Pour poser une question, l’élève voit au plus quatre réponses : « Autre chose » ouvre les suivantes. « Étape précédente » corrige une erreur de tap sans abandonner le blocage.</p></div>" +
+      '<div class="panel"><h2>Le code de cet espace</h2>' +
+      "<p>Sans code, tout élève qui touche l’engrenage entre ici. Tant qu’il n’y a pas de code et qu’il y a des élèves, un rappel s’affiche en haut de cet espace (« Plus tard » le masque jusqu’au prochain retour à l’accueil). Le code se règle dans « Réglages ».</p></div>" +
       '<div class="panel"><h2>Adulte disponible ou non</h2>' +
       "<p>L’élève l’indique au démarrage de la tâche et peut le changer sur l’écran de travail. S’il ne l’a pas dit, l’outil le demande au moment de l’aide (toujours le cas en coup de main).</p>" +
       "<p>Sans adulte : l’outil propose une stratégie de plus (la suite prévue, sinon une carte générale utilisable seul : chercher dans le cours, regarder un exemple, commencer par le facile…), puis l’élève prépare sa question et met un « ? » dans la marge. « Suivi » indique les blocages sans adulte disponible.</p></div>" +
@@ -1639,9 +1700,11 @@ function boot() {
     teacher: function () { openTeacher(); },
     pick: function (d) { pickStudent(d.id); },
     resume: function () { U.task = openTask(U.sid); if (U.task) screenWork(); else screenTask(); },
-    newTask: function () { var t = openTask(U.sid); if (t) { closeTask(t, "abandonnee"); save(); } screenTask(); },
+    newTask: function () { var t = openTask(U.sid); if (t) { closeTask(t, "abandonnee"); save(); } draft.step = 1; screenTask(); },
     type: function (d) { draft.type = d.id; screenTask(); },
     subject: function (d) { draft.subject = draft.subject === d.id ? "" : d.id; screenTask(); },
+    next: function () { if (!draft.type) return; draft.step = 2; if (draft.adult === null) draft.adult = lastAdult(U.sid); screenTask(); },
+    prevTask: function () { draft.step = 1; screenTask(); },
     start: function () { startTask(); },
     work: function () { backToWork(); },
     free: function () { startFree(); },
@@ -1676,6 +1739,19 @@ function boot() {
     passe: function () { endBlock("passe"); backToWork("C’est noté. On en reparlera."); },
     blocked: function () { blocked(); },
     family: function (d) { pickFamily(d.id); },
+    moreOpts: function () { askQuestion(U.qid, true, true); },
+    lessOpts: function () { askQuestion(U.qid, true, false); },
+    prevQ: function () {
+      var b = U.block, q; if (!b) return;
+      if (U.qstack.length) { q = U.qstack.pop(); b.answers.pop(); save(); return askQuestion(q, true); }
+      b.answers = []; b.family = null; b.level = null; save(); screenFamilies();
+    },
+    prevCard: function () {
+      var b = U.block; if (!b || b.tries.length || !U.qid) return;
+      b.answers.pop(); b.line = null; U.line = null; save(); askQuestion(U.qid, true);
+    },
+    goPin: function () { U.teacherTab = "reglages"; openTeacher(); var el = document.getElementById("newPin"); if (el) el.focus(); },
+    laterPin: function () { U.pinLater = true; openTeacher(); },
     unfold: function () { U.block.unfolded = true; save(); askQuestion(U.block.family); },
     pickCard: function (d) { proposeCardChosen(d.id); },
     answer: function (d) { answer(parseInt(d.i, 10)); },
@@ -1685,7 +1761,7 @@ function boot() {
     result: function (d) { result(parseFloat(d.r)); },
     "switch": function () { askQuestion(U.block.switched); },
     cancelBlock: function () { if (U.block && !U.block.end) { if (U.block.tries.length) endBlock("abandon"); else endBlock("annule"); } backToWork(); },
-    helped: function () { endBlock("aide"); backToWork("C’est reparti."); },
+    helped: function () { endBlock("aide"); backToWork("C’est reparti. Bien joué d’avoir demandé de l’aide."); },
     stopClean: function () { endBlock("stop"); finishAs("reportee"); },
     finish: function () { screenFinish(); },
     finishAs: function (d) {
