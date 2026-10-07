@@ -1,0 +1,1106 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>PL-restart’</title><meta name="theme-color" content="#2f6f63"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PL-restart’"></head><body><script>
+/* PL-restart’ — prototype (octobre 2026).
+   Une page unique, sans serveur ni compte : tout reste dans le navigateur (localStorage).
+   Structure : style · icônes · contenu (familles, questions, cartes) · état local · moteur · écrans élève · espace enseignante. */
+function boot() {
+  "use strict";
+
+  /* ---------- style ---------- */
+  var CSS_TEXT = `
+    @font-face { font-family: "Atkinson Hyperlegible"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/atkinson-400.woff2) format("woff2"); }
+    @font-face { font-family: "Atkinson Hyperlegible"; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/atkinson-700.woff2) format("woff2"); }
+    @font-face { font-family: "Lexend"; font-style: normal; font-weight: 100 900; font-display: swap; src: url(fonts/lexend.woff2) format("woff2"); }
+
+    :root {
+      --bg: #eff2f0; --surface: #ffffff; --surface-alt: #e4e9e6; --ink: #253433; --muted: #5b6c6a;
+      --accent: #2f6f63; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+      --warm: #b97a3d; --warm-soft: color-mix(in srgb, var(--warm) 20%, var(--surface));
+      --red: #b6503f; --red-soft: color-mix(in srgb, var(--red) 18%, var(--surface));
+      --border: #d7ddda; --on-accent: #ffffff;
+      --shadow: 0 1px 2px rgba(37, 52, 51, 0.06), 0 10px 24px rgba(37, 52, 51, 0.08);
+      --display: "Lexend", "Atkinson Hyperlegible", system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee; --muted: #9fb0ac;
+        --accent: #6fbfae; --warm: #e3a768; --red: #d98070; --border: #33443f; --on-accent: #12201d;
+        --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee; --muted: #9fb0ac;
+      --accent: #6fbfae; --warm: #e3a768; --red: #d98070; --border: #33443f; --on-accent: #12201d;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { font-size: 112.5%; }
+    html, body { min-height: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif; line-height: 1.4; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+
+    .page { max-width: 780px; margin-inline: auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; gap: 18px; padding: clamp(12px, 3vw, 28px); }
+    .page.wide { max-width: 1120px; }
+    header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    /* identité commune à la famille PL : monogramme, nom de l'outil, retour vers PL */
+    .pl-id { display: flex; align-items: center; gap: 6px 12px; min-width: 0; }
+    .pl-name { font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: inherit; text-decoration: none; background: none; border: 0; padding: 0; }
+    .pl-logo { position: relative; display: inline-flex; flex: none; border-radius: 50%; line-height: 0; }
+    .pl-logo::after { content: ""; position: absolute; inset: -8px; }
+    .pl-mark { width: 1.6em; height: 1.6em; flex: none; }
+    .pl-mark circle { fill: var(--accent); }
+    .pl-mark g { stroke: var(--bg); }
+    .who { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-weight: 700; }
+    .who .ic { width: 22px; height: 22px; color: var(--accent); }
+    .topright { display: flex; align-items: center; gap: 8px; }
+    .iconbtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 48px; height: 48px; padding: 0 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-weight: 700; }
+    .iconbtn .ic { width: 22px; height: 22px; }
+
+    main { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+    main.center { justify-content: center; }
+    .qrow { display: flex; align-items: flex-start; gap: 10px; }
+    h1 { margin: 0; flex: 1; font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 4.4vw, 2.15rem); line-height: 1.2; outline: none; }
+    h2 { margin: 0; font-family: var(--display); font-size: 1.25rem; }
+    .sub { margin: 0; color: var(--muted); font-size: 1.05rem; }
+    .ic { width: 24px; height: 24px; flex: none; }
+
+    .choices { display: grid; gap: 12px; }
+    .choice-row { display: flex; gap: 8px; align-items: stretch; }
+    .choice { flex: 1; display: flex; align-items: center; gap: 16px; min-height: 78px; padding: 14px 18px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.22rem; line-height: 1.25; text-align: left; box-shadow: var(--shadow); transition: transform .1s ease, border-color .1s ease; }
+    .choice:hover { border-color: var(--accent); }
+    .choice:active { transform: scale(0.985); }
+    .choice .ic { width: 38px; height: 38px; color: var(--accent); }
+    .choice small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; color: var(--muted); margin-top: 4px; }
+    .choice.yes .ic { color: var(--accent); } .choice.no .ic { color: var(--red); } .choice.mid .ic { color: var(--warm); }
+    .say { flex: none; width: 58px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--border); background: var(--surface-alt); color: var(--muted); }
+    .say .ic { width: 26px; height: 26px; }
+    .say.small { width: 48px; height: 48px; border-radius: 14px; }
+
+    .big { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; min-height: 104px; padding: 18px 22px; border-radius: 24px; border: 0; background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 5vw, 2rem); box-shadow: var(--shadow); transition: transform .1s ease; }
+    .big:active { transform: scale(0.985); }
+    .big .ic { width: 44px; height: 44px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 12px 22px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+    .btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+    .btn.danger { color: var(--red); border-color: var(--red); }
+    .btn:disabled { color: var(--muted); background: var(--surface-alt); border-color: var(--border); cursor: default; }
+    .btn .ic { width: 26px; height: 26px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row > .btn { flex: 1 1 200px; }
+    .link { background: none; border: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; min-height: 48px; padding: 8px 10px; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; }
+    .link .ic { width: 20px; height: 20px; }
+    .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px; }
+    .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 124px; padding: 16px 10px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.1rem; box-shadow: var(--shadow); text-align: center; }
+    .tile .ic { width: 42px; height: 42px; color: var(--accent); }
+    .tile.sel, .chip.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { min-height: 46px; padding: 8px 18px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-weight: 700; }
+
+    .card { background: var(--surface); border: 2px solid var(--accent); border-radius: 24px; padding: clamp(18px, 4vw, 30px); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+    .card .cardtop { display: flex; align-items: flex-start; gap: 10px; }
+    .card h2 { flex: 1; font-size: clamp(1.4rem, 4vw, 1.8rem); }
+    .card p { margin: 0; font-size: clamp(1.25rem, 3.6vw, 1.5rem); line-height: 1.45; }
+    .card .dur { color: var(--muted); font-size: 1rem; display: inline-flex; align-items: center; gap: 6px; }
+    .card .dur .ic { width: 20px; height: 20px; }
+    .card.mini { border-width: 2px; border-color: var(--border); padding: 16px 18px; gap: 6px; }
+    .card.mini p { font-size: 1.05rem; }
+    .recall { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--accent-soft); font-weight: 700; }
+    .timer { font-family: var(--display); font-weight: 700; font-size: clamp(2.6rem, 10vw, 4rem); text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    .timer.over { color: var(--warm); }
+    .chrono { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 1.1rem; }
+    .taskline { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
+    .taskline .ic { width: 34px; height: 34px; color: var(--accent); }
+    .starter { margin: 0; padding: 14px 18px; border-left: 6px solid var(--accent); background: var(--surface); border-radius: 0 14px 14px 0; font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
+    .starter small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; color: var(--muted); margin-top: 4px; }
+    .tip { margin: 0; padding: 12px 16px; border-radius: 14px; background: var(--warm-soft); font-weight: 700; }
+    .note { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--red-soft); font-size: 0.95rem; }
+    .done { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+    .done .ic { width: 84px; height: 84px; color: var(--accent); }
+    .empty { text-align: center; color: var(--muted); padding: 24px 8px; }
+    ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .count { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
+    .count b { font-family: var(--display); }
+    .count .n { color: var(--muted); white-space: nowrap; }
+    .pinbtn { min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface); font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
+    .pinbtn.on { border-color: var(--accent); background: var(--accent-soft); }
+    .pinbtn .ic { width: 18px; height: 18px; }
+
+    /* ----- espace enseignante ----- */
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 2px solid var(--border); }
+    .tab { min-height: 48px; padding: 8px 18px; border: 0; background: none; font-weight: 700; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .panel p { margin: 0; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .stat { padding: 12px 14px; border-radius: 14px; background: var(--surface-alt); }
+    .stat b { display: block; font-family: var(--display); font-size: 1.5rem; }
+    .stat span { color: var(--muted); font-size: 0.9rem; }
+    .field { display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem; }
+    .field > span { color: var(--muted); font-weight: 700; }
+    input[type="text"], input[type="password"], input[type="number"], select, textarea { min-height: 46px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); width: 100%; }
+    textarea { min-height: 70px; resize: vertical; }
+    input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); }
+    label.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+    .formrow { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .formrow > * { flex: 1 1 160px; }
+    .formrow > .fit { flex: 0 0 auto; }
+    .tw { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+    td select { min-height: 40px; min-width: 130px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; background: var(--surface-alt); white-space: nowrap; }
+    .tag.ok { background: var(--accent-soft); } .tag.ko { background: var(--red-soft); } .tag.mid { background: var(--warm-soft); }
+    .blk { display: grid; grid-template-columns: 1fr 230px; gap: 12px 20px; padding: 14px 0; border-top: 1px solid var(--border); }
+    .blk-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .blk-note { display: flex; flex-direction: column; gap: 8px; }
+    @media (max-width: 640px) { .blk { grid-template-columns: 1fr; } }
+    .cardedit { display: grid; grid-template-columns: auto 1fr; gap: 10px 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .cardedit .code { font-weight: 700; color: var(--muted); padding-top: 10px; }
+    .cardedit .in { display: grid; gap: 8px; grid-template-columns: 1fr 96px; }
+    .cardedit .in textarea { grid-column: 1 / -1; }
+    .small { font-size: 0.9rem; color: var(--muted); }
+    .avatars { display: flex; gap: 8px; flex-wrap: wrap; }
+    .avatar { width: 52px; height: 52px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; }
+    .avatar .ic { width: 28px; height: 28px; color: var(--accent); }
+    .avatar.sel { border-color: var(--accent); background: var(--accent-soft); }
+    @media (max-width: 520px) { .choice { font-size: 1.1rem; min-height: 72px; gap: 12px; padding: 12px 14px; } .say { width: 50px; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  `;
+  var styleEl = document.createElement("style");
+  styleEl.textContent = CSS_TEXT;
+  document.head.appendChild(styleEl);
+
+  /* ---------- icons ---------- */
+  var ICONS = {
+    question: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1 1-1.1 1.8"/><path d="M12 17h.01"/>',
+    play: '<circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/>',
+    thread: '<path d="M3 12h6"/><path d="M15 12h6"/><path d="M11.5 7.5l-1.2 3"/><path d="M12.5 16.5l1.2-3"/>',
+    cross: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
+    dots: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>',
+    buoy: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/>',
+    check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+    half: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+    sound: '<path d="M4 10v4h3l4 3V7l-4 3z"/><path d="M15 9.5a3.5 3.5 0 0 1 0 5"/><path d="M17.5 7a7 7 0 0 1 0 10"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>',
+    people: '<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20a5.5 5.5 0 0 1 11 0M14.5 20a4.5 4.5 0 0 1 7-3.6"/>',
+    book: '<path d="M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5z"/><path d="M12 6v13"/>',
+    pencil: '<path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/>',
+    lines: '<path d="M5 6h14M5 10h14M5 14h10M5 18h7"/>',
+    loop: '<path d="M4 12a8 8 0 0 1 14-5l2 2"/><path d="M20 5v4h-4"/><path d="M20 12a8 8 0 0 1-14 5l-2-2"/><path d="M4 19v-4h4"/>',
+    more: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 9v6M9 12h6"/>',
+    storm: '<path d="M7 15a4 4 0 0 1 .5-8 5 5 0 0 1 9.6 1.2A3.5 3.5 0 0 1 17 15"/><path d="M12.5 12l-2 4h3l-1.5 4"/>',
+    pin: '<path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/>',
+    notebook: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/>',
+    pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
+    star: '<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-3-5.4 3 1.1-6L3.2 9.4l6.1-.8z"/>',
+    moon: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>',
+    leaf: '<path d="M5 19C5 10 10 5 20 4c-1 10-6 15-15 15z"/><path d="M5 19l8-8"/>',
+    drop: '<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/>',
+    mountain: '<path d="M3 19l6-11 4 6 2-3 6 8z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+    bolt: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+    wave: '<path d="M2 10c3-4 5-4 8 0s5 4 8 0 4-2 4-2M2 16c3-4 5-4 8 0s5 4 8 0 4-2 4-2"/>'
+  };
+  var AVATARS = ["star", "moon", "leaf", "drop", "mountain", "sun", "bolt", "wave"];
+  function svg(name) {
+    return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || "") + "</svg>";
+  }
+  var PL_MARK = '<svg class="pl-mark" viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="76"/><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M56,114 C55,100 58,86 56,70 C55,58 57,50 56,48 C64,46 78,45 80,58 C82,70 70,76 56,76"/><path d="M100,48 C99,64 101,86 100,100 C99,108 101,112 100,112 L128,111"/></g></svg>';
+
+  /* ---------- contenu : familles, réponses (lignes), questions, cartes ----------
+     Tout libellé ci-dessous est une valeur par défaut : l'enseignante peut le réécrire dans Réglages. */
+  var FAMILIES = [
+    { id: "F1", label: "Je ne comprends pas", icon: "question" },
+    { id: "F2", label: "Je n’arrive pas à commencer", icon: "play" },
+    { id: "F3", label: "J’ai décroché", icon: "thread" },
+    { id: "F4", label: "Ça ne marche pas", icon: "cross" },
+    { id: "F5", label: "Je ne sais pas", icon: "dots" }
+  ];
+  var F0 = { id: "F0", label: "Ça ne va pas du tout", icon: "storm" };
+  /* Une ligne = une réponse de l'élève + l'ordre des cartes. « then » = famille proposée après deux « non ». */
+  var LINES = {
+    F1a: { fam: "F1", label: "Un mot", seq: ["C01", "C19"] },
+    F1b: { fam: "F1", label: "Ce qu’il faut faire", seq: ["C02", "C03"], then: "F2" },
+    F1c: { fam: "F1", label: "Je n’ai jamais appris ça", seq: ["C17", "C19"] },
+    F2a: { fam: "F2", label: "Je ne vois pas par quoi commencer", seq: ["C04", "C03"], then: "F1" },
+    F2b: { fam: "F2", label: "C’est trop long", seq: ["C12", "C15", "C20"] },
+    F2c: { fam: "F2", label: "C’est trop dur", seq: ["C15", "C03"], then: "F1" },
+    F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", seq: ["C05", "C16", "C11"] },
+    F3a: { fam: "F3", label: "J’ai perdu le fil", seq: ["C07", "C08"], then: "F2" },
+    F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C12"] },
+    F3c: { fam: "F3", label: "Je suis fatigué ou agité", seq: ["C11", "C12", "C20"] },
+    F4a: { fam: "F4", label: "J’ai fait une erreur, je sais où", seq: ["C13", "C14", "C19"] },
+    F4b: { fam: "F4", label: "C’est faux, je ne sais pas où", seq: ["C14", "C03", "C19"] },
+    F4c: { fam: "F4", label: "Ma façon de faire ne marche pas", seq: ["C21", "C03", "C19"] },
+    F4d: { fam: "F4", label: "Tout est faux", seq: ["C18", "C14", "C19"] },
+    F5a: { fam: "F5", label: "Je peux faire la prochaine action", seq: ["C05", "C19"] }
+  };
+  var QUESTIONS = {
+    F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { line: "F1c" }] },
+    F2: { text: "Tu sais quelle est la première chose à faire ?", options: [{ label: "Oui", next: "F2q2" }, { label: "Non", line: "F2a" }] },
+    F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2b" }, { line: "F2c" }, { line: "F2d" }] },
+    F3: { text: "Qu’est-ce qui s’est passé ?", options: [{ line: "F3a" }, { line: "F3b" }, { line: "F3c" }] },
+    F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4c" }, { line: "F4d" }] },
+    /* tri de « Je ne sais pas » : comprendre, puis planifier, puis initier */
+    F5: { text: "Tu peux dire ce qu’il faut rendre à la fin ?", options: [{ label: "Oui", next: "F5q2" }, { label: "Non", line: "F1b" }] },
+    F5q2: { text: "Tu sais quelle est la prochaine action ?", options: [{ label: "Oui", next: "F5q3" }, { label: "Non", line: "F2a" }] },
+    F5q3: { text: "Tu peux la faire maintenant ?", options: [{ label: "Oui", line: "F5a" }, { label: "Non", line: "F2d" }] }
+  };
+  var CARDS = [
+    { id: "C01", title: "Le mot qui bloque", text: "Souligne le mot que tu ne comprends pas. Cherche-le ou demande seulement ce mot.", min: 2 },
+    { id: "C02", title: "Dire avec mes mots", text: "Dis tout bas : je dois… pour obtenir…", min: 2 },
+    { id: "C03", title: "Regarder un exemple", text: "Trouve un exemple déjà fait. Repère ses étapes.", min: 3 },
+    { id: "C04", title: "Couper en 3", text: "Écris trois étapes. Entoure la première.", min: 3 },
+    { id: "C05", title: "Deux minutes", text: "Fais seulement la première action pendant deux minutes.", min: 2 },
+    { id: "C06", title: "Si… alors", text: "Complète : si je bloque encore ici, alors je…", min: 1 },
+    { id: "C07", title: "Ma dernière ligne", text: "Relis ta dernière ligne. Dis l’étape d’après.", min: 1 },
+    { id: "C08", title: "Où j’en suis", text: "Relis le but. Coche ce qui est déjà fait.", min: 2 },
+    { id: "C09", title: "Ranger autour", text: "Éloigne ce qui te distrait. Change de place si tu peux.", min: 1 },
+    { id: "C10", title: "Parking à pensées", text: "Note ta pensée sur un papier. Tu y reviendras après.", min: 1 },
+    { id: "C11", title: "Pause courte", text: "Lève-toi, bouge, bois. Reviens quand ça sonne.", min: 3 },
+    { id: "C12", title: "Tranche minutée", text: "Travaille dix minutes. Ensuite tu décides de continuer ou non.", min: 10 },
+    { id: "C13", title: "Corriger et noter", text: "Corrige. Écris en une phrase ce que tu as changé.", min: 2 },
+    { id: "C14", title: "Comparer pas à pas", text: "Compare chaque étape avec la consigne ou l’exemple. Arrête-toi à la première différence.", min: 3 },
+    { id: "C15", title: "Commencer par le facile", text: "Fais d’abord la partie que tu sais faire.", min: 5 },
+    { id: "C16", title: "Brouillon libre", text: "Écris une première version sans la corriger. Elle a le droit d’être fausse.", min: 5 },
+    { id: "C17", title: "Chercher dans le cours", text: "Trouve la page de ton cours qui parle de ça.", min: 3 },
+    { id: "C18", title: "Respirer d’abord", text: "Respire lentement cinq fois. Puis montre cet écran à un adulte.", min: 1 },
+    { id: "C19", title: "Demande précise", text: "Complète : j’ai compris… je bloque sur… j’ai essayé… Demande une explication ou un indice, pas la réponse.", min: 2 },
+    { id: "C20", title: "Stop propre", text: "Note où tu t’arrêtes et la prochaine action.", min: 2 },
+    { id: "C21", title: "Cacher et dire", text: "Cache ta feuille. Dis ou écris ce que tu te rappelles.", min: 3 }
+  ];
+  var TASK_TYPES = [
+    { id: "lire", label: "Lire", icon: "book" },
+    { id: "exercice", label: "Exercice", icon: "pencil" },
+    { id: "ecrire", label: "Écrire", icon: "lines" },
+    { id: "reviser", label: "Réviser", icon: "loop" },
+    { id: "autre", label: "Autre", icon: "more" }
+  ];
+  var SUBJECTS = ["Français", "Maths", "Langues", "Autre"];
+  var LEVEL_NAMES = { 1: "N1 Guidé", 2: "N2 Rappel", 3: "N3 Autonome" };
+  var END_LABELS = { reprise: "Reprise", aide: "Aide demandée", stop: "Arrêt propre", annule: "Annulé", abandon: "Interrompu" };
+
+  /* ---------- local state ---------- */
+  var STORE_KEY = "pl-restart-v1";
+  var storageOk = true;
+  function fresh() {
+    return { version: 1, settings: { audio: true, chrono: true, timer: true, beep: true, autoLevel: true, pin: "" },
+      labels: { families: {}, lines: {}, cards: {} }, students: [], tasks: [], blocks: [] };
+  }
+  /* Rétrocompatibilité : toute propriété absente d'une ancienne sauvegarde reçoit sa valeur par défaut. */
+  function normalize(s) {
+    var f = fresh(), k;
+    if (!s || typeof s !== "object") return f;
+    s.version = 1;
+    s.settings = s.settings || {};
+    for (k in f.settings) if (!(k in s.settings)) s.settings[k] = f.settings[k];
+    s.labels = s.labels || {};
+    s.labels.families = s.labels.families || {};
+    s.labels.lines = s.labels.lines || {};
+    s.labels.cards = s.labels.cards || {};
+    s.students = Array.isArray(s.students) ? s.students : [];
+    s.tasks = Array.isArray(s.tasks) ? s.tasks : [];
+    s.blocks = Array.isArray(s.blocks) ? s.blocks : [];
+    s.students.forEach(function (st) {
+      st.levels = st.levels || {}; st.lock = st.lock || {}; st.since = st.since || {}; st.pinned = st.pinned || [];
+    });
+    s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.teacher = b.teacher || {}; });
+    return s;
+  }
+  function loadState() {
+    try { var raw = localStorage.getItem(STORE_KEY); if (raw) return normalize(JSON.parse(raw)); } catch (e) { storageOk = false; }
+    return fresh();
+  }
+  var S = loadState();
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); storageOk = true; } catch (e) { storageOk = false; }
+  }
+  try { localStorage.setItem(STORE_KEY + "-probe", "1"); localStorage.removeItem(STORE_KEY + "-probe"); } catch (e) { storageOk = false; }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function uid(p) { return p + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
+  function now() { return Date.now(); }
+  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function famDef(id) { return id === "F0" ? F0 : byId(FAMILIES, id); }
+  function famLabel(id) { var o = S.labels.families[id]; var d = famDef(id); return (o && o.label) || (d ? d.label : id); }
+  function lineLabel(id) { var o = S.labels.lines[id]; return (o && o.label) || (LINES[id] ? LINES[id].label : id); }
+  function card(id) {
+    var d = byId(CARDS, id); if (!d) return null;
+    var o = S.labels.cards[id] || {};
+    return { id: id, title: o.title || d.title, text: o.text || d.text, min: o.min > 0 ? o.min : d.min, active: o.active !== false };
+  }
+  function student(id) { return byId(S.students, id); }
+  function fmtClock(ms) {
+    var s = Math.max(0, Math.round(ms / 1000)), m = Math.floor(s / 60); s = s % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+  function fmtDate(ts) {
+    var d = new Date(ts);
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + d.getFullYear() + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  /* ---------- audio : lecture à voix haute et signal de fin de minuteur ---------- */
+  var canSpeak = false;
+  try { canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function"; } catch (e) {}
+  function speak(text) {
+    if (!canSpeak || !S.settings.audio) return;
+    try {
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(String(text).replace(/…/g, ", "));
+      u.lang = "fr-FR"; u.rate = 0.92;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function sayBtn(text, small) {
+    if (!canSpeak || !S.settings.audio) return "";
+    return '<button class="say' + (small ? " small" : "") + '" data-a="say" data-t="' + esc(text) + '" aria-label="Écouter : ' + esc(text) + '" title="Écouter">' + svg("sound") + "</button>";
+  }
+  function beep() {
+    if (!S.settings.beep) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      var ctx = new AC(), o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = 660; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.9);
+      o.start(); o.stop(ctx.currentTime + 1);
+      o.onended = function () { try { ctx.close(); } catch (e) {} };
+    } catch (e) {}
+  }
+
+  /* ---------- DOM skeleton ---------- */
+  document.body.innerHTML = '<div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div>';
+  var pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main");
+  var ticker = null, pendingTimeout = null;
+  function clearTimers() {
+    if (ticker) { clearInterval(ticker); ticker = null; }
+    if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
+  }
+
+  /* U = état de l'écran en cours (non enregistré). */
+  var U = { screen: "home", sid: null, task: null, block: null, line: null, qid: null, cardId: null, origin: null, tryStart: 0, teacherTab: "suivi", teacherSid: null, unlocked: false };
+
+  function header(opts) {
+    opts = opts || {};
+    var st = U.sid ? student(U.sid) : null;
+    var right = "";
+    if (opts.teacher) right = '<button class="iconbtn" data-a="home">' + svg("back") + "<span>Quitter</span></button>";
+    else if (st && opts.who !== false) right = '<span class="who">' + svg(st.icon) + esc(st.name) + "</span>";
+    else if (opts.gear) right = '<button class="iconbtn" data-a="teacher" aria-label="Espace enseignante" title="Espace enseignante">' + svg("gear") + "</button>";
+    topEl.innerHTML =
+      '<div class="pl-id"><a class="pl-logo" href="https://7nel.github.io/PL/" aria-label="Retour à PL, tous les outils" title="Retour à PL">' + PL_MARK + "</a>" +
+      '<button class="pl-name" data-a="home" title="Accueil">PL-restart’</button></div>' +
+      '<div class="topright">' + right + "</div>";
+  }
+  function show(html, opts) {
+    opts = opts || {};
+    clearTimers();
+    try { if (canSpeak) window.speechSynthesis.cancel(); } catch (e) {}
+    pageEl.className = "page" + (opts.wide ? " wide" : "");
+    mainEl.className = opts.center ? "center" : "";
+    header(opts);
+    mainEl.innerHTML = (storageOk ? "" : '<p class="note">L’enregistrement est bloqué sur cet appareil (navigation privée ?). Rien ne sera gardé après fermeture.</p>') + html;
+    window.scrollTo(0, 0);
+    var h = mainEl.querySelector("h1");
+    if (h) { h.setAttribute("tabindex", "-1"); try { h.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  function title(text) {
+    return '<div class="qrow"><h1>' + esc(text) + "</h1>" + sayBtn(text, true) + "</div>";
+  }
+  function choice(action, data, label, icon, extra, cls) {
+    var attrs = "";
+    for (var k in data) attrs += " data-" + k + '="' + esc(data[k]) + '"';
+    return '<div class="choice-row"><button class="choice' + (cls ? " " + cls : "") + '" data-a="' + action + '"' + attrs + ">" + (icon ? svg(icon) : "") +
+      "<span>" + esc(label) + (extra ? "<small>" + esc(extra) + "</small>" : "") + "</span></button>" + sayBtn(label + (extra ? ". " + extra : "")) + "</div>";
+  }
+  function backToTask() {
+    return '<div class="foot"><button class="link" data-a="cancelBlock">' + svg("back") + "Retour à ma tâche</button></div>";
+  }
+
+  /* ---------- moteur : tâches, blocages, essais, niveaux ---------- */
+  function openTask(sid) {
+    for (var i = S.tasks.length - 1; i >= 0; i--) if (S.tasks[i].sid === sid && !S.tasks[i].end) return S.tasks[i];
+    return null;
+  }
+  function closeTask(t, status) {
+    if (!t || t.end) return;
+    t.end = now(); t.status = status;
+    S.blocks.forEach(function (b) { if (b.tid === t.id && !b.end) { b.end = "abandon"; } });
+  }
+  function taskBlocks(tid) { return S.blocks.filter(function (b) { return b.tid === tid; }); }
+  function triedIn(b) { return b.tries.map(function (t) { return t.card; }); }
+  function nonCount(b) { return b.tries.filter(function (t) { return t.result === 0; }).length; }
+  function usable(id, b) {
+    var c = card(id);
+    return !!c && c.active && triedIn(b).indexOf(id) < 0;
+  }
+  function nextUntried(seq, b) {
+    for (var i = 0; i < seq.length; i++) if (seq[i] === "C19" || usable(seq[i], b)) return seq[i];
+    return null;
+  }
+  /* Cartes de remplacement quand l'élève refuse la carte proposée : la ligne d'abord, puis le reste de la famille. */
+  function alternatives(b, current) {
+    var out = [], fam = U.line ? U.line.fam : b.family, ids = (U.line ? U.line.seq : []).slice(), k;
+    for (k in LINES) if (LINES[k].fam === fam) ids = ids.concat(LINES[k].seq);
+    ids.forEach(function (id) {
+      if (id === "C19" || id === "C20" || id === current) return;
+      if (out.indexOf(id) < 0 && usable(id, b)) out.push(id);
+    });
+    return out;
+  }
+  function lastHelpful(sid, fam) {
+    for (var i = S.blocks.length - 1; i >= 0; i--) {
+      var b = S.blocks[i];
+      if (b.sid !== sid || b.family !== fam) continue;
+      for (var j = b.tries.length - 1; j >= 0; j--) if (b.tries[j].result >= 0.5) return b.tries[j].card;
+    }
+    return null;
+  }
+  function familyCards(fam) {
+    var out = [], k;
+    for (k in LINES) if (LINES[k].fam === fam) LINES[k].seq.forEach(function (id) {
+      var c = card(id);
+      if (id !== "C19" && id !== "C20" && c && c.active && out.indexOf(id) < 0) out.push(id);
+    });
+    return out;
+  }
+  /* Niveau d'aide par famille. Seuils de départ arbitraires (voir le dossier de conception) :
+     montée après 5 reprises sur les 6 derniers blocages de la famille ; descente après 2 échecs de suite ou 3 sur 5. */
+  function updateLevel(b) {
+    if (!S.settings.autoLevel) return;
+    var st = student(b.sid), f = b.family;
+    if (!st || !byId(FAMILIES, f) || f === "F5" || st.lock[f]) return;
+    var level = st.levels[f] || 1, since = st.since[f] || 0;
+    var hist = S.blocks.filter(function (x) { return x.sid === b.sid && x.family === f && x.end && x.end !== "annule" && x.at > since; });
+    function ok(x) { return x.end === "reprise"; }
+    var last6 = hist.slice(-6), last5 = hist.slice(-5), last2 = hist.slice(-2), next = level;
+    if (level < 3 && last6.length === 6 && last6.filter(ok).length >= 5 &&
+        (level !== 2 || last6.filter(function (x) { return !x.unfolded; }).length >= 4)) next = level + 1;
+    else if (level > 1 && ((last2.length === 2 && !ok(last2[0]) && !ok(last2[1])) ||
+        (last5.length === 5 && last5.filter(ok).length <= 2))) next = level - 1;
+    if (next !== level) { st.levels[f] = next; st.since[f] = now(); }
+  }
+  function endBlock(end) {
+    var b = U.block; if (!b || b.end) return;
+    b.end = end;
+    if (end === "reprise" || end === "aide") b.resumedAt = now();
+    if (end !== "annule") updateLevel(b);
+    save();
+  }
+
+  /* ---------- écrans élève ---------- */
+  function goHome() {
+    U.sid = null; U.task = null; U.block = null; U.unlocked = false;
+    var html = title("Qui travaille ?");
+    if (!S.students.length) {
+      html += '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>' +
+        '<div class="row"><button class="btn primary" data-a="teacher">' + svg("gear") + "Ouvrir l’espace enseignante</button></div>";
+    } else {
+      html += '<div class="tiles">' + S.students.map(function (st) {
+        return '<button class="tile" data-a="pick" data-id="' + esc(st.id) + '">' + svg(st.icon) + "<span>" + esc(st.name) + "</span></button>";
+      }).join("") + "</div>";
+    }
+    show(html, { gear: true, who: false });
+  }
+  function pickStudent(sid) {
+    U.sid = sid;
+    var t = openTask(sid);
+    /* une tâche restée ouverte depuis moins de 3 heures peut être reprise ; plus ancienne, elle est classée abandonnée */
+    if (t && now() - t.start > 3 * 3600 * 1000) { closeTask(t, "abandonnee"); save(); t = null; }
+    if (t) {
+      show(title("Tu avais une tâche en cours.") +
+        '<div class="choices">' + choice("resume", {}, "Je la reprends", "play") + choice("newTask", {}, "Nouvelle tâche", "more") + "</div>" + footHome());
+    } else screenTask();
+  }
+  function footHome() {
+    return '<div class="foot"><button class="link" data-a="home">' + svg("back") + 'Changer d’élève</button><button class="link" data-a="notebook">' + svg("notebook") + "Mon carnet</button></div>";
+  }
+  var draft = { type: null, subject: "" };
+  function screenTask() {
+    var html = title("Tu fais quoi ?") + '<div class="tiles">' + TASK_TYPES.map(function (t) {
+      return '<button class="tile' + (draft.type === t.id ? " sel" : "") + '" data-a="type" data-id="' + t.id + '" aria-pressed="' + (draft.type === t.id) + '">' + svg(t.icon) + "<span>" + esc(t.label) + "</span></button>";
+    }).join("") + "</div>" +
+      '<p class="sub">Matière, si tu veux :</p><div class="chips">' + SUBJECTS.map(function (s) {
+        return '<button class="chip' + (draft.subject === s ? " sel" : "") + '" data-a="subject" data-id="' + esc(s) + '" aria-pressed="' + (draft.subject === s) + '">' + esc(s) + "</button>";
+      }).join("") + "</div>" +
+      '<button class="big" data-a="start"' + (draft.type ? "" : " disabled style=\"opacity:.45\"") + ">" + svg("play") + "Je commence</button>" + footHome();
+    show(html);
+  }
+  function startTask() {
+    if (!draft.type) return;
+    var old = openTask(U.sid); if (old) closeTask(old, "abandonnee");
+    U.task = { id: uid("t"), sid: U.sid, type: draft.type, subject: draft.subject, start: now(), end: null, status: null };
+    S.tasks.push(U.task); save();
+    draft = { type: null, subject: "" };
+    screenWork();
+  }
+  function screenWork(msg) {
+    U.block = null; U.line = null;
+    var t = U.task, tt = byId(TASK_TYPES, t.type) || TASK_TYPES[4];
+    show((msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
+      '<div class="taskline">' + svg(tt.icon) + "<span>" + esc(tt.label) + (t.subject ? " · " + esc(t.subject) : "") + "</span>" +
+      (S.settings.chrono ? '<span class="chrono" id="chrono" aria-hidden="true"></span>' : "") + "</div>" +
+      '<h1 style="position:absolute;left:-9999px">Je travaille</h1>' +
+      '<button class="big" data-a="blocked">' + svg("buoy") + "Je suis bloqué</button>" +
+      '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>", { center: true });
+    if (S.settings.chrono) {
+      var el = document.getElementById("chrono");
+      var tick = function () { if (el) el.textContent = fmtClock(now() - t.start); };
+      tick(); ticker = setInterval(tick, 1000);
+    }
+  }
+  function blocked() {
+    var t = U.task, at = now();
+    var recent = taskBlocks(t.id).filter(function (b) { return b.end !== "annule" && at - b.at < 10 * 60 * 1000; });
+    var b = { id: uid("b"), tid: t.id, sid: t.sid, at: at, t: at - t.start, family: null, answers: [], line: null, level: null, unfolded: false, tries: [], help: false, end: null, resumedAt: null, teacher: {} };
+    S.blocks.push(b); U.block = b; U.line = null; save();
+    /* garde-fou 1 : plus de trois blocages en dix minutes, on passe la main à un adulte */
+    if (recent.length >= 3) { b.family = "garde"; b.guard = "repetes"; return screenHelp("Tu as bloqué plusieurs fois. C’est le moment de demander de l’aide."); }
+    /* garde-fou 2 : blocage dans les trente premières secondes, deux tâches de suite, on trie avec trois questions */
+    if (b.t < 30000 && earlyBefore(t)) { b.guard = "immediat"; return pickFamily("F5"); }
+    screenFamilies();
+  }
+  function earlyBefore(t) {
+    var prev = null;
+    for (var i = S.tasks.length - 1; i >= 0; i--) if (S.tasks[i].sid === t.sid && S.tasks[i].id !== t.id) { prev = S.tasks[i]; break; }
+    if (!prev) return false;
+    var bs = taskBlocks(prev.id);
+    return bs.length > 0 && bs[0].t < 30000;
+  }
+  function screenFamilies() {
+    show(title("Où ça coince ?") + '<div class="choices">' + FAMILIES.map(function (f) {
+      return choice("family", { id: f.id }, famLabel(f.id), f.icon);
+    }).join("") + "</div>" +
+      '<div class="foot"><button class="link" data-a="cancelBlock">' + svg("back") + 'Retour à ma tâche</button><button class="link" data-a="family" data-id="F0">' + svg("storm") + esc(famLabel("F0")) + "</button></div>");
+  }
+  function pickFamily(fid) {
+    var b = U.block, st = student(b.sid);
+    b.family = fid;
+    if (fid === "F0") {
+      b.level = 1; b.line = "F0"; U.line = { fam: "F0", seq: ["C18"] }; save();
+      return proposeCard("C18", "proposee");
+    }
+    var level = fid === "F5" ? 1 : (st.levels[fid] || 1);
+    b.level = level; save();
+    if (level >= 2 && familyCards(fid).length) return screenPickCard(fid, level);
+    askQuestion(fid);
+  }
+  /* Niveaux 2 et 3 : l'élève choisit lui-même sa carte ; « Aide-moi à choisir » ramène au guidage (noté). */
+  function screenPickCard(fid, level) {
+    var b = U.block, st = student(b.sid), ids = [], recall = null;
+    if (level >= 3) st.pinned.forEach(function (id) { if (usable(id, b)) ids.push(id); });
+    var last = lastHelpful(b.sid, fid);
+    if (last && usable(last, b) && ids.indexOf(last) < 0) { ids.unshift(last); recall = last; }
+    familyCards(fid).forEach(function (id) { if (ids.length < 3 && ids.indexOf(id) < 0) ids.push(id); });
+    ids = ids.slice(0, 3);
+    U.line = { fam: fid, seq: ids.slice(), free: true };
+    var html = title("Quelle carte veux-tu essayer ?");
+    if (recall) html += '<p class="recall">La dernière fois, « ' + esc(card(recall).title) + " » t’a aidé.</p>";
+    html += '<div class="choices">' + ids.map(function (id) {
+      var c = card(id); return choice("pickCard", { id: id }, c.title, null, c.text);
+    }).join("") + "</div>" +
+      '<div class="foot"><button class="link" data-a="cancelBlock">' + svg("back") + 'Retour à ma tâche</button><button class="link" data-a="unfold">' + svg("question") + "Aide-moi à choisir</button></div>";
+    show(html);
+  }
+  function askQuestion(qid) {
+    var q = QUESTIONS[qid]; U.qid = qid;
+    show(title(q.text) + '<div class="choices">' + q.options.map(function (o, i) {
+      var label = o.label || lineLabel(o.line);
+      var cls = o.label === "Oui" ? "yes" : (o.label === "Non" ? "no" : "");
+      return choice("answer", { i: i }, label, o.label === "Oui" ? "check" : (o.label === "Non" ? "cross" : null), null, cls);
+    }).join("") + "</div>" + backToTask());
+  }
+  function answer(i) {
+    var q = QUESTIONS[U.qid], o = q.options[i], b = U.block;
+    if (!o) return;
+    b.answers.push(o.label || lineLabel(o.line));
+    if (o.next) { save(); return askQuestion(o.next); }
+    setLine(o.line);
+  }
+  function setLine(lid) {
+    var b = U.block, L = LINES[lid];
+    b.line = b.line && b.switched ? b.line + ">" + lid : lid;
+    U.line = { fam: L.fam, seq: L.seq.slice(), then: L.then };
+    save();
+    var next = nextUntried(U.line.seq, b);
+    if (!next) return screenHelp();
+    proposeCard(next, "proposee");
+  }
+  function proposeCard(id, origin) {
+    if (id === "C19") return screenHelp();
+    U.cardId = id; U.origin = origin;
+    var c = card(id), b = U.block, alts = alternatives(b, id);
+    show(title("Essaie ça.") + cardHtml(c) +
+      '<button class="big" data-a="try">' + svg("play") + "J’essaie</button>" +
+      '<div class="foot"><button class="link" data-a="cancelBlock">' + svg("back") + "Retour à ma tâche</button>" +
+      (alts.length && b.family !== "F0" ? '<button class="link" data-a="other">' + svg("loop") + "Une autre idée</button>" : "") + "</div>");
+  }
+  function cardHtml(c, noDur) {
+    return '<div class="card"><div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(c.title + ". " + c.text, true) + "</div><p>" + esc(c.text) + "</p>" +
+      (noDur ? "" : '<span class="dur">' + svg("timer") + c.min + " min</span>") + "</div>";
+  }
+  function startTry() {
+    var c = card(U.cardId); U.tryStart = now();
+    var total = c.min * 60 * 1000, rang = false;
+    show('<h1 style="position:absolute;left:-9999px">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, true) +
+      (S.settings.timer ? '<div class="timer" id="timer" role="timer" aria-live="off"></div>' : "") +
+      '<button class="big" data-a="tried">' + svg("check") + "C’est fait</button>");
+    if (S.settings.timer) {
+      var el = document.getElementById("timer");
+      var tick = function () {
+        var left = total - (now() - U.tryStart);
+        if (!el) return;
+        if (left <= 0) { el.textContent = "0:00"; el.className = "timer over"; if (!rang) { rang = true; beep(); } }
+        else el.textContent = fmtClock(left);
+      };
+      tick(); ticker = setInterval(tick, 500);
+    }
+  }
+  function tried() {
+    var b = U.block; U.tryDur = now() - U.tryStart;
+    /* cartes sans question « ça repart ? » : retour au calme (on passe à l'aide) et arrêt propre (on clôt la tâche) */
+    if (b.family === "F0") { pushTry(null); return screenHelp(); }
+    if (U.cardId === "C20") { pushTry(null); endBlock("stop"); return finishAs("reportee"); }
+    show(title("Ça repart ?") + '<div class="choices">' +
+      choice("result", { r: "1" }, "Oui", "check", null, "yes") +
+      choice("result", { r: "0.5" }, "Un peu", "half", null, "mid") +
+      choice("result", { r: "0" }, "Non", "cross", null, "no") + "</div>");
+  }
+  function pushTry(result) {
+    var b = U.block;
+    b.tries.push({ card: U.cardId, origin: U.origin, at: U.tryStart, dur: U.tryDur, result: result });
+    save();
+  }
+  function result(r) {
+    var b = U.block; pushTry(r);
+    if (r >= 0.5) {
+      var c = card(U.cardId), mins = Math.max(1, Math.round((now() - b.at) / 60000));
+      endBlock("reprise");
+      show('<div class="done">' + svg("check") + "<h1>Reparti en " + mins + " min avec « " + esc(c.title) + " ».</h1>" +
+        '<button class="btn primary" data-a="work">Je continue</button></div>', { center: true });
+      pendingTimeout = setTimeout(function () { screenWork(); }, 3500);
+      return;
+    }
+    afterNon();
+  }
+  function afterNon() {
+    var b = U.block, n = nonCount(b), L = U.line, next;
+    if (n >= 3) return screenHelp();
+    next = nextUntried(L.seq, b);
+    if (n === 1 && next) return proposeCard(next, "proposee");
+    if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee");
+    if (L.then && !b.switched) {
+      b.switched = L.then; b.answers.push("→ " + famLabel(L.then)); save();
+      show(title("Ça coince peut-être ailleurs.") + '<p class="sub">On regarde une autre piste.</p>' +
+        '<button class="big" data-a="switch">' + svg("loop") + "D’accord</button>" + backToTask());
+      return;
+    }
+    if (next) return proposeCard(next, "proposee");
+    screenHelp();
+  }
+  function screenHelp(msg) {
+    var b = U.block; b.help = true; save();
+    var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
+    show(title("Demande une aide précise.") + (msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
+      '<div class="choice-row"><p class="starter" style="flex:1">J’ai compris…</p>' + sayBtn("J’ai compris") + "</div>" +
+      '<div class="choice-row"><p class="starter" style="flex:1">Je bloque sur…</p>' + sayBtn("Je bloque sur") + "</div>" +
+      '<div class="choice-row"><p class="starter" style="flex:1">J’ai essayé…' + (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</p>" + sayBtn("J’ai essayé " + tried.join(", ")) + "</div>" +
+      '<p class="tip">Demande une explication ou un indice, pas la réponse.</p>' +
+      '<p class="sub">Montre cet écran à un adulte ou à un camarade.</p>' +
+      '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + 'J’ai eu de l’aide, je reprends</button><button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button></div>" +
+      "");
+  }
+  function screenFinish() {
+    show(title("Où en es-tu ?") + '<div class="choices">' +
+      choice("finishAs", { s: "terminee" }, "Terminé", "check", null, "yes") +
+      choice("finishAs", { s: "reportee" }, "Je reprendrai plus tard", "pause", null, "mid") + "</div>" +
+      '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Retour à ma tâche</button></div>");
+  }
+  function finishAs(status) {
+    var t = U.task; closeTask(t, status); save();
+    var used = [];
+    taskBlocks(t.id).forEach(function (b) { b.tries.forEach(function (x) { if (x.result >= 0.5 && used.indexOf(x.card) < 0) used.push(x.card); }); });
+    if (!used.length) return screenBye();
+    show(title("Qu’est-ce qui t’a le plus aidé ?") + '<div class="choices">' + used.map(function (id) {
+      return choice("helpedMost", { id: id }, card(id).title, "pin");
+    }).join("") + choice("helpedMost", { id: "" }, "Je ne sais pas", "dots") + "</div>");
+  }
+  function helpedMost(id) {
+    var t = U.task, st = student(U.sid);
+    t.helped = id || null; save();
+    if (!id || st.pinned.indexOf(id) >= 0) return screenBye();
+    /* plan si-alors (carte C06) : l'élève s'engage sur une carte pour le prochain blocage, elle est épinglée dans son carnet */
+    var c06 = card("C06"), c = card(id);
+    if (!c06.active) return screenBye();
+    show(title("Pour la prochaine fois") + '<div class="card"><div class="cardtop"><h2>' + esc(c06.title) + "</h2>" +
+      sayBtn("Si je bloque encore, alors j’essaie " + c.title, true) + "</div><p>Si je bloque encore, alors j’essaie « " + esc(c.title) + " ».</p></div>" +
+      '<div class="row"><button class="btn primary" data-a="plan" data-id="' + esc(id) + '">' + svg("pin") + 'D’accord, je la garde</button><button class="btn" data-a="bye">Non merci</button></div>');
+  }
+  function screenBye() {
+    show('<div class="done">' + svg("check") + "<h1>C’est noté.</h1>" + '<button class="btn primary" data-a="home">Terminer</button></div>', { center: true });
+    U.task = null;
+  }
+  function togglePin(st, id) {
+    var i = st.pinned.indexOf(id);
+    if (i >= 0) st.pinned.splice(i, 1);
+    else { if (st.pinned.length >= 3) st.pinned.shift(); st.pinned.push(id); }
+    save();
+  }
+  function screenNotebook() {
+    var st = student(U.sid), bs = S.blocks.filter(function (b) { return b.sid === st.id && b.end && b.end !== "annule"; });
+    var fam = {}, cards = {};
+    bs.forEach(function (b) {
+      if (famDef(b.family)) fam[b.family] = (fam[b.family] || 0) + 1;
+      b.tries.forEach(function (t) {
+        if (t.result === null) return;
+        var c = cards[t.card] || (cards[t.card] = { n: 0, ok: 0 });
+        c.n++; if (t.result >= 0.5) c.ok++;
+      });
+    });
+    var famIds = Object.keys(fam).sort(function (a, b) { return fam[b] - fam[a]; });
+    var cardIds = Object.keys(cards).sort(function (a, b) { return cards[b].n - cards[a].n; });
+    var html = title("Mon carnet");
+    if (!bs.length) html += '<p class="empty">Ton carnet est vide pour l’instant.<br>Il se remplit quand tu utilises « Je suis bloqué ».</p>';
+    else {
+      html += "<h2>Où ça coince le plus souvent</h2><ul class=\"plain\">" + famIds.map(function (id) {
+        return '<li class="count"><b>' + esc(famLabel(id)) + '</b><span class="n">' + fam[id] + " fois</span></li>";
+      }).join("") + "</ul><h2>Mes cartes essayées</h2>" +
+        '<p class="sub">Tu peux épingler jusqu’à trois cartes.</p><ul class="plain">' + cardIds.map(function (id) {
+          var c = card(id), x = cards[id], on = st.pinned.indexOf(id) >= 0;
+          return '<li class="count"><span><b>' + esc(c ? c.title : id) + '</b><br><span class="n">essayée ' + x.n + " fois, repartie " + x.ok + " fois</span></span>" +
+            '<button class="pinbtn' + (on ? " on" : "") + '" data-a="pin" data-id="' + esc(id) + '" aria-pressed="' + on + '">' + svg("pin") + (on ? "Épinglée" : "Épingler") + "</button></li>";
+        }).join("") + "</ul>";
+    }
+    html += '<div class="foot"><button class="link" data-a="backFromNotebook">' + svg("back") + "Retour</button></div>";
+    show(html);
+  }
+
+  /* ---------- espace enseignante ---------- */
+  function openTeacher() {
+    if (S.settings.pin && !U.unlocked) {
+      show(title("Espace enseignante") + '<label class="field"><span>Code</span><input type="password" inputmode="numeric" id="pin" autocomplete="off"></label>' +
+        '<p class="note" id="pinerr" hidden>Code incorrect.</p>' +
+        '<div class="row"><button class="btn primary" data-a="unlock">Ouvrir</button><button class="btn" data-a="home">Annuler</button></div>', { who: false });
+      var el = document.getElementById("pin"); if (el) el.focus();
+      return;
+    }
+    U.unlocked = true; U.sid = null;
+    if (!U.teacherSid && S.students.length) U.teacherSid = S.students[0].id;
+    if (U.teacherSid && !student(U.teacherSid)) U.teacherSid = S.students.length ? S.students[0].id : null;
+    var tabs = [["suivi", "Suivi"], ["eleves", "Élèves"], ["reglages", "Réglages"], ["cartes", "Cartes et libellés"], ["donnees", "Données"], ["aide", "Mode d’emploi"]];
+    var html = '<h1>Espace enseignante</h1><div class="tabs" role="tablist">' + tabs.map(function (t) {
+      return '<button class="tab' + (U.teacherTab === t[0] ? " on" : "") + '" role="tab" aria-selected="' + (U.teacherTab === t[0]) + '" data-a="tab" data-id="' + t[0] + '">' + t[1] + "</button>";
+    }).join("") + "</div>";
+    html += { suivi: tabSuivi, eleves: tabEleves, reglages: tabReglages, cartes: tabCartes, donnees: tabDonnees, aide: tabAide }[U.teacherTab]();
+    show(html, { wide: true, teacher: true });
+  }
+  function studentSelect() {
+    return '<label class="field" style="max-width:320px"><span>Élève</span><select data-c="teacherSid">' + S.students.map(function (st) {
+      return '<option value="' + esc(st.id) + '"' + (st.id === U.teacherSid ? " selected" : "") + ">" + esc(st.name) + "</option>";
+    }).join("") + "</select></label>";
+  }
+  function median(a) { if (!a.length) return null; a = a.slice().sort(function (x, y) { return x - y; }); var m = Math.floor(a.length / 2); return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+  /* « Oui » suivi d'un nouveau blocage dans les cinq minutes sur la même tâche : rebond, compté 0,5. */
+  function rebound(b) {
+    if (b.end !== "reprise" || !b.resumedAt) return false;
+    return S.blocks.some(function (x) { return x.tid === b.tid && x.id !== b.id && x.end !== "annule" && x.at > b.resumedAt && x.at - b.resumedAt < 5 * 60 * 1000; });
+  }
+  function stats(sid) {
+    var bs = S.blocks.filter(function (b) { return b.sid === sid && b.end && b.end !== "annule"; });
+    var ts = S.tasks.filter(function (t) { return t.sid === sid; });
+    var rep = bs.filter(function (b) { return b.end === "reprise"; });
+    var tries = [], k;
+    bs.forEach(function (b) { b.tries.forEach(function (t) { if (t.result !== null) tries.push(t); }); });
+    var seen = bs.filter(function (b) { return b.teacher && (b.teacher.avis === "accord" || b.teacher.avis === "autre"); });
+    var obs = bs.filter(function (b) { return b.teacher && (b.teacher.reprise === "oui" || b.teacher.reprise === "non"); });
+    return {
+      tasks: ts.length, done: ts.filter(function (t) { return t.status === "terminee"; }).length,
+      blocks: bs.length, rate: bs.length ? rep.length / bs.length : null,
+      delay: median(rep.map(function (b) { return b.resumedAt - b.at; })),
+      own: tries.length ? tries.filter(function (t) { return t.origin === "choisie"; }).length / tries.length : null,
+      help: bs.filter(function (b) { return b.help; }).length,
+      never: bs.filter(function (b) { return String(b.line).indexOf("F1c") >= 0; }).length,
+      agree: seen.length ? seen.filter(function (b) { return b.teacher.avis === "accord"; }).length + " / " + seen.length : "–",
+      observed: obs.length ? obs.filter(function (b) { return b.teacher.reprise === "oui"; }).length + " / " + obs.length : "–"
+    };
+  }
+  function pct(x) { return x === null ? "–" : Math.round(x * 100) + " %"; }
+  function tabSuivi() {
+    if (!S.students.length) return '<div class="panel"><p>Ajoutez d’abord un élève dans l’onglet « Élèves ».</p></div>';
+    var sid = U.teacherSid, s = stats(sid);
+    var bs = S.blocks.filter(function (b) { return b.sid === sid && b.end && b.end !== "annule"; }).sort(function (a, b) { return b.at - a.at; });
+    var html = '<div class="panel">' + studentSelect() + '<div class="stats">' +
+      stat(s.done + " / " + s.tasks, "tâches terminées") + stat(s.blocks, "blocages") + stat(pct(s.rate), "reprises déclarées") +
+      stat(s.delay === null ? "–" : fmtClock(s.delay), "délai médian de reprise") + stat(s.observed, "reprises observées") +
+      stat(s.agree, "accord sur la cause") + stat(pct(s.own), "cartes choisies par l’élève") + stat(s.help, "recours à l’aide") + stat(s.never, "« jamais appris ça »") +
+      '</div><p class="small">Les reprises déclarées viennent de l’élève. Seules vos observations (colonnes de droite) disent si le travail a vraiment repris.</p></div>';
+    if (!bs.length) return html + '<div class="panel"><p>Aucun blocage enregistré pour cet élève.</p></div>';
+    html += '<div class="panel"><h2>Blocages, du plus récent au plus ancien</h2>' + bs.map(function (b) {
+      var t = byId(S.tasks, b.tid) || {}, tt = byId(TASK_TYPES, t.type) || { label: "?" };
+      var cause = b.family === "garde" ? "Blocages répétés (garde-fou)" : esc(famLabel(b.family)) + (b.answers.length ? ' <span class="small">· ' + esc(b.answers.join(" · ")) + "</span>" : "");
+      var tries = b.tries.map(function (x) {
+        var c = card(x.card), r = x.result === null ? "" : (x.result === 1 ? "oui" : (x.result === 0.5 ? "un peu" : "non"));
+        return esc(c ? c.title : x.card) + (r ? ' <span class="tag ' + (x.result === 1 ? "ok" : (x.result === 0 ? "ko" : "mid")) + '">' + r + "</span>" : "") + (x.origin === "choisie" ? ' <span class="tag">son choix</span>' : "");
+      }).join(", ") || "aucune";
+      var issue = '<span class="tag ' + (b.end === "reprise" ? "ok" : "mid") + '">' + (END_LABELS[b.end] || b.end) + "</span>" +
+        (b.end === "reprise" ? ' <span class="small">en ' + fmtClock(b.resumedAt - b.at) + "</span>" : "") + (rebound(b) ? ' <span class="tag ko">nouveau blocage &lt; 5 min</span>' : "");
+      return '<div class="blk"><div class="blk-main">' +
+        '<p class="small">' + fmtDate(b.at) + " · " + esc(tt.label) + (t.subject ? " · " + esc(t.subject) : "") + " · à " + Math.round(b.t / 60000) + " min" + (LEVEL_NAMES[b.level] ? " · " + LEVEL_NAMES[b.level] : "") + (b.unfolded ? " · a demandé à être guidé" : "") + "</p>" +
+        "<p><b>" + cause + "</b></p><p>Cartes : " + tries + "</p><p>" + issue + "</p></div>" +
+        '<div class="blk-note"><label class="field"><span>Votre avis sur la cause</span>' + sel("avis", b, [["", "–"], ["accord", "D’accord"], ["autre", "Autre famille"], ["nonobs", "Pas observé"]]) + "</label>" +
+        '<label class="field"><span>Reprise observée en 5 min</span>' + sel("reprise", b, [["", "–"], ["oui", "Oui"], ["non", "Non"]]) + "</label></div></div>";
+    }).join("") + "</div>";
+    return html;
+  }
+  function stat(v, l) { return '<div class="stat"><b>' + v + "</b><span>" + l + "</span></div>"; }
+  function sel(field, b, opts) {
+    var cur = (b.teacher && b.teacher[field]) || "";
+    return '<select data-c="teacherNote" data-id="' + esc(b.id) + '" data-f="' + field + '" aria-label="' + (field === "avis" ? "Votre avis sur la cause" : "Reprise observée") + '">' + opts.map(function (o) {
+      return '<option value="' + o[0] + '"' + (o[0] === cur ? " selected" : "") + ">" + o[1] + "</option>";
+    }).join("") + "</select>";
+  }
+  var newAvatar = AVATARS[0];
+  function tabEleves() {
+    var html = '<div class="panel"><h2>Ajouter un élève</h2><p class="small">Un pseudonyme suffit : n’inscrivez ni nom complet ni information personnelle.</p>' +
+      '<div class="formrow"><label class="field"><span>Pseudonyme</span><input type="text" id="newName" maxlength="24" autocomplete="off"></label>' +
+      '<div class="field"><span>Pictogramme</span><div class="avatars">' + AVATARS.map(function (a) {
+        return '<button class="avatar' + (a === newAvatar ? " sel" : "") + '" data-a="avatar" data-id="' + a + '" aria-label="Pictogramme ' + a + '" aria-pressed="' + (a === newAvatar) + '">' + svg(a) + "</button>";
+      }).join("") + '</div></div><button class="btn primary fit" data-a="addStudent">Ajouter</button></div></div>';
+    S.students.forEach(function (st) {
+      html += '<div class="panel"><div class="formrow"><span class="who fit">' + svg(st.icon) + esc(st.name) + "</span><span></span>" +
+        '<button class="btn danger fit" data-a="delStudent" data-id="' + esc(st.id) + '">Supprimer</button></div>' +
+        '<div class="tw"><table><thead><tr><th>Famille</th><th>Niveau d’aide</th><th>Verrouiller</th></tr></thead><tbody>' +
+        FAMILIES.filter(function (f) { return f.id !== "F5"; }).map(function (f) {
+          var lv = st.levels[f.id] || 1;
+          return "<tr><td>" + esc(famLabel(f.id)) + '</td><td><select data-c="level" data-id="' + esc(st.id) + '" data-f="' + f.id + '" aria-label="Niveau pour ' + esc(famLabel(f.id)) + '">' +
+            [1, 2, 3].map(function (n) { return '<option value="' + n + '"' + (n === lv ? " selected" : "") + ">" + LEVEL_NAMES[n] + "</option>"; }).join("") +
+            '</select></td><td><input type="checkbox" data-c="lock" data-id="' + esc(st.id) + '" data-f="' + f.id + '"' + (st.lock[f.id] ? " checked" : "") + ' aria-label="Verrouiller le niveau"></td></tr>';
+        }).join("") + "</tbody></table></div>" +
+        '<p class="small">Épinglées : ' + (st.pinned.length ? st.pinned.map(function (id) { var c = card(id); return esc(c ? c.title : id); }).join(", ") : "aucune") + "</p></div>";
+    });
+    return html;
+  }
+  function check(key, label) {
+    return '<label class="check"><input type="checkbox" data-c="setting" data-f="' + key + '"' + (S.settings[key] ? " checked" : "") + ">" + label + "</label>";
+  }
+  function tabReglages() {
+    return '<div class="panel"><h2>Côté élève</h2>' +
+      check("audio", "Bouton « Écouter » sur chaque choix" + (canSpeak ? "" : " (indisponible sur cet appareil)")) +
+      check("chrono", "Chrono discret pendant le travail") +
+      check("timer", "Minuteur sur les cartes") +
+      check("beep", "Signal sonore à la fin du minuteur") + "</div>" +
+      '<div class="panel"><h2>Niveau d’aide</h2>' + check("autoLevel", "Ajuster le niveau automatiquement") +
+      '<p class="small">Montée après 5 reprises sur les 6 derniers blocages d’une famille. Descente après 2 échecs de suite, ou 3 sur 5. Ces seuils sont des valeurs de départ, sans base empirique. Vous pouvez verrouiller un niveau par élève dans l’onglet « Élèves ».</p></div>' +
+      '<div class="panel"><h2>Code de l’espace enseignante</h2><p class="small">Facultatif. Il évite qu’un élève entre ici par curiosité ; ce n’est pas une protection des données.</p>' +
+      '<div class="formrow"><label class="field"><span>Code (chiffres)</span><input type="text" inputmode="numeric" id="newPin" maxlength="8" value="' + esc(S.settings.pin) + '" autocomplete="off"></label>' +
+      '<button class="btn fit" data-a="savePin">Enregistrer le code</button></div></div>';
+  }
+  function tabCartes() {
+    var html = '<div class="panel"><h2>Familles et réponses</h2><p class="small">Réécrivez les libellés avec vos élèves. Un champ vidé reprend le libellé d’origine.</p>';
+    FAMILIES.concat([F0]).forEach(function (f) {
+      html += '<label class="field"><span>' + f.id + '</span><input type="text" data-c="famLabel" data-id="' + f.id + '" value="' + esc(famLabel(f.id)) + '" maxlength="60"></label>';
+    });
+    Object.keys(LINES).forEach(function (id) {
+      html += '<label class="field"><span>' + id + " · réponse dans « " + esc(famLabel(LINES[id].fam)) + ' »</span><input type="text" data-c="lineLabel" data-id="' + id + '" value="' + esc(lineLabel(id)) + '" maxlength="60"></label>';
+    });
+    html += '</div><div class="panel"><h2>Cartes de stratégie</h2><p class="small">Une seule action par carte, à l’impératif. Décochez une carte pour la retirer.</p>';
+    CARDS.forEach(function (d) {
+      var c = card(d.id);
+      html += '<div class="cardedit"><div class="code"><label class="check"><input type="checkbox" data-c="cardActive" data-id="' + d.id + '"' + (c.active ? " checked" : "") + ' aria-label="Carte active">' + d.id + "</label></div>" +
+        '<div class="in"><input type="text" data-c="cardTitle" data-id="' + d.id + '" value="' + esc(c.title) + '" maxlength="40" aria-label="Titre">' +
+        '<input type="number" min="1" max="30" data-c="cardMin" data-id="' + d.id + '" value="' + c.min + '" aria-label="Durée en minutes">' +
+        '<textarea data-c="cardText" data-id="' + d.id + '" maxlength="200" aria-label="Texte de la carte">' + esc(c.text) + "</textarea></div></div>";
+    });
+    html += '<div class="row"><button class="btn danger" data-a="resetLabels">Rétablir tous les textes d’origine</button></div></div>';
+    return html;
+  }
+  function tabDonnees() {
+    return '<div class="panel"><h2>Où sont les données</h2><p>Tout est enregistré dans le navigateur de cet appareil. Rien n’est envoyé. Un autre appareil, ou un autre navigateur, repart de zéro.</p>' +
+      "<p>" + S.students.length + " élève(s) · " + S.tasks.length + " tâche(s) · " + S.blocks.length + " blocage(s).</p></div>" +
+      '<div class="panel"><h2>Exporter</h2><div class="row"><button class="btn primary" data-a="exportJson">Sauvegarde complète (.json)</button><button class="btn" data-a="exportCsv">Tableau des essais (.csv)</button></div>' +
+      '<p class="small">Le fichier .csv s’ouvre dans Excel : une ligne par essai de carte.</p></div>' +
+      '<div class="panel"><h2>Importer une sauvegarde</h2><p class="small">Remplace toutes les données de cet appareil par celles du fichier.</p><input type="file" id="importFile" accept=".json,application/json"><p class="note" id="importMsg" hidden></p></div>' +
+      '<div class="panel"><h2>Effacer</h2><p class="small">Supprime élèves, tâches, blocages et réglages de cet appareil. Écrivez EFFACER pour confirmer.</p>' +
+      '<div class="formrow"><label class="field"><span>Confirmation</span><input type="text" id="wipeWord" autocomplete="off"></label><button class="btn danger fit" data-a="wipe">Tout effacer</button></div></div>';
+  }
+  function tabAide() {
+    return '<div class="panel"><h2>En classe</h2>' +
+      "<p>1. Présentez d’abord les cartes vous-même, sur une vraie tâche : l’outil rappelle une stratégie, il ne l’enseigne pas.</p>" +
+      "<p>2. Donnez une règle simple : « deux minutes sans avancer, j’appuie ».</p>" +
+      "<p>3. L’élève choisit sa vignette, indique sa tâche, puis travaille. L’écran ne sert qu’au moment du blocage.</p>" +
+      "<p>4. Après trois essais sans reprise, l’outil l’aide à formuler une demande précise. C’est une issue normale.</p></div>" +
+      '<div class="panel"><h2>Ce que vous notez</h2>' +
+      "<p>Dans « Suivi », pour les blocages que vous avez vus : votre avis sur la cause, et si le travail a réellement repris dans les cinq minutes. Ce sont les deux mesures qui comptent ; les réponses de l’élève ne suffisent pas.</p></div>" +
+      '<div class="panel"><h2>Limites du prototype</h2>' +
+      "<p>La cause choisie par l’élève est une hypothèse, pas un diagnostic. L’outil ignore le contenu de la tâche : il ne vérifie ni la compréhension ni la justesse.</p>" +
+      "<p>Le carnet affiche des comptes, sans classement : avec peu d’essais, l’écart entre deux cartes ne se distingue pas du hasard.</p>" +
+      "<p>Aucune preuve n’établit encore que cet outil aide. Il sert à le vérifier avec vos élèves.</p></div>";
+  }
+  function download(name, text, mime) {
+    try {
+      var blob = new Blob([text], { type: mime }), url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = name; document.body.appendChild(a); a.click();
+      setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+    } catch (e) {}
+  }
+  function stamp() { var d = new Date(); function p(n) { return (n < 10 ? "0" : "") + n; } return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
+  function csv() {
+    var head = ["eleve", "date", "tache", "matiere", "statut_tache", "blocage", "minute_dans_tache", "famille", "reponses", "ligne", "niveau", "aide_a_choisir", "garde_fou", "rang_essai", "carte", "titre_carte", "origine", "duree_essai_s", "resultat", "issue", "delai_reprise_s", "rebond_5min", "avis_enseignante", "reprise_observee"];
+    var rows = [head];
+    S.blocks.forEach(function (b) {
+      if (!b.end || b.end === "annule") return;
+      var st = student(b.sid) || { name: "?" }, t = byId(S.tasks, b.tid) || {};
+      var base = [st.name, fmtDate(b.at), t.type || "", t.subject || "", t.status || "", b.id, Math.round(b.t / 60000), b.family === "garde" ? "garde" : famLabel(b.family), b.answers.join(" | "), b.line || "", b.level || "", b.unfolded ? "oui" : "non", b.guard || ""];
+      var tail = [END_LABELS[b.end] || b.end, b.resumedAt ? Math.round((b.resumedAt - b.at) / 1000) : "", rebound(b) ? "oui" : "non", (b.teacher && b.teacher.avis) || "", (b.teacher && b.teacher.reprise) || ""];
+      if (!b.tries.length) rows.push(base.concat(["", "", "", "", "", ""], tail));
+      b.tries.forEach(function (x, i) {
+        var c = card(x.card);
+        rows.push(base.concat([i + 1, x.card, c ? c.title : "", x.origin || "", Math.round((x.dur || 0) / 1000), x.result === null ? "" : String(x.result).replace(".", ",")], tail));
+      });
+    });
+    return "﻿" + rows.map(function (r) {
+      return r.map(function (v) { v = String(v == null ? "" : v); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(";");
+    }).join("\r\n");
+  }
+
+  /* ---------- actions (délégation d'événements) ---------- */
+  var ACTIONS = {
+    say: function (d) { speak(d.t); },
+    home: function () { goHome(); },
+    teacher: function () { openTeacher(); },
+    pick: function (d) { pickStudent(d.id); },
+    resume: function () { U.task = openTask(U.sid); if (U.task) screenWork(); else screenTask(); },
+    newTask: function () { var t = openTask(U.sid); if (t) { closeTask(t, "abandonnee"); save(); } screenTask(); },
+    type: function (d) { draft.type = d.id; screenTask(); },
+    subject: function (d) { draft.subject = draft.subject === d.id ? "" : d.id; screenTask(); },
+    start: function () { startTask(); },
+    work: function () { screenWork(); },
+    blocked: function () { blocked(); },
+    family: function (d) { pickFamily(d.id); },
+    unfold: function () { U.block.unfolded = true; save(); askQuestion(U.block.family); },
+    pickCard: function (d) { proposeCardChosen(d.id); },
+    answer: function (d) { answer(parseInt(d.i, 10)); },
+    try: function () { startTry(); },
+    other: function () { var a = alternatives(U.block, U.cardId); if (a.length) proposeCard(a[0], "choisie"); },
+    tried: function () { tried(); },
+    result: function (d) { result(parseFloat(d.r)); },
+    "switch": function () { askQuestion(U.block.switched); },
+    cancelBlock: function () { if (U.block && !U.block.end) { if (U.block.tries.length) endBlock("abandon"); else endBlock("annule"); } screenWork(); },
+    helped: function () { endBlock("aide"); screenWork("C’est reparti."); },
+    stopClean: function () { endBlock("stop"); finishAs("reportee"); },
+    finish: function () { screenFinish(); },
+    finishAs: function (d) { finishAs(d.s); },
+    helpedMost: function (d) { helpedMost(d.id); },
+    plan: function (d) { var st = student(U.sid); if (st.pinned.indexOf(d.id) < 0) togglePin(st, d.id); screenBye(); },
+    bye: function () { screenBye(); },
+    notebook: function () { screenNotebook(); },
+    backFromNotebook: function () { pickStudent(U.sid); },
+    pin: function (d) { togglePin(student(U.sid), d.id); screenNotebook(); },
+    unlock: function () {
+      var el = document.getElementById("pin");
+      if (el && el.value === S.settings.pin) { U.unlocked = true; openTeacher(); }
+      else { var er = document.getElementById("pinerr"); if (er) er.hidden = false; }
+    },
+    tab: function (d) { U.teacherTab = d.id; openTeacher(); },
+    avatar: function (d) { var n = document.getElementById("newName"), v = n ? n.value : ""; newAvatar = d.id; openTeacher(); n = document.getElementById("newName"); if (n) n.value = v; },
+    addStudent: function () {
+      var n = document.getElementById("newName"), name = n ? n.value.trim() : "";
+      if (!name) { if (n) n.focus(); return; }
+      S.students.push({ id: uid("s"), name: name, icon: newAvatar, levels: {}, lock: {}, since: {}, pinned: [] });
+      newAvatar = AVATARS[S.students.length % AVATARS.length];
+      save(); openTeacher();
+    },
+    delStudent: function (d, el) {
+      /* suppression en deux temps, sans boîte de dialogue du navigateur */
+      if (el.getAttribute("data-sure") !== "1") { el.setAttribute("data-sure", "1"); el.textContent = "Confirmer la suppression (données comprises)"; return; }
+      S.students = S.students.filter(function (s) { return s.id !== d.id; });
+      S.tasks = S.tasks.filter(function (t) { return t.sid !== d.id; });
+      S.blocks = S.blocks.filter(function (b) { return b.sid !== d.id; });
+      save(); openTeacher();
+    },
+    savePin: function () { var el = document.getElementById("newPin"); S.settings.pin = el ? el.value.replace(/\D/g, "") : ""; save(); openTeacher(); },
+    resetLabels: function (d, el) {
+      if (el.getAttribute("data-sure") !== "1") { el.setAttribute("data-sure", "1"); el.textContent = "Confirmer : rétablir tous les textes"; return; }
+      S.labels = { families: {}, lines: {}, cards: {} }; save(); openTeacher();
+    },
+    exportJson: function () { download("pl-restart-sauvegarde-" + stamp() + ".json", JSON.stringify(S, null, 2), "application/json"); },
+    exportCsv: function () { download("pl-restart-essais-" + stamp() + ".csv", csv(), "text/csv;charset=utf-8"); },
+    wipe: function () {
+      var el = document.getElementById("wipeWord");
+      if (!el || el.value.trim() !== "EFFACER") { if (el) el.focus(); return; }
+      S = fresh(); save(); U.teacherSid = null; openTeacher();
+    }
+  };
+  function proposeCardChosen(id) {
+    var b = U.block; b.line = "libre"; save();
+    U.cardId = id; U.origin = "choisie";
+    startTry();
+  }
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest ? e.target.closest("[data-a]") : null;
+    if (!el || el.disabled) return;
+    var fn = ACTIONS[el.getAttribute("data-a")];
+    if (fn) { e.preventDefault(); fn(el.dataset, el); }
+  });
+  /* champs de l'espace enseignante : enregistrés à la modification, sans reconstruire l'écran (le focus reste en place) */
+  var CHANGES = {
+    teacherSid: function (el) { U.teacherSid = el.value; openTeacher(); },
+    teacherNote: function (el) { var b = byId(S.blocks, el.dataset.id); if (b) { b.teacher = b.teacher || {}; b.teacher[el.dataset.f] = el.value; save(); } },
+    level: function (el) { var st = student(el.dataset.id); if (st) { st.levels[el.dataset.f] = parseInt(el.value, 10); st.since[el.dataset.f] = now(); save(); } },
+    lock: function (el) { var st = student(el.dataset.id); if (st) { st.lock[el.dataset.f] = el.checked; save(); } },
+    setting: function (el) { S.settings[el.dataset.f] = el.checked; save(); },
+    famLabel: function (el) { setLabel("families", el.dataset.id, "label", el.value); },
+    lineLabel: function (el) { setLabel("lines", el.dataset.id, "label", el.value); },
+    cardTitle: function (el) { setLabel("cards", el.dataset.id, "title", el.value); },
+    cardText: function (el) { setLabel("cards", el.dataset.id, "text", el.value); },
+    cardMin: function (el) { var n = parseInt(el.value, 10); setLabel("cards", el.dataset.id, "min", n > 0 && n <= 30 ? n : 0); },
+    cardActive: function (el) { setLabel("cards", el.dataset.id, "active", el.checked); }
+  };
+  function setLabel(group, id, field, value) {
+    var o = S.labels[group][id] || (S.labels[group][id] = {});
+    if (typeof value === "string") value = value.trim();
+    if (value === "" || value === 0) delete o[field]; else o[field] = value;
+    save();
+  }
+  document.addEventListener("change", function (e) {
+    var el = e.target;
+    if (el.id === "importFile") return importFile(el);
+    var fn = el.getAttribute && CHANGES[el.getAttribute("data-c")];
+    if (fn) fn(el);
+  });
+  function importFile(el) {
+    var f = el.files && el.files[0], msg = document.getElementById("importMsg");
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var data = JSON.parse(String(r.result));
+        if (!data || data.version !== 1 || !Array.isArray(data.students)) throw new Error("format");
+        S = normalize(data); save(); U.teacherSid = null; U.teacherTab = "suivi"; openTeacher();
+      } catch (err) { if (msg) { msg.hidden = false; msg.textContent = "Ce fichier n’est pas une sauvegarde PL-restart’ valide."; } }
+    };
+    r.readAsText(f);
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target && e.target.id === "pin") ACTIONS.unlock();
+    if (e.key === "Enter" && e.target && e.target.id === "newName") ACTIONS.addStudent();
+  });
+
+  /* hors ligne : uniquement sur un vrai serveur (GitHub Pages), pas en file:// */
+  try { if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
+
+  goHome();
+}
+boot();
+</script></body></html>
