@@ -53,7 +53,15 @@ L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève,
 
 ## Données et confidentialité
 
-Les données (pseudonymes, tâches, blocages, cartes essayées, notes de l'enseignante) restent dans le navigateur de l'appareil (`localStorage`). Un autre appareil ou un autre navigateur repart de zéro. L'onglet « Données » permet d'exporter une sauvegarde `.json`, un tableau `.csv` des essais, d'importer une sauvegarde et de tout effacer.
+Les données (pseudonymes, tâches, blocages, cartes essayées, notes de l'enseignante) restent dans le navigateur de l'appareil (`localStorage`). Un autre appareil ou un autre navigateur repart de zéro. L'onglet « Données » permet :
+
+- d'**exporter un élève** (un fichier `.json` : fiche, réglages, tâches, blocages), une sauvegarde complète, ou un tableau `.csv` des essais ;
+- d'**importer et fusionner** un ou plusieurs fichiers, sans rien effacer : un élève est reconnu par son identifiant interne (option : même prénom) ; ses réglages, la version réglée en dernier l'emporte ; tâches et blocages sont ajoutés s'ils manquent, notes de l'enseignante conservées ; libellés des cartes complétés seulement ;
+- de tout effacer (pour repartir d'une sauvegarde).
+
+Le code de l'espace enseignante (lettres et chiffres) est gardé en clair dans le navigateur de l'appareil, n'est jamais écrit dans un fichier exporté ni repris à l'import. Les sauvegardes faites avant la version 5 le contiennent. Il évite qu'un élève entre par curiosité ; ce n'est pas une protection des données.
+
+Les transferts se font à la main (clé, messagerie de l'école) : l'outil n'envoie rien.
 
 L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni texte libre de l'élève. Utilisez des pseudonymes. Même ainsi, ces données décrivent le fonctionnement de mineurs : vérifiez le cadre applicable dans votre établissement avant tout usage au-delà de votre classe.
 
@@ -68,7 +76,12 @@ L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni 
 - En mode coup de main, la réponse « Je crois savoir, mais je rate » n'apparaît que si la tâche « Réviser » est déjà connue.
 - Le carnet affiche des comptes, sans classement.
 - Le texte des stratégies (dossier et quatre domaines) n'est pas modifiable depuis l'espace enseignante ; les exemples de Léo ne sont pas repris.
+- La voix naturelle a été testée dans un navigateur automatisé (génération et lecture) ; sa vitesse et son fonctionnement sur tablettes d'école ne sont pas vérifiés.
 - Non réalisés dans ce prototype : choix pondéré des cartes selon l'historique, niveau « sans l'outil », écran de bilan partagé élève et enseignante.
+
+## Voix
+
+Le bouton « Écouter » utilise la meilleure voix française du système (classement repris de PL-lect’), réglable dans « Réglages » (voix, débit, test). Sur la version en ligne (https), on peut aussi télécharger une **voix naturelle** (Piper, environ 93 Mo, une fois par appareil) : elle fonctionne ensuite hors ligne. Ses fichiers sont dans `voix/`, servis par le même site et gardés par `sw.js` ; aucun service tiers. Depuis un fichier ouvert directement, seule la voix du système est disponible. Licences : voir [NOTICE.md](NOTICE.md).
 
 ## Polices
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>PL-restart’</title><meta name="theme-color" content="#2f6f63"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PL-restart’"></head><body><script>
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>PL-restart’</title><meta name="theme-color" content="#2f6f63"><script type="importmap">{"imports":{"onnxruntime-web/wasm":"./voix/ort/ort.wasm.min.js"}}</script><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PL-restart’"></head><body><script>
 /* PL-restart’ — prototype (octobre 2026).
    Une page unique, sans serveur ni compte : tout reste dans le navigateur (localStorage).
    Structure : style · icônes · contenu (familles, questions, cartes) · état local · moteur · écrans élève · espace enseignante. */
@@ -176,6 +176,9 @@ function boot() {
     th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
     th { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
     td select { min-height: 40px; min-width: 130px; }
+    progress { width: 100%; height: 14px; accent-color: var(--accent); }
+    .panel details { margin-top: 10px; }
+    .panel summary { font-weight: 700; min-height: 44px; display: flex; align-items: center; cursor: pointer; }
     .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; background: var(--surface-alt); white-space: nowrap; }
     .tag.ok { background: var(--accent-soft); } .tag.ko { background: var(--red-soft); } .tag.mid { background: var(--warm-soft); }
     .blk { display: grid; grid-template-columns: 1fr 230px; gap: 12px 20px; padding: 14px 0; border-top: 1px solid var(--border); }
@@ -422,7 +425,7 @@ function boot() {
   var STORE_KEY = "pl-restart-v1";
   var storageOk = true;
   function fresh() {
-    return { version: 1, settings: { audio: true, chrono: true, timer: true, beep: true, autoLevel: false, demoMethods: true, place: "classe", v3: true, pin: "" },
+    return { version: 1, settings: { audio: true, chrono: true, timer: true, beep: true, autoLevel: false, demoMethods: true, place: "classe", v3: true, pin: "", voice: "", rate: 0.92 },
       labels: { families: {}, lines: {}, cards: {} }, students: [], tasks: [], blocks: [] };
   }
   /* Rétrocompatibilité : toute propriété absente d'une ancienne sauvegarde reçoit sa valeur par défaut. */
@@ -444,7 +447,7 @@ function boot() {
     s.students.forEach(function (st) {
       st.levels = st.levels || {}; st.lock = st.lock || {}; st.since = st.since || {}; st.pinned = st.pinned || [];
       st.methods = st.methods || {}; st.plan = !!st.plan; st.check = !!st.check;
-      st.msince = st.msince || {}; st.mdismiss = st.mdismiss || {};
+      st.msince = st.msince || {}; st.mdismiss = st.mdismiss || {}; st.cfgAt = st.cfgAt || 0;
     });
     s.tasks.forEach(function (t) { t.plan = t.plan || []; if (!("planHelped" in t)) t.planHelped = null; if (!("adult" in t)) t.adult = null; });
     s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.teacher = b.teacher || {}; if (!("adult" in b)) b.adult = null; });
@@ -465,6 +468,8 @@ function boot() {
   }
   function uid(p) { return p + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
   function now() { return Date.now(); }
+  /* date du dernier réglage fait par l'enseignante pour cet élève : la fusion garde le plus récent */
+  function touchCfg(st) { if (st) st.cfgAt = now(); }
   function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
   function famDef(id) { return id === "F0" ? F0 : byId(FAMILIES, id); }
   function famLabel(id) { var o = S.labels.families[id]; var d = famDef(id); return (o && o.label) || (d ? d.label : id); }
@@ -508,19 +513,163 @@ function boot() {
   }
 
   /* ---------- audio : lecture à voix haute et signal de fin de minuteur ---------- */
-  var canSpeak = false;
-  try { canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function"; } catch (e) {}
+  /* Voix : la meilleure voix française du système, ou la « voix naturelle » (Piper, fichiers du dossier voix/ du même site,
+     gardés sur l'appareil par sw.js). Aucune requête vers un autre site. Reprise de PL-lect’. */
+  var synth = null, canSpeak = false, voices = [];
+  try { canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function"; if (canSpeak) synth = window.speechSynthesis; } catch (e) {}
+  var piper = { ok: false, busy: false, lib: null, audio: null, seq: 0 };
+  var PIPER_ID = "fr_FR-siwis-medium";
+  var PIPER_CACHE = "plrestart-voix-v1";
+  var PIPER_MODEL = "voix/model/fr/fr_FR/siwis/medium/fr_FR-siwis-medium";
+  var PIPER_FILES = [[PIPER_MODEL + ".onnx.json", 5e3], ["voix/wasm/piper_phonemize.js", 121e3], ["voix/wasm/piper_phonemize.wasm", 635e3], ["voix/ort/ort.wasm.min.js", 143e3],
+    ["voix/vendor/piper-tts-web.js", 23e3], ["voix/vendor/piper-o91UDS6e.js", 158e3], ["voix/vendor/voices_static-D_OtJDHM.js", 147e3],
+    ["voix/ort/ort-wasm-simd.wasm", 10595e3], ["voix/wasm/piper_phonemize.data", 18077e3], [PIPER_MODEL + ".onnx", 63201e3]];
+  function piperCan() {
+    try { return /^https?:$/.test(location.protocol) && window.isSecureContext && "serviceWorker" in navigator && "caches" in window; } catch (e) { return false; }
+  }
+  function usePiper() { return piper.ok && (S.settings.voice === "" || S.settings.voice === "piper"); }
+  function canTalk() { return canSpeak || piper.ok; }
+  /* Classement : qualité d'abord (« Premium », « Amélioré », « Natural »…), voix locales avant voix en ligne.
+     Hors ligne, une voix en ligne ne passe jamais devant : elle ne dirait rien. */
+  function voiceTier(v) {
+    var n = v.name;
+    if (/premium|enhanced|am[ée]lior|neural|natural|siri/i.test(n)) return 3;
+    if (/compact|espeak|hortense|julie|\bpaul\b/i.test(n)) return 1;
+    return 2;
+  }
+  function voiceScore(v) {
+    if (!v.localService && !navigator.onLine) return -1;
+    return voiceTier(v) * 10 + (v.localService ? 5 : 0) + (v.lang === "fr-CH" ? 1 : 0);
+  }
+  function loadVoices() {
+    try { voices = synth ? synth.getVoices().filter(function (v) { return /^fr/i.test(v.lang); }) : []; } catch (e) { voices = []; }
+    voices.sort(function (a, b) { return voiceScore(b) - voiceScore(a); });
+    refreshVoiceUI();
+  }
+  function voiceOptions() {
+    function tag(v) { var t = voiceTier(v); return (t >= 3 ? " · qualité haute" : t <= 1 ? " · voix basique" : "") + (v.localService ? "" : " · en ligne"); }
+    var cur = S.settings.voice;
+    return '<option value=""' + (cur === "" ? " selected" : "") + ">Automatique (la meilleure)</option>" +
+      (piper.ok ? '<option value="piper"' + (cur === "piper" ? " selected" : "") + ">Voix naturelle · qualité haute</option>" : "") +
+      voices.map(function (v) { return '<option value="' + esc(v.voiceURI) + '"' + (cur === v.voiceURI ? " selected" : "") + ">" + esc(v.name) + " (" + esc(v.lang) + ")" + tag(v) + "</option>"; }).join("");
+  }
+  function voiceNoteText() {
+    if (piper.ok) return "Voix naturelle prête" + (voices.length ? " · " + voices.length + " voix du système en repli" : "");
+    if (!canSpeak) return "La synthèse vocale n’existe pas sur cet appareil.";
+    if (!voices.length) return "Aucune voix française trouvée.";
+    return voices.length + " voix française(s)" + (voiceTier(voices[0]) < 3 ? " · aucune de qualité haute" : "");
+  }
+  function rateText() { return String(S.settings.rate).replace(".", ","); }
+  function piperStateText() {
+    if (!piperCan()) return "Disponible sur la version en ligne (adresse https), pas depuis un fichier ouvert directement.";
+    return piper.ok ? "Prête : elle fonctionne hors ligne sur cet appareil." : "Une voix plus naturelle que celles du système, à télécharger une fois par appareil (environ 93 Mo, de préférence en wifi).";
+  }
+  function refreshVoiceUI(msg) {
+    var el = document.getElementById("sVoice"); if (!el) return;
+    el.innerHTML = voiceOptions();
+    document.getElementById("voiceNote").textContent = voiceNoteText();
+    var can = piperCan(), dl = document.getElementById("bPiperDl"), rm = document.getElementById("bPiperRm");
+    dl.hidden = !can || piper.ok; dl.disabled = piper.busy; rm.hidden = !can || !piper.ok;
+    document.getElementById("piperState").textContent = msg || piperStateText();
+  }
+  function voicePanel() {
+    return '<div class="panel"><h2>Voix du bouton « Écouter »</h2><p class="small">Réglage propre à cet appareil : à faire sur l’appareil de l’élève.</p>' +
+      '<label class="field"><span>Voix</span><select id="sVoice" data-c="voice">' + voiceOptions() + "</select></label>" +
+      '<label class="field"><span>Débit : <output id="oRate">' + rateText() + '</output></span><input type="range" id="sRate" data-c="rate" min="0.5" max="1.3" step="0.05" value="' + S.settings.rate + '"></label>' +
+      '<div class="row"><button class="btn" data-a="testVoice">Tester la voix</button></div><p class="small" id="voiceNote">' + esc(voiceNoteText()) + "</p>" +
+      '<p><b>Voix naturelle</b></p><div class="row"><button class="btn" data-a="piperDl" id="bPiperDl"' + (piperCan() && !piper.ok ? "" : " hidden") + '>Télécharger (93 Mo)</button>' +
+      '<button class="btn danger" data-a="piperRm" id="bPiperRm"' + (piperCan() && piper.ok ? "" : " hidden") + ">Retirer la voix</button></div>" +
+      '<progress id="piperProg" max="100" value="0" hidden aria-label="Téléchargement de la voix"></progress><p class="small" id="piperState" aria-live="polite">' + esc(piperStateText()) + "</p>" +
+      '<details><summary>Obtenir une voix plus naturelle sans téléchargement</summary><p class="small">La qualité dépend des voix installées sur l’appareil. Cherchez les voix françaises « Premium », « Amélioré » ou « Natural ».</p>' +
+      '<p class="small"><b>iPad</b> : Réglages → Accessibilité → Contenu énoncé → Voix → Français, puis une voix « Premium » ou « Amélioré ».<br><b>Mac</b> : Réglages Système → Accessibilité → Contenu énoncé → Voix du système → Gérer les voix.<br><b>Windows</b> : Réglages → Heure et langue → Voix. Dans Edge, les voix « Online (Natural) » sont les plus naturelles mais demandent du réseau.</p></details></div>';
+  }
+  function stopSpeech() {
+    piper.seq++;
+    if (piper.audio) { try { piper.audio.pause(); } catch (e) {} piper.audio = null; }
+    try { if (synth) synth.cancel(); } catch (e) {}
+  }
   function speak(text) {
-    if (!canSpeak || !S.settings.audio) return;
+    if (!text || !S.settings.audio || !canTalk()) return;
+    text = String(text).replace(/…/g, ", ");
+    if (usePiper()) piperSpeak(text); else systemSpeak(text);
+  }
+  function systemSpeak(text) {
+    if (!synth || !text) return;
     try {
-      window.speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(String(text).replace(/…/g, ", "));
-      u.lang = "fr-FR"; u.rate = 0.92;
-      window.speechSynthesis.speak(u);
+      synth.cancel();
+      var u = new SpeechSynthesisUtterance(text), v = null, i;
+      u.lang = "fr-FR"; u.rate = S.settings.rate;
+      for (i = 0; i < voices.length; i++) if (voices[i].voiceURI === S.settings.voice) v = voices[i];
+      if (!v) v = voices[0];
+      if (v) { u.voice = v; u.lang = v.lang; }
+      synth.speak(u);
     } catch (e) {}
   }
+  function piperSpeak(text) {
+    stopSpeech();
+    var my = piper.seq;
+    (piper.lib ? Promise.resolve(piper.lib) : import("./voix/vendor/piper-tts-web.js").then(function (m) { piper.lib = m; return m; }))
+      .then(function (m) { return m.predict({ text: text, voiceId: PIPER_ID }); })
+      .then(function (wav) {
+        if (my !== piper.seq) return;
+        var a = new Audio(URL.createObjectURL(wav));
+        a.playbackRate = S.settings.rate;
+        a.addEventListener("ended", function () { try { URL.revokeObjectURL(a.src); } catch (e) {} });
+        piper.audio = a;
+        return a.play();
+      })
+      .catch(function () { if (my === piper.seq) systemSpeak(text); });
+  }
+  function piperCheck() {
+    piper.ok = false;
+    var p = Promise.resolve();
+    if (piperCan()) {
+      p = caches.open(PIPER_CACHE).then(function (c) {
+        return Promise.all(PIPER_FILES.map(function (f) { return c.match(new URL(f[0], location.href).href); }));
+      }).then(function (hits) { piper.ok = hits.every(Boolean); }).catch(function () {});
+    }
+    return p.then(function () { loadVoices(); });
+  }
+  function piperProg(v, show) {
+    var el = document.getElementById("piperProg"); if (!el) return;
+    if (show !== undefined) el.hidden = !show;
+    el.value = v;
+  }
+  function piperDownload() {
+    if (piper.busy || !piperCan()) return Promise.resolve(false);
+    piper.busy = true; piperProg(0, true); refreshVoiceUI("Téléchargement…");
+    var total = PIPER_FILES.reduce(function (n, f) { return n + f[1]; }, 0), done = 0;
+    function one(f) {
+      return fetch(f[0]).then(function (res) {
+        if (!res.ok) throw new Error(f[0] + " : " + res.status);
+        if (!res.body || !res.body.getReader) return res.arrayBuffer().then(function () {});
+        var rd = res.body.getReader(), got = 0;
+        return (function pump() {
+          return rd.read().then(function (r) {
+            if (r.done) return;
+            got += r.value.length;
+            piperProg(Math.min(99, Math.round((done + Math.min(got, f[1])) * 100 / total)));
+            return pump();
+          });
+        })();
+      }).then(function () { done += f[1]; });
+    }
+    return navigator.serviceWorker.register("sw.js").then(function (reg) { try { reg.update(); } catch (e) {} return navigator.serviceWorker.ready; })
+      .then(function () {
+        if (!navigator.serviceWorker.controller) return new Promise(function (ok) { navigator.serviceWorker.addEventListener("controllerchange", ok, { once: true }); setTimeout(ok, 3000); });
+      })
+      .then(function () { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} })
+      .then(function () { return PIPER_FILES.reduce(function (p, f) { return p.then(function () { return one(f); }); }, Promise.resolve()); })
+      .then(function () { piperProg(100); piper.busy = false; return piperCheck(); })
+      .then(function () { piperProg(0, false); refreshVoiceUI(piper.ok ? "Voix naturelle prête." : "Téléchargement incomplet : réessayez."); return piper.ok; })
+      .catch(function (e) { piper.busy = false; piperProg(0, false); refreshVoiceUI("Échec du téléchargement (" + (e && e.message ? e.message : "erreur") + "). Réessayez avec une connexion stable."); return false; });
+  }
+  function piperRemove() {
+    stopSpeech(); piper.lib = null;
+    return caches.delete(PIPER_CACHE).catch(function () {}).then(function () { return piperCheck(); });
+  }
   function sayBtn(text, small) {
-    if (!canSpeak || !S.settings.audio) return "";
+    if (!canTalk() || !S.settings.audio) return "";
     return '<button class="say' + (small ? " small" : "") + '" data-a="say" data-t="' + esc(text) + '" aria-label="Écouter : ' + esc(text) + '" title="Écouter">' + svg("sound") + "</button>";
   }
   function beep() {
@@ -565,7 +714,7 @@ function boot() {
   function show(html, opts) {
     opts = opts || {};
     clearTimers();
-    try { if (canSpeak) window.speechSynthesis.cancel(); } catch (e) {}
+    stopSpeech();
     pageEl.className = "page" + (opts.wide ? " wide" : "");
     mainEl.className = opts.center ? "center" : "";
     header(opts);
@@ -733,7 +882,7 @@ function boot() {
         (level !== 2 || last6.filter(function (x) { return !x.unfolded; }).length >= 4)) next = level + 1;
     else if (level > 1 && ((last2.length === 2 && !ok(last2[0]) && !ok(last2[1])) ||
         (last5.length === 5 && last5.filter(ok).length <= 2))) next = level - 1;
-    if (next !== level) { st.levels[f] = next; st.since[f] = now(); }
+    if (next !== level) { st.levels[f] = next; st.since[f] = now(); touchCfg(st); }
   }
   function endBlock(end) {
     var b = U.block; if (!b || b.end) return;
@@ -1193,7 +1342,7 @@ function boot() {
   /* ---------- espace enseignante ---------- */
   function openTeacher() {
     if (S.settings.pin && !U.unlocked) {
-      show(title("Espace enseignante") + '<label class="field"><span>Code</span><input type="password" inputmode="numeric" id="pin" autocomplete="off"></label>' +
+      show(title("Espace enseignante") + '<label class="field"><span>Code</span><input type="password" id="pin" autocomplete="off" maxlength="20"></label>' +
         '<p class="note" id="pinerr" hidden>Code incorrect.</p>' +
         '<div class="row"><button class="btn primary" data-a="unlock">Ouvrir</button><button class="btn" data-a="home">Annuler</button></div>', { who: false });
       var el = document.getElementById("pin"); if (el) el.focus();
@@ -1358,16 +1507,16 @@ function boot() {
     return '<label class="check"><input type="checkbox" data-c="setting" data-f="' + key + '"' + (S.settings[key] ? " checked" : "") + ">" + label + "</label>";
   }
   function tabReglages() {
-    return '<div class="panel"><h2>Côté élève</h2>' +
-      check("audio", "Bouton « Écouter » sur chaque choix" + (canSpeak ? "" : " (indisponible sur cet appareil)")) +
+    return voicePanel() + '<div class="panel"><h2>Côté élève</h2>' +
+      check("audio", "Bouton « Écouter » sur chaque choix" + (canTalk() ? "" : " (indisponible sur cet appareil)")) +
       check("chrono", "Chrono discret pendant le travail") +
       check("timer", "Minuteur sur les cartes") +
       check("beep", "Signal sonore à la fin du minuteur") +
       check("demoMethods", "Coup de main sans élève : proposer aussi les stratégies du dossier de français") + "</div>" +
       '<div class="panel"><h2>Qui choisit la carte</h2>' + check("autoLevel", "Changer automatiquement le niveau par famille (désactivé par défaut)") +
       '<p class="small">Si la case est cochée : montée après 5 reprises sur les 6 derniers blocages d’une famille, descente après 2 échecs de suite ou 3 sur 5. Sinon, le niveau se règle à la main dans « Élèves ». Le retrait de l’aide par stratégie, lui, passe toujours par vos validations dans « Suivi ».</p></div>' +
-      '<div class="panel"><h2>Code de l’espace enseignante</h2><p class="small">Facultatif. Il évite qu’un élève entre ici par curiosité ; ce n’est pas une protection des données.</p>' +
-      '<div class="formrow"><label class="field"><span>Code (chiffres)</span><input type="text" inputmode="numeric" id="newPin" maxlength="8" value="' + esc(S.settings.pin) + '" autocomplete="off"></label>' +
+      '<div class="panel"><h2>Code de l’espace enseignante</h2><p class="small">Facultatif. Lettres et chiffres, jusqu’à 20 signes. Il évite qu’un élève entre ici par curiosité. Il est gardé tel quel dans le navigateur de l’appareil et n’est jamais écrit dans les fichiers exportés. Ce n’est pas une protection des données.</p>' +
+      '<div class="formrow"><label class="field"><span>Code</span><input type="text" id="newPin" maxlength="20" value="' + esc(S.settings.pin) + '" autocomplete="off"></label>' +
       '<button class="btn fit" data-a="savePin">Enregistrer le code</button></div></div>';
   }
   function tabCartes() {
@@ -1390,12 +1539,23 @@ function boot() {
     return html;
   }
   function tabDonnees() {
+    var sel = S.students.length ? '<div class="formrow"><label class="field"><span>Élève</span><select id="expSid">' + S.students.map(function (st) {
+      return '<option value="' + esc(st.id) + '"' + (st.id === U.teacherSid ? " selected" : "") + ">" + esc(st.name) + "</option>";
+    }).join("") + '</select></label><button class="btn primary fit" data-a="exportStudent">Exporter cet élève (.json)</button></div>' : '<p class="small">Aucun élève pour l’instant.</p>';
+    var notes = (U.importNotes || []).map(function (n) { return '<li class="' + (n.ok ? "" : "bad") + '">' + esc(n.text) + "</li>"; }).join("");
     return '<div class="panel"><h2>Où sont les données</h2><p>Tout est enregistré dans le navigateur de cet appareil. Rien n’est envoyé. Un autre appareil, ou un autre navigateur, repart de zéro.</p>' +
       "<p>" + S.students.length + " élève(s) · " + S.tasks.length + " tâche(s) · " + S.blocks.length + " blocage(s).</p></div>" +
-      '<div class="panel"><h2>Exporter</h2><div class="row"><button class="btn primary" data-a="exportJson">Sauvegarde complète (.json)</button><button class="btn" data-a="exportCsv">Tableau des essais (.csv)</button></div>' +
-      '<p class="small">Le fichier .csv s’ouvre dans Excel : une ligne par essai de carte.</p></div>' +
-      '<div class="panel"><h2>Importer une sauvegarde</h2><p class="small">Remplace toutes les données de cet appareil par celles du fichier.</p><input type="file" id="importFile" accept=".json,application/json"><p class="note" id="importMsg" hidden></p></div>' +
-      '<div class="panel"><h2>Effacer</h2><p class="small">Supprime élèves, tâches, blocages et réglages de cet appareil. Écrivez EFFACER pour confirmer.</p>' +
+      '<div class="panel"><h2>Exporter un élève</h2><p class="small">Un fichier par élève : sa fiche, ses réglages, ses tâches et ses blocages. Le code de l’espace enseignante n’y figure pas. À vous envoyer par la messagerie de l’école, ou à copier sur une clé.</p>' + sel + "</div>" +
+      '<div class="panel"><h2>Importer et fusionner</h2><p class="small">Rien n’est effacé : le fichier est ajouté à ce qui est déjà là, un ou plusieurs fichiers à la fois.</p>' +
+      '<ul class="small plain"><li>Un élève est reconnu par son identifiant interne. Exporté d’ici puis réimporté, il est mis à jour ; venant d’un autre appareil, il est ajouté.</li>' +
+      '<li>Ses réglages (niveaux, stratégies, plan, « Avant de rendre ») : la version réglée en dernier l’emporte.</li>' +
+      '<li>Tâches et blocages : ajoutés s’ils manquent ; sinon la version la plus complète est gardée, vos notes sont conservées.</li>' +
+      '<li>Libellés des cartes : complétés seulement, jamais écrasés. Réglages de l’appareil (dont la voix) et code : jamais importés.</li></ul>' +
+      '<label class="check"><input type="checkbox" id="importByName">Reconnaître aussi un élève du même prénom (si deux élèves portent le même prénom, ne pas cocher)</label>' +
+      '<input type="file" id="importFile" accept=".json,application/json" multiple>' + (notes ? '<ul class="plain" id="importMsg">' + notes + "</ul>" : "") + "</div>" +
+      '<div class="panel"><h2>Sauvegarde complète et tableau</h2><div class="row"><button class="btn" data-a="exportJson">Sauvegarde complète (.json)</button><button class="btn" data-a="exportCsv">Tableau des essais (.csv)</button></div>' +
+      '<p class="small">La sauvegarde complète ne contient pas le code. Le fichier .csv s’ouvre dans Excel : une ligne par essai de carte. Les sauvegardes faites avant la version 5 contiennent le code en clair : à supprimer ou à garder pour vous seule.</p></div>' +
+      '<div class="panel"><h2>Effacer</h2><p class="small">Supprime élèves, tâches, blocages et réglages de cet appareil (par exemple pour repartir d’une sauvegarde). Écrivez EFFACER pour confirmer.</p>' +
       '<div class="formrow"><label class="field"><span>Confirmation</span><input type="text" id="wipeWord" autocomplete="off"></label><button class="btn danger fit" data-a="wipe">Tout effacer</button></div></div>';
   }
   function tabAide() {
@@ -1430,6 +1590,25 @@ function boot() {
     } catch (e) {}
   }
   function stamp() { var d = new Date(); function p(n) { return (n < 10 ? "0" : "") + n; } return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
+  function slug(name) {
+    var t = String(name || "eleve");
+    try { if (t.normalize) t = t.normalize("NFD").replace(/[̀-ͯ]/g, ""); } catch (e) {}
+    return t.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase().slice(0, 30) || "eleve";
+  }
+  /* Données écrites dans un fichier : jamais le code de l'espace enseignante. sid = un seul élève ; null = tout. */
+  function exportData(sid) {
+    var out = { app: "PL-restart", version: 1, kind: sid ? "eleve" : "complet", exportedAt: now(), labels: S.labels }, k;
+    if (sid) {
+      out.students = S.students.filter(function (x) { return x.id === sid; });
+      out.tasks = S.tasks.filter(function (x) { return x.sid === sid; });
+      out.blocks = S.blocks.filter(function (x) { return x.sid === sid; });
+    } else {
+      out.settings = {};
+      for (k in S.settings) if (k !== "pin") out.settings[k] = S.settings[k];
+      out.students = S.students; out.tasks = S.tasks; out.blocks = S.blocks;
+    }
+    return out;
+  }
   function csv() {
     var head = ["eleve", "date", "tache", "matiere", "statut_tache", "blocage", "minute_dans_tache", "famille", "reponses", "ligne", "niveau", "aide_a_choisir", "garde_fou", "rang_essai", "carte", "titre_carte", "origine", "duree_essai_s", "resultat", "issue", "delai_reprise_s", "rebond_5min", "avis_enseignante", "reprise_observee", "mode_strategie", "carte_rouverte", "plan_attaque", "plan_a_aide", "lieu", "adulte_disponible"];
     var rows = [head];
@@ -1453,6 +1632,9 @@ function boot() {
   /* ---------- actions (délégation d'événements) ---------- */
   var ACTIONS = {
     say: function (d) { speak(d.t); },
+    testVoice: function () { speak("Bonjour. Voici la voix de l’outil. Si ça ne repart pas, appuie sur le bouton."); },
+    piperDl: function () { piperDownload(); },
+    piperRm: function () { piperRemove(); },
     home: function () { goHome(); },
     teacher: function () { openTeacher(); },
     pick: function (d) { pickStudent(d.id); },
@@ -1480,8 +1662,8 @@ function boot() {
     adultNone: function () { setAdult(false); goHelp(); },
     checkToggle: function (d, el) { var on = el.className.indexOf(" sel") < 0; el.className = "choice" + (on ? " sel" : ""); el.setAttribute("aria-pressed", String(on)); },
     checkOk: function () { U.task.checked = document.querySelectorAll(".choice.sel").length; U.checkDone = true; save(); finishAs("terminee"); },
-    sugOk: function (d) { var st = student(U.teacherSid); if (st) { st.methods[d.id] = parseInt(d.to, 10); st.msince[d.id] = now(); save(); } openTeacher(); },
-    sugNo: function (d) { var st = student(U.teacherSid); if (st) { st.mdismiss[d.id] = now(); save(); } openTeacher(); },
+    sugOk: function (d) { var st = student(U.teacherSid); if (st) { st.methods[d.id] = parseInt(d.to, 10); st.msince[d.id] = now(); touchCfg(st); save(); } openTeacher(); },
+    sugNo: function (d) { var st = student(U.teacherSid); if (st) { st.mdismiss[d.id] = now(); touchCfg(st); save(); } openTeacher(); },
     nextStep: function () { U.step++; renderTry(); },
     viewMethod: function (d) { screenViewMethod(d.id); },
     planToggle: function (d, el) {
@@ -1527,7 +1709,7 @@ function boot() {
     addStudent: function () {
       var n = document.getElementById("newName"), name = n ? n.value.trim() : "";
       if (!name) { if (n) n.focus(); return; }
-      S.students.push({ id: uid("s"), name: name, icon: newAvatar, levels: {}, lock: {}, since: {}, pinned: [], methods: {}, msince: {}, mdismiss: {}, plan: false, check: false });
+      S.students.push({ id: uid("s"), name: name, icon: newAvatar, levels: {}, lock: {}, since: {}, pinned: [], methods: {}, msince: {}, mdismiss: {}, plan: false, check: false, cfgAt: now() });
       newAvatar = AVATARS[S.students.length % AVATARS.length];
       save(); openTeacher();
     },
@@ -1539,12 +1721,17 @@ function boot() {
       S.blocks = S.blocks.filter(function (b) { return b.sid !== d.id; });
       save(); openTeacher();
     },
-    savePin: function () { var el = document.getElementById("newPin"); S.settings.pin = el ? el.value.replace(/\D/g, "") : ""; save(); openTeacher(); },
+    savePin: function () { var el = document.getElementById("newPin"); S.settings.pin = el ? el.value.trim().slice(0, 20) : ""; save(); openTeacher(); },
     resetLabels: function (d, el) {
       if (el.getAttribute("data-sure") !== "1") { el.setAttribute("data-sure", "1"); el.textContent = "Confirmer : rétablir tous les textes"; return; }
       S.labels = { families: {}, lines: {}, cards: {} }; save(); openTeacher();
     },
-    exportJson: function () { download("pl-restart-sauvegarde-" + stamp() + ".json", JSON.stringify(S, null, 2), "application/json"); },
+    exportJson: function () { download("pl-restart-sauvegarde-" + stamp() + ".json", JSON.stringify(exportData(null), null, 2), "application/json"); },
+    exportStudent: function () {
+      var el = document.getElementById("expSid"), st = el && student(el.value);
+      if (!st) return;
+      download("pl-restart-" + slug(st.name) + "-" + stamp() + ".json", JSON.stringify(exportData(st.id), null, 2), "application/json");
+    },
     exportCsv: function () { download("pl-restart-essais-" + stamp() + ".csv", csv(), "text/csv;charset=utf-8"); },
     wipe: function () {
       var el = document.getElementById("wipeWord");
@@ -1573,17 +1760,19 @@ function boot() {
   var CHANGES = {
     teacherSid: function (el) { U.teacherSid = el.value; openTeacher(); },
     teacherNote: function (el) { var b = byId(S.blocks, el.dataset.id); if (b) { b.teacher = b.teacher || {}; b.teacher[el.dataset.f] = el.value; save(); } },
-    level: function (el) { var st = student(el.dataset.id); if (st) { st.levels[el.dataset.f] = parseInt(el.value, 10); st.since[el.dataset.f] = now(); save(); } },
-    lock: function (el) { var st = student(el.dataset.id); if (st) { st.lock[el.dataset.f] = el.checked; save(); } },
+    level: function (el) { var st = student(el.dataset.id); if (st) { st.levels[el.dataset.f] = parseInt(el.value, 10); st.since[el.dataset.f] = now(); touchCfg(st); save(); } },
+    lock: function (el) { var st = student(el.dataset.id); if (st) { st.lock[el.dataset.f] = el.checked; touchCfg(st); save(); } },
     setting: function (el) { S.settings[el.dataset.f] = el.checked; save(); },
-    planOn: function (el) { var st = student(el.dataset.id); if (st) { st.plan = el.checked; save(); } },
-    checkOn: function (el) { var st = student(el.dataset.id); if (st) { st.check = el.checked; save(); } },
-    methodState: function (el) { var st = student(el.dataset.id); if (st) { st.methods[el.dataset.m] = parseInt(el.value, 10) || 0; st.msince[el.dataset.m] = now(); save(); } },
+    planOn: function (el) { var st = student(el.dataset.id); if (st) { st.plan = el.checked; touchCfg(st); save(); } },
+    checkOn: function (el) { var st = student(el.dataset.id); if (st) { st.check = el.checked; touchCfg(st); save(); } },
+    methodState: function (el) { var st = student(el.dataset.id); if (st) { st.methods[el.dataset.m] = parseInt(el.value, 10) || 0; st.msince[el.dataset.m] = now(); touchCfg(st); save(); } },
+    voice: function (el) { S.settings.voice = el.value; save(); },
+    rate: function (el) { var n = parseFloat(el.value); S.settings.rate = n >= 0.5 && n <= 1.3 ? n : 0.92; save(); var o = document.getElementById("oRate"); if (o) o.textContent = rateText(); },
     methodDom: function (el) {
       var st = student(el.dataset.id), dom = el.dataset.d, v = parseInt(el.value, 10) || 0, t = now();
       if (!st || el.value === "") return;
       strategyIds().forEach(function (id) { var c = card(id); if (c && c.dom === dom) { st.methods[id] = v; st.msince[id] = t; } });
-      save(); U.openBox = st.id; openTeacher();
+      touchCfg(st); save(); U.openBox = st.id; openTeacher();
     },
     famLabel: function (el) { setLabel("families", el.dataset.id, "label", el.value); },
     lineLabel: function (el) { setLabel("lines", el.dataset.id, "label", el.value); },
@@ -1604,18 +1793,96 @@ function boot() {
     var fn = el.getAttribute && CHANGES[el.getAttribute("data-c")];
     if (fn) fn(el);
   });
+  /* ---------- fusion d'un fichier dans les données de l'appareil (aucune suppression) ---------- */
+  var CFG_FIELDS = ["name", "icon", "levels", "lock", "since", "methods", "msince", "mdismiss", "plan", "check"];
+  function blockScore(b) { return (b.end ? 1000 : 0) + (b.tries || []).length * 10 + (b.resumedAt ? 1 : 0); }
+  function taskScore(t) { return (t.end ? 100 : 0) + (t.status ? 10 : 0) + (t.plan && t.plan.length ? 1 : 0); }
+  function fillTeacher(w, o) {
+    var k, ch = false;
+    w.teacher = w.teacher || {};
+    for (k in (o.teacher || {})) {
+      if (Object.prototype.hasOwnProperty.call(o.teacher, k) && k !== "__proto__" && (w.teacher[k] === undefined || w.teacher[k] === "") && o.teacher[k] !== undefined && o.teacher[k] !== "") { w.teacher[k] = o.teacher[k]; ch = true; }
+    }
+    return ch;
+  }
+  function mergeData(data, byName) {
+    var inc = normalize(JSON.parse(JSON.stringify(data))), r = { stAdd: 0, stUpd: 0, stSame: 0, byName: 0, bNew: 0, bUpd: 0, bSame: 0, tNew: 0, tUpd: 0, tSame: 0, skip: 0 }, map = {}, empty = !S.students.length && !S.tasks.length && !S.blocks.length;
+    function mapSid(sid) { return map[sid] || (student(sid) ? sid : null); }
+    inc.students.forEach(function (n) {
+      if (!n || typeof n.id !== "string" || typeof n.name !== "string") { r.skip++; return; }
+      var l = student(n.id), i, changed = false;
+      if (!l && byName) {
+        var nm = n.name.trim().toLowerCase();
+        for (i = 0; i < S.students.length; i++) if (S.students[i].name.trim().toLowerCase() === nm) { l = S.students[i]; r.byName++; break; }
+      }
+      if (!l) { S.students.push(n); map[n.id] = n.id; r.stAdd++; return; }
+      map[n.id] = l.id;
+      if ((n.cfgAt || 0) > (l.cfgAt || 0)) { CFG_FIELDS.forEach(function (f) { l[f] = n[f]; }); l.cfgAt = n.cfgAt; changed = true; }
+      n.pinned.forEach(function (id) { if (l.pinned.indexOf(id) < 0) { l.pinned.push(id); changed = true; } });
+      while (l.pinned.length > 3) l.pinned.shift();
+      if (changed) r.stUpd++; else r.stSame++;
+    });
+    inc.tasks.forEach(function (t) {
+      var sid = t && typeof t.id === "string" ? mapSid(t.sid) : null, l;
+      if (!sid) { r.skip++; return; }
+      t.sid = sid; l = byId(S.tasks, t.id);
+      if (!l) { S.tasks.push(t); r.tNew++; }
+      else if (taskScore(t) > taskScore(l)) { S.tasks[S.tasks.indexOf(l)] = t; r.tUpd++; }
+      else r.tSame++;
+    });
+    inc.blocks.forEach(function (b) {
+      var sid = b && typeof b.id === "string" ? mapSid(b.sid) : null, l;
+      if (!sid) { r.skip++; return; }
+      b.sid = sid; l = byId(S.blocks, b.id);
+      if (!l) { S.blocks.push(b); r.bNew++; }
+      else if (blockScore(b) > blockScore(l)) { fillTeacher(b, l); S.blocks[S.blocks.indexOf(l)] = b; r.bUpd++; }
+      else if (fillTeacher(l, b)) r.bUpd++;
+      else r.bSame++;
+    });
+    ["families", "lines", "cards"].forEach(function (g) {
+      var id, f, src = inc.labels[g] || {};
+      for (id in src) {
+        if (!Object.prototype.hasOwnProperty.call(src, id) || id === "__proto__") continue;
+        S.labels[g][id] = S.labels[g][id] || {};
+        for (f in src[id]) if (Object.prototype.hasOwnProperty.call(src[id], f) && f !== "__proto__" && !(f in S.labels[g][id])) S.labels[g][id][f] = src[id][f];
+      }
+    });
+    /* sauvegarde complète restaurée sur un appareil vide : on reprend aussi les réglages, sauf le code */
+    if (empty && data.kind !== "eleve" && data.settings && typeof data.settings === "object") {
+      Object.keys(inc.settings).forEach(function (k) { if (k !== "pin" && k !== "v3" && data.settings && k in data.settings) S.settings[k] = inc.settings[k]; });
+    }
+    return r;
+  }
+  function describeMerge(r) {
+    var p = [];
+    p.push(r.stAdd + " élève(s) ajouté(s), " + r.stUpd + " mis à jour, " + r.stSame + " inchangé(s)" + (r.byName ? " (dont " + r.byName + " reconnu(s) par le prénom)" : ""));
+    p.push("blocages : " + r.bNew + " nouveau(x), " + r.bUpd + " complété(s), " + r.bSame + " déjà présent(s)");
+    p.push("tâches : " + r.tNew + " nouvelle(s), " + r.tUpd + " complétée(s), " + r.tSame + " déjà présente(s)");
+    if (r.skip) p.push(r.skip + " ligne(s) ignorée(s) (élève inconnu ou incomplète)");
+    return p.join(" ; ") + ".";
+  }
   function importFile(el) {
-    var f = el.files && el.files[0], msg = document.getElementById("importMsg");
-    if (!f) return;
-    var r = new FileReader();
-    r.onload = function () {
-      try {
-        var data = JSON.parse(String(r.result));
-        if (!data || data.version !== 1 || !Array.isArray(data.students)) throw new Error("format");
-        S = normalize(data); save(); U.teacherSid = null; U.teacherTab = "suivi"; openTeacher();
-      } catch (err) { if (msg) { msg.hidden = false; msg.textContent = "Ce fichier n’est pas une sauvegarde PL-restart’ valide."; } }
-    };
-    r.readAsText(f);
+    var files = Array.prototype.slice.call(el.files || []), bn = document.getElementById("importByName"), byName = !!(bn && bn.checked), notes = [], i = 0;
+    if (!files.length) return;
+    function next() {
+      if (i >= files.length) { U.importNotes = notes; U.teacherTab = "donnees"; if (!U.teacherSid && S.students.length) U.teacherSid = S.students[0].id; save(); openTeacher(); return; }
+      var f = files[i++], r = new FileReader();
+      r.onload = function () {
+        var backup = JSON.stringify(S);
+        try {
+          var data = JSON.parse(String(r.result));
+          if (!data || data.version !== 1 || !Array.isArray(data.students)) throw new Error("format");
+          notes.push({ ok: true, text: f.name + " : " + describeMerge(mergeData(data, byName)) });
+        } catch (err) {
+          S = normalize(JSON.parse(backup));
+          notes.push({ ok: false, text: f.name + " : fichier non reconnu, rien n’a été importé." });
+        }
+        next();
+      };
+      r.onerror = function () { notes.push({ ok: false, text: f.name + " : lecture impossible." }); next(); };
+      r.readAsText(f);
+    }
+    next();
   }
   document.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target && e.target.id === "pin") ACTIONS.unlock();
@@ -1624,6 +1891,12 @@ function boot() {
 
   /* hors ligne : uniquement sur un vrai serveur (GitHub Pages), pas en file:// */
   try { if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
+
+  /* voix : liste des voix du système (elle arrive parfois après le chargement) et état de la voix naturelle */
+  if (synth) { loadVoices(); try { synth.onvoiceschanged = loadVoices; } catch (e) {} }
+  window.addEventListener("online", loadVoices); window.addEventListener("offline", loadVoices);
+  piperCheck();
+  document.addEventListener("input", function (e) { if (e.target && e.target.id === "sRate") { var o = document.getElementById("oRate"); if (o) o.textContent = String(e.target.value).replace(".", ","); } });
 
   goHome();
 }

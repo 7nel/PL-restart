@@ -6,7 +6,7 @@ Langue du projet : **français** (interface, commentaires, commits, README).
 
 **PL-restart’** est un prototype d'outil de classe : une **page web unique, sans serveur, sans compte, sans build**. L'élève signale un blocage sur une tâche scolaire, choisit une famille de cause, reçoit une carte de stratégie, puis dit si ça repart. Après trois « non », l'outil l'aide à formuler une demande d'aide précise.
 
-- Confidentialité : **aucune donnée ne quitte le navigateur** (`localStorage`). Ne jamais ajouter de réseau, de télémétrie ni de service tiers.
+- Confidentialité : **aucune donnée ne quitte le navigateur** (`localStorage`). Ne jamais ajouter de réseau, de télémétrie ni de service tiers. Seule exception de téléchargement : la voix naturelle, fichiers du dossier `voix/` du même site (jamais un autre domaine).
 - Licence : CC BY-NC 4.0.
 - Même famille que PL-planif’, PL-lect’, PL-CPS’, PL-neurodev’ : même en-tête (monogramme PL, nom de l'outil), vert `#2f6f63`, Atkinson Hyperlegible et Lexend autohébergées, apostrophe courbe dans le nom.
 
@@ -36,6 +36,13 @@ README.md, LICENSE, CLAUDE.md
 - Issues d'un blocage (`end`) : `reprise`, `aide`, `passe` (« ? » dans la marge), `stop`, `abandon`, `annule`.
 - Les noms, numéros et étapes des stratégies viennent du dossier de l'enseignante (français) ou ont été validés par elle (quatre autres domaines) : ne pas les reformuler sans demande.
 
+## Données entre appareils (v5)
+
+- `st.cfgAt` : date du dernier réglage de l'enseignante pour l'élève (`touchCfg(st)` à chaque réglage) ; la fusion garde la version la plus récente de `CFG_FIELDS` ; `pinned` : union.
+- `exportData(sid)` : jamais `settings.pin`. `mergeData()` : ne supprime rien ; tâches et blocages par id (`blockScore`, `taskScore`), notes enseignante conservées ; libellés complétés seulement ; réglages de l'appareil jamais importés (sauf sauvegarde complète sur appareil vide, sans le code).
+- Voix : `settings.voice` ("" = automatique, "piper" ou `voiceURI`) et `settings.rate` ; Piper dans `voix/` (cache `plrestart-voix-v1`, import map dans `<head>`) ; notices dans `NOTICE.md`.
+- Le code de l'espace enseignante est en clair (`settings.pin`), lettres autorisées : choix assumé.
+
 ## Conventions
 
 - Un seul fichier, JavaScript vanilla, style ES5 (`var`, fonctions nommées), guillemets doubles, indentation 2 espaces.
@@ -56,5 +63,6 @@ README.md, LICENSE, CLAUDE.md
 - [ ] Adulte « Non » au démarrage : stratégie de plus, puis « Prépare ta question » ; adulte non renseigné : la question arrive au moment de l'aide
 - [ ] Trois reprises avec une stratégie : la suggestion apparaît dans « Suivi », « Valider » change l'état
 - [ ] Rechargement : les données persistent, la tâche en cours peut être reprise
-- [ ] Suivi, export `.json` et `.csv`, import d'une sauvegarde
+- [ ] Suivi, export `.json` (complet et par élève, sans le code), `.csv`, import fusionné (réimport sans doublon, réglage le plus récent gagne, ancienne sauvegarde)
+- [ ] Voix : choix et débit conservés, voix naturelle téléchargée puis lue, retirée ; `sw.js` ne supprime que les caches `plrestart-`
 - [ ] Clair et sombre, largeur téléphone et tablette
