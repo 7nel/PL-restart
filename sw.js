@@ -1,6 +1,6 @@
 // Cache hors ligne : PL-restart’ fonctionne en classe sans réseau après une première visite.
 // Pour publier une nouvelle version : change le numéro de CACHE ci-dessous.
-const CACHE = "plrestart-v11";
+const CACHE = "plrestart-v12";
 const VOIX = "plrestart-voix-v1"; // voix naturelle (dossier voix/) : cache à part, conservé d'une version à l'autre
 // Si un fichier de voix/ change, changer VOIX ici et dans voix/vendor/piper-tts-web.js.
 const SHELL = ["./", "index.html", "manifest.json", "icon-32.png", "icon-180.png", "icon-512.png",

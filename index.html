@@ -63,6 +63,7 @@ function boot() {
 
     main { flex: 1; display: flex; flex-direction: column; gap: 18px; }
     main.center { justify-content: center; }
+    main > h1 { flex: none; } /* sinon le titre s'étire en hauteur quand la page est plus haute que son contenu */
     .qrow { display: flex; align-items: flex-start; gap: 10px; }
     h1 { margin: 0; flex: 1; font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 4.4vw, 2.15rem); line-height: 1.2; outline: none; }
     h2 { margin: 0; font-family: var(--display); font-size: 1.25rem; }
