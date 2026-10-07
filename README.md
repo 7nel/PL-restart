@@ -59,7 +59,7 @@ Les données (pseudonymes, tâches, blocages, cartes essayées, notes de l'ensei
 - d'**importer et fusionner** un ou plusieurs fichiers, sans rien effacer : un élève est reconnu par son identifiant interne (option : même prénom) ; ses réglages, la version réglée en dernier l'emporte ; tâches et blocages sont ajoutés s'ils manquent, notes de l'enseignante conservées ; libellés des cartes complétés seulement ;
 - de tout effacer (pour repartir d'une sauvegarde).
 
-Le code de l'espace enseignante (lettres et chiffres) est gardé en clair dans le navigateur de l'appareil, n'est jamais écrit dans un fichier exporté ni repris à l'import. Les sauvegardes faites avant la version 5 le contiennent. Il évite qu'un élève entre par curiosité ; ce n'est pas une protection des données. Tant qu'aucun code n'est défini et qu'il y a des élèves, l'espace enseignante affiche un rappel en haut.
+Le code de l'espace enseignante (lettres et chiffres) est gardé en clair dans le navigateur de l'appareil, n'est jamais écrit dans un fichier exporté ni repris à l'import. Les sauvegardes faites avant la version 5 le contiennent. Il évite qu'un élève entre par curiosité ; ce n'est pas une protection des données. Un code de départ est posé à la première ouverture (indiqué dans le « Mode d'emploi » de l'espace enseignante) : à changer dans « Réglages ». Si le code est effacé et qu'il y a des élèves, un rappel s'affiche en haut.
 
 Les transferts se font à la main (clé, messagerie de l'école) : l'outil n'envoie rien.
 
