@@ -123,6 +123,12 @@ function boot() {
     details.annex td:first-child { font-weight: 700; }
     details.annex p { margin: 0; font-size: 1rem; }
     .choice.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.25; text-align: left; }
+    .plan-item.sel { border-color: var(--accent); background: var(--accent-soft); }
+    .plan-item .num { flex: none; width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; }
+    .center .chips { justify-content: center; }
+    .center .sub { text-align: center; }
     .choice[data-a="checkToggle"] svg { opacity: 0.25; }
     .choice[data-a="checkToggle"].sel svg { opacity: 1; }
     .choice .num { flex: none; width: 2em; height: 2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; }
@@ -314,7 +320,7 @@ function boot() {
     { id: "C15", title: "Commencer par le facile", text: "Fais d’abord la partie que tu sais faire.", min: 5 },
     { id: "C16", title: "Brouillon libre", text: "Écris une première version sans la corriger. Elle a le droit d’être fausse.", min: 5 },
     { id: "C17", title: "Chercher dans le cours", text: "Trouve la page de ton cours qui parle de ça.", min: 3 },
-    { id: "C18", title: "Respirer d’abord", text: "Respire lentement cinq fois. Puis montre cet écran à un adulte.", min: 1 },
+    { id: "C18", title: "Respirer d’abord", text: "Respire lentement cinq fois. Puis montre cet écran à un adulte.", alone: "Respire lentement cinq fois. Parles-en à un adulte dès que tu peux.", min: 1 },
     { id: "C19", title: "Demande précise", text: "Complète : j’ai compris… je bloque sur… j’ai essayé… Demande une explication ou un indice, pas la réponse.", min: 2 },
     { id: "C20", title: "Stop propre", text: "Note où tu t’arrêtes et la prochaine action.", min: 2, stop: true },
     { id: "C21", title: "Cacher et dire", text: "Cache ta feuille. Dis ou écris ce que tu te rappelles.", min: 3 },
@@ -384,6 +390,9 @@ function boot() {
     { id: "E05", dom: "etat", title: "Stop, respire, choisis", min: 2, replaces: ["C18"], steps: ["STOP : je pose mon crayon.", "Je RESPIRE : j’expire lentement, trois fois.", "Je CHOISIS la plus petite chose à faire, et je commence."] },
     { id: "E06", dom: "etat", title: "Pas encore", min: 3, steps: ["Je DIS : « Je ne sais pas encore. »", "Je CHERCHE où je bloque exactement.", "Je fais UNE question que je sais faire."] }
   ]);
+  /* Sans adulte disponible : une stratégie de plus avant l'écran d'aide, prise dans la ligne en cours,
+     sinon parmi ces cartes générales, par famille (ressources que l'élève peut utiliser seul). */
+  var ALONE = { F1: ["C17", "C03"], F2: ["C03", "C15", "C05"], F3: ["C08", "C12", "C15"], F4: ["C03", "C14", "C17"], F5: ["C03", "C15"] };
   var DOMAINS = [["fr", "Boîte à stratégies de français"], ["maths", "Maths"], ["reviser", "Réviser et mémoriser"], ["langues", "Langues"], ["etat", "Fatigue et stress"], ["gen", "Cartes générales"]];
   var DOM_SHORT = { maths: "Maths", reviser: "Réviser", langues: "Langues", etat: "Énergie et stress" };
   var METHOD_STATES = ["Pas encore vue", "Guidée, étape par étape", "Avec la carte", "Seul"];
@@ -437,8 +446,8 @@ function boot() {
       st.methods = st.methods || {}; st.plan = !!st.plan; st.check = !!st.check;
       st.msince = st.msince || {}; st.mdismiss = st.mdismiss || {};
     });
-    s.tasks.forEach(function (t) { t.plan = t.plan || []; if (!("planHelped" in t)) t.planHelped = null; });
-    s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.teacher = b.teacher || {}; });
+    s.tasks.forEach(function (t) { t.plan = t.plan || []; if (!("planHelped" in t)) t.planHelped = null; if (!("adult" in t)) t.adult = null; });
+    s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.teacher = b.teacher || {}; if (!("adult" in b)) b.adult = null; });
     return s;
   }
   function loadState() {
@@ -465,7 +474,8 @@ function boot() {
     var m = byId(METHODS, id), d, o, text;
     if (m) return { id: id, dom: m.dom, num: m.num || "", title: m.title, label: m.label || m.title, text: m.when || "", steps: m.steps, truc: m.truc || "", annex: m.annex, min: m.min, active: true, replaces: m.replaces, stop: !!m.stop };
     d = byId(CARDS, id); if (!d) return null;
-    o = S.labels.cards[id] || {}; text = o.text || d.text;
+    o = S.labels.cards[id] || {};
+    text = o.text || (d.alone && U.block && adultOf(U.block) === false ? d.alone : d.text);
     return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin, stop: !!d.stop };
   }
   /* Où en est l'élève avec une stratégie : 0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul.
@@ -649,6 +659,35 @@ function boot() {
     }
     return null;
   }
+  /* Un adulte est-il disponible ? true, false, ou null tant que l'élève ne l'a pas dit. */
+  function adultOf(b) {
+    var v = U.task ? U.task.adult : (b ? b.adult : null);
+    return v === true || v === false ? v : null;
+  }
+  function setAdult(v) {
+    if (U.task) U.task.adult = v;
+    if (U.block) U.block.adult = v;
+    save();
+  }
+  function extraCard(b) {
+    var ids = (U.line ? U.line.seq : []).concat(ALONE[U.line ? U.line.fam : b.family] || []), i, c;
+    for (i = 0; i < ids.length; i++) {
+      c = ids[i] === "C19" ? null : card(ids[i]);
+      if (c && !c.stop && usable(ids[i], b)) return ids[i];
+    }
+    return null;
+  }
+  /* Passage à l'écran d'aide. Si l'on ne sait pas encore qu'un adulte est là, on le demande.
+     Sans adulte : une stratégie de plus d'abord (une seule fois, jamais après « Ça ne va pas du tout » ni un garde-fou). */
+  function goHelp() {
+    var b = U.block, a = adultOf(b), extra;
+    if (a === null) { U.pending = { help: true }; return screenAsk("adult"); }
+    if (a === false && !b.extra && b.family !== "F0" && b.family !== "garde" && nonCount(b) < 4) {
+      extra = extraCard(b);
+      if (extra) { b.extra = true; save(); return proposeCard(extra, "proposee"); }
+    }
+    screenHelp();
+  }
   function nextUntried(seq, b) {
     for (var i = 0; i < seq.length; i++) if (seq[i] === "C19" || usable(seq[i], b)) return seq[i];
     return null;
@@ -727,7 +766,7 @@ function boot() {
   }
   function newBlock(t) {
     var at = now();
-    var b = { id: uid("b"), tid: t ? t.id : null, sid: t ? t.sid : null, at: at, t: t ? at - t.start : null, type: null, family: null, answers: [], line: null, level: null, unfolded: false, tries: [], help: false, end: null, resumedAt: null, teacher: {} };
+    var b = { id: uid("b"), tid: t ? t.id : null, sid: t ? t.sid : null, at: at, t: t ? at - t.start : null, adult: t && (t.adult === true || t.adult === false) ? t.adult : null, extra: false, type: null, family: null, answers: [], line: null, level: null, unfolded: false, tries: [], help: false, end: null, resumedAt: null, teacher: {} };
     if (t) S.blocks.push(b);
     U.block = b; U.line = null; U.pendingLine = null;
     return b;
@@ -745,7 +784,12 @@ function boot() {
   function footHome() {
     return '<div class="foot"><button class="link" data-a="home">' + svg("back") + 'Changer d’élève</button><button class="link" data-a="notebook">' + svg("notebook") + "Mon carnet</button></div>";
   }
-  var draft = { type: null, subject: "" };
+  var draft = { type: null, subject: "", adult: null };
+  function adultChips(action, cur) {
+    return '<p class="sub">Un adulte peut t’aider ?</p><div class="chips">' + [[true, "1", "Oui"], [false, "0", "Non"]].map(function (x) {
+      return '<button class="chip' + (cur === x[0] ? " sel" : "") + '" data-a="' + action + '" data-id="' + x[1] + '" aria-pressed="' + (cur === x[0]) + '">' + x[2] + "</button>";
+    }).join("") + "</div>";
+  }
   function screenTask() {
     var place = S.settings.place || "classe";
     var html = title("Tu fais quoi ?") + '<div class="tiles">' + TASK_TYPES.map(function (t) {
@@ -756,7 +800,7 @@ function boot() {
       }).join("") + "</div>" +
       '<p class="sub">Tu es où ?</p><div class="chips">' + [["classe", "En classe"], ["maison", "À la maison"]].map(function (x) {
         return '<button class="chip' + (place === x[0] ? " sel" : "") + '" data-a="place" data-id="' + x[0] + '" aria-pressed="' + (place === x[0]) + '">' + x[1] + "</button>";
-      }).join("") + "</div>" +
+      }).join("") + "</div>" + adultChips("adult", draft.adult) +
       '<button class="big" data-a="start"' + (draft.type ? "" : " disabled style=\"opacity:.45\"") + ">" + svg("play") + "Je commence</button>" + footHome();
     show(html);
   }
@@ -764,9 +808,9 @@ function boot() {
   function startTask() {
     if (!draft.type) return;
     var old = openTask(U.sid), st = student(U.sid); if (old) closeTask(old, "abandonnee");
-    U.task = { id: uid("t"), sid: U.sid, type: draft.type, subject: draft.subject, place: S.settings.place || "classe", start: now(), end: null, status: null, plan: [], planHelped: null };
+    U.task = { id: uid("t"), sid: U.sid, type: draft.type, subject: draft.subject, place: S.settings.place || "classe", adult: draft.adult, start: now(), end: null, status: null, plan: [], planHelped: null };
     S.tasks.push(U.task); save();
-    draft = { type: null, subject: "" }; draftPlan = [];
+    draft = { type: null, subject: "", adult: null }; draftPlan = []; U.planAll = false;
     if (st && st.plan && planIds(U.sid, U.task).length) screenPlan(); else screenWork();
   }
   /* Stratégies proposées dans le plan d'attaque : celles du domaine de la tâche, connues de l'élève. */
@@ -778,13 +822,28 @@ function boot() {
     }).map(function (m) { return m.id; });
   }
   /* « Mon plan d'attaque » (stratégie 13) au démarrage : facultatif, activé par élève dans l'espace enseignante. */
+  /* Stratégies montrées d'abord, selon la tâche et la matière (quatre au plus) ; le reste derrière « Voir toutes ». */
+  function planFirst(t) {
+    if (t.type === "reviser") return ["R05", "R01", "R03", "R06"];
+    if (t.subject === "Maths") return ["M01", "X01", "X02", "X07"];
+    if (t.subject === "Langues") return t.type === "ecrire" ? ["M01", "L04", "L05", "L01"] : (t.type === "lire" ? ["L01", "L02", "M01", "M02"] : ["M01", "L01", "L02", "L04"]);
+    if (t.type === "lire") return ["M03", "M05", "M06", "M07"];
+    if (t.type === "ecrire") return ["M09", "M10", "M11", "M12"];
+    return ["M01", "M02", "M07", "M04"];
+  }
   function screenPlan() {
-    show(title("Mon plan d’attaque") + '<p class="sub">Regarde ta tâche. Quelles stratégies vas-tu utiliser ?</p><div class="choices">' +
-      planIds(U.sid, U.task).map(function (id) {
-        var c = card(id);
-        return '<div class="choice-row"><button class="choice" data-a="planToggle" data-id="' + id + '" aria-pressed="false">' + (c.num ? '<span class="num">' + esc(c.num) + "</span>" : "") + "<span>" + esc(c.title) + "</span></button>" + sayBtn(c.title) + "</div>";
+    var all = planIds(U.sid, U.task), first = planFirst(U.task).filter(function (id) { return all.indexOf(id) >= 0; }), ids;
+    all.forEach(function (id) { if (first.length < 4 && first.indexOf(id) < 0) first.push(id); });
+    ids = U.planAll ? first.concat(all.filter(function (id) { return first.indexOf(id) < 0; })) : first;
+    show('<div class="qrow"><h1>Mon plan d’attaque</h1>' +
+      sayBtn("Mon plan d’attaque. Quelles stratégies vas-tu utiliser ? " + ids.map(function (id) { return card(id).title; }).join(". "), true) + "</div>" +
+      '<p class="sub">Regarde ta tâche. Quelles stratégies vas-tu utiliser ?</p><div class="plan-grid">' +
+      ids.map(function (id) {
+        var c = card(id), on = draftPlan.indexOf(id) >= 0;
+        return '<button class="plan-item' + (on ? " sel" : "") + '" data-a="planToggle" data-id="' + id + '" aria-pressed="' + on + '">' + (c.num ? '<span class="num">' + esc(c.num) + "</span>" : "") + "<span>" + esc(c.title) + "</span></button>";
       }).join("") + '</div><button class="big" data-a="planGo">' + svg("play") + "C’est parti</button>" +
-      '<div class="foot"><span></span><button class="link" data-a="planGo" data-skip="1">Sans plan cette fois</button></div>');
+      '<div class="foot">' + (all.length > ids.length ? '<button class="link" data-a="planAll">' + svg("more") + "Voir toutes mes stratégies</button>" : "<span></span>") +
+      '<button class="link" data-a="planGo" data-skip="1">Sans plan cette fois</button></div>');
   }
   function screenViewMethod(id) {
     var c = card(id), t = U.task; if (!c || !t) return;
@@ -810,6 +869,7 @@ function boot() {
       '<h1 style="position:absolute;left:-9999px">Je travaille</h1>' +
       '<button class="big" data-a="blocked">' + svg("buoy") + "Je suis bloqué</button>" +
       '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
+      adultChips("adultWork", t.adult === true || t.adult === false ? t.adult : null) +
       (t.plan && t.plan.length ? '<p class="sub">Mon plan :</p><div class="chips">' + t.plan.map(function (id) {
         var c = card(id); return c ? '<button class="chip" data-a="viewMethod" data-id="' + id + '">' + (c.num ? esc(c.num) + " · " : "") + esc(c.title) + "</button>" : "";
       }).join("") + "</div>" : ""), { center: true });
@@ -824,7 +884,7 @@ function boot() {
     var recent = taskBlocks(t.id).filter(function (b) { return b.end !== "annule" && at - b.at < 10 * 60 * 1000; });
     var b = newBlock(t); save();
     /* garde-fou 1 : plus de trois blocages en dix minutes, on passe la main à un adulte */
-    if (recent.length >= 3) { b.family = "garde"; b.guard = "repetes"; return screenHelp("Tu as bloqué plusieurs fois. C’est le moment de demander de l’aide."); }
+    if (recent.length >= 3) { b.family = "garde"; b.guard = "repetes"; return goHelp(); }
     /* garde-fou 2 : blocage dans les trente premières secondes, deux tâches de suite, on trie avec trois questions */
     if (b.t < 30000 && earlyBefore(t)) { b.guard = "immediat"; return pickFamily("F5"); }
     screenFamilies();
@@ -854,6 +914,7 @@ function boot() {
     var opts, q;
     if (key === "subject") { q = "C’est en quelle matière ?"; opts = SUBJECTS.map(function (x) { return [x, x, null]; }); }
     else if (key === "type") { q = "C’est pour quelle tâche ?"; opts = TASK_TYPES.map(function (t) { return [t.id, t.label, t.icon]; }); }
+    else if (key === "adult") { q = "Un adulte peut t’aider ?"; opts = [["1", "Oui", "people"], ["0", "Non", "cross"]]; }
     else { q = "Tu es où ?"; opts = [["classe", "En classe", "book"], ["maison", "À la maison", "home"]]; }
     U.askKey = key;
     show(title(q) + '<div class="tiles">' + opts.map(function (o) {
@@ -913,11 +974,11 @@ function boot() {
     U.line = { fam: L.fam, seq: effectiveSeq(lid, b), then: L.then };
     save();
     var next = nextUntried(U.line.seq, b);
-    if (!next) return screenHelp();
+    if (!next) return goHelp();
     proposeCard(next, "proposee");
   }
   function proposeCard(id, origin) {
-    if (id === "C19") return screenHelp();
+    if (id === "C19") return goHelp();
     var c = card(id), b = U.block, alts;
     U.cardId = id; U.origin = origin; U.peek = false; U.step = 0;
     U.mode = methodState(id, b.sid) || 1;
@@ -988,7 +1049,7 @@ function boot() {
   function tried() {
     var b = U.block; U.tryDur = now() - U.tryStart;
     /* cartes sans question « ça repart ? » : retour au calme (on passe à l'aide) et arrêt propre (on clôt la tâche) */
-    if (b.family === "F0") { pushTry(null); return screenHelp(); }
+    if (b.family === "F0") { pushTry(null); return goHelp(); }
     if (card(U.cardId).stop) { pushTry(null); endBlock("stop"); return U.task ? finishAs("reportee") : goHome(); }
     show(title("Ça repart ?") + '<div class="choices">' +
       choice("result", { r: "1" }, "Oui", "check", null, "yes") +
@@ -1015,7 +1076,7 @@ function boot() {
   }
   function afterNon() {
     var b = U.block, n = nonCount(b), L = U.line, next;
-    if (n >= 3) return screenHelp();
+    if (n >= 3) return goHelp();
     next = nextUntried(L.seq, b);
     if (n === 1 && next) return proposeCard(next, "proposee");
     if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee");
@@ -1026,21 +1087,40 @@ function boot() {
       return;
     }
     if (next) return proposeCard(next, "proposee");
-    screenHelp();
+    goHelp();
   }
-  function screenHelp(msg) {
-    var b = U.block; b.help = true; save();
+  /* Deux écrans d'aide : avec un adulte (demander), sans adulte (préparer sa question, « ? » dans la marge). */
+  function screenHelp() {
+    var b = U.block, alone = adultOf(b) === false, msg = "";
+    b.help = true; b.adult = adultOf(b); save();
+    if (b.guard === "repetes") msg = alone ? "Tu as bloqué plusieurs fois. Note ta question, puis passe à la suite." : "Tu as bloqué plusieurs fois. C’est le moment de demander de l’aide.";
+    /* « Ça ne va pas du tout » sans adulte : pas de question à préparer, seulement s'arrêter ou continuer */
+    if (b.family === "F0" && alone) {
+      return show(title("Parles-en à un adulte dès que tu peux.") +
+        '<div class="row">' + (U.task ? '<button class="btn primary" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "") +
+        '<button class="btn" data-a="cancelBlock">' + (U.task ? "Je continue quand même" : "Terminer") + "</button></div>" +
+        '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
+    }
     var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
-    show(title("Demande une aide précise.") + (msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
+    var starters = (msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
       '<div class="choice-row"><p class="starter" style="flex:1">J’ai compris…</p>' + sayBtn("J’ai compris") + "</div>" +
       '<div class="choice-row"><p class="starter" style="flex:1">Je bloque sur…</p>' + sayBtn("Je bloque sur") + "</div>" +
-      '<div class="choice-row"><p class="starter" style="flex:1">J’ai essayé…' + (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</p>" + sayBtn("J’ai essayé " + tried.join(", ")) + "</div>" +
+      '<div class="choice-row"><p class="starter" style="flex:1">J’ai essayé…' + (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</p>" + sayBtn("J’ai essayé " + tried.join(", ")) + "</div>";
+    var passe = '<button class="btn' + (alone ? " primary" : "") + '" data-a="passe">' + svg("question") + "Je mets un ? et je passe à la suite</button>";
+    var stop = U.task ? '<button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "";
+    if (alone) {
+      return show(title("Prépare ta question.") + starters +
+        '<p class="tip">Tu la poseras dès qu’un adulte sera là.</p>' +
+        '<div class="row">' + passe + stop + "</div>" +
+        '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
+    }
+    show(title("Demande une aide précise.") + starters +
       '<p class="tip">Demande une explication ou un indice, pas la réponse.</p>' +
       '<p class="sub">Montre cet écran à un adulte ou à un camarade.</p>' +
       '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + (U.task ? "J’ai eu de l’aide, je reprends" : "J’ai eu de l’aide") + "</button>" +
       /* routine du dossier quand personne n'est disponible : un « ? » dans la marge, et on continue */
-      '<button class="btn" data-a="passe">' + svg("question") + "Je mets un ? et je passe à la suite</button>" +
-      (U.task ? '<button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "") + "</div>");
+      passe + stop + "</div>" +
+      '<div class="foot"><span></span><button class="link" data-a="adultNone">Aucun adulte n’est disponible</button></div>');
   }
   function screenFinish() {
     show(title("Où en es-tu ?") + '<div class="choices">' +
@@ -1050,13 +1130,6 @@ function boot() {
   }
   function finishAs(status) {
     var t = U.task; closeTask(t, status); save();
-    /* troisième étape de « Mon plan d'attaque » : à la fin, j'évalue */
-    if (t.plan && t.plan.length) {
-      return show(title("Ton plan t’a aidé ?") + '<div class="choices">' +
-        choice("planEval", { r: "1" }, "Oui", "check", null, "yes") +
-        choice("planEval", { r: "0.5" }, "Un peu", "half", null, "mid") +
-        choice("planEval", { r: "0" }, "Non", "cross", null, "no") + "</div>");
-    }
     finishHelped();
   }
   function finishHelped() {
@@ -1163,6 +1236,7 @@ function boot() {
       own: tries.length ? tries.filter(function (t) { return t.origin === "choisie"; }).length / tries.length : null,
       help: bs.filter(function (b) { return b.help; }).length,
       never: bs.filter(function (b) { return String(b.line).indexOf("F1c") >= 0; }).length,
+      alone: bs.filter(function (b) { return b.adult === false; }).length,
       agree: seen.length ? seen.filter(function (b) { return b.teacher.avis === "accord"; }).length + " / " + seen.length : "–",
       observed: obs.length ? obs.filter(function (b) { return b.teacher.reprise === "oui"; }).length + " / " + obs.length : "–"
     };
@@ -1175,7 +1249,7 @@ function boot() {
     var html = '<div class="panel">' + studentSelect() + '<div class="stats">' +
       stat(s.done + " / " + s.tasks, "tâches terminées") + stat(s.blocks, "blocages") + stat(pct(s.rate), "reprises déclarées") +
       stat(s.delay === null ? "–" : fmtClock(s.delay), "délai médian de reprise") + stat(s.observed, "reprises observées") +
-      stat(s.agree, "accord sur la cause") + stat(pct(s.own), "cartes choisies par l’élève") + stat(s.help, "recours à l’aide") + stat(s.never, "« jamais appris ça »") + stat(s.plans + " / " + s.tasks, "tâches avec plan d’attaque") +
+      stat(s.agree, "accord sur la cause") + stat(pct(s.own), "cartes choisies par l’élève") + stat(s.help, "recours à l’aide") + stat(s.never, "« jamais appris ça »") + stat(s.alone, "blocages sans adulte disponible") + stat(s.plans + " / " + s.tasks, "tâches avec plan d’attaque") +
       '</div><p class="small">Les reprises déclarées viennent de l’élève. Seules vos observations (colonnes de droite) disent si le travail a vraiment repris.</p></div>';
     html += suggestionsHtml(sid);
     if (!bs.length) return html + '<div class="panel"><p>Aucun blocage enregistré pour cet élève.</p></div>';
@@ -1190,7 +1264,7 @@ function boot() {
       var issue = '<span class="tag ' + (b.end === "reprise" ? "ok" : "mid") + '">' + (END_LABELS[b.end] || b.end) + "</span>" +
         (b.end === "reprise" ? ' <span class="small">en ' + fmtClock(b.resumedAt - b.at) + "</span>" : "") + (rebound(b) ? ' <span class="tag ko">nouveau blocage &lt; 5 min</span>' : "");
       return '<div class="blk"><div class="blk-main">' +
-        '<p class="small">' + fmtDate(b.at) + " · " + esc(tt.label) + (t.subject || b.subject ? " · " + esc(t.subject || b.subject) : "") + ((t.place || b.place) === "maison" ? " · à la maison" : "") + (b.tid ? " · à " + Math.round(b.t / 60000) + " min" : " · coup de main") + (LEVEL_NAMES[b.level] ? " · " + LEVEL_NAMES[b.level] : "") + (b.unfolded ? " · a demandé à être guidé" : "") + "</p>" +
+        '<p class="small">' + fmtDate(b.at) + " · " + esc(tt.label) + (t.subject || b.subject ? " · " + esc(t.subject || b.subject) : "") + ((t.place || b.place) === "maison" ? " · à la maison" : "") + (b.tid ? " · à " + Math.round(b.t / 60000) + " min" : " · coup de main") + (b.adult === false ? " · sans adulte disponible" : "") + (LEVEL_NAMES[b.level] ? " · " + LEVEL_NAMES[b.level] : "") + (b.unfolded ? " · a demandé à être guidé" : "") + "</p>" +
         "<p><b>" + cause + "</b></p><p>Cartes : " + tries + "</p><p>" + issue + "</p></div>" +
         '<div class="blk-note"><label class="field"><span>Votre avis sur la cause</span>' + sel("avis", b, [["", "–"], ["accord", "D’accord"], ["autre", "Autre famille"], ["nonobs", "Pas observé"]]) + "</label>" +
         '<label class="field"><span>Reprise observée en 5 min</span>' + sel("reprise", b, [["", "–"], ["oui", "Oui"], ["non", "Non"]]) + "</label></div></div>";
@@ -1326,7 +1400,7 @@ function boot() {
   }
   function tabAide() {
     return '<div class="panel"><h2>Deux façons de l’utiliser</h2>' +
-      "<p><b>Avec suivi.</b> L’élève choisit sa vignette, sa tâche, sa matière et le lieu. L’outil enregistre les blocages, les stratégies essayées et les reprises.</p>" +
+      "<p><b>Avec suivi.</b> L’élève choisit sa vignette, sa tâche, sa matière, le lieu, et dit si un adulte peut l’aider. L’outil enregistre les blocages, les stratégies essayées et les reprises.</p>" +
       "<p><b>Juste un coup de main.</b> On arrive droit sur « Où ça coince ? ». Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
       '<div class="panel"><h2>Comment l’outil choisit</h2>' +
       "<p>Il croise le blocage, la tâche, la matière et le lieu. S’il lui manque une information qui change la stratégie, il la demande en un écran.</p>" +
@@ -1338,6 +1412,9 @@ function boot() {
       "<p>1. Présentez d’abord les stratégies vous-même, sur une vraie tâche : l’outil rappelle une stratégie, il ne l’enseigne pas.</p>" +
       "<p>2. Donnez une règle simple : « deux minutes sans avancer, j’appuie ».</p>" +
       "<p>3. Après trois essais sans reprise, l’outil aide à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p></div>" +
+      '<div class="panel"><h2>Adulte disponible ou non</h2>' +
+      "<p>L’élève l’indique au démarrage de la tâche et peut le changer sur l’écran de travail. S’il ne l’a pas dit, l’outil le demande au moment de l’aide (toujours le cas en coup de main).</p>" +
+      "<p>Sans adulte : l’outil propose une stratégie de plus (la suite prévue, sinon une carte générale utilisable seul : chercher dans le cours, regarder un exemple, commencer par le facile…), puis l’élève prépare sa question et met un « ? » dans la marge. « Suivi » indique les blocages sans adulte disponible.</p></div>" +
       '<div class="panel"><h2>Ce que vous notez</h2>' +
       "<p>Dans « Suivi », pour les blocages que vous avez vus : votre avis sur la cause, et si le travail a réellement repris dans les cinq minutes. Ce sont les deux mesures qui comptent ; les réponses de l’élève ne suffisent pas.</p></div>" +
       '<div class="panel"><h2>Limites du prototype</h2>' +
@@ -1354,12 +1431,12 @@ function boot() {
   }
   function stamp() { var d = new Date(); function p(n) { return (n < 10 ? "0" : "") + n; } return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
   function csv() {
-    var head = ["eleve", "date", "tache", "matiere", "statut_tache", "blocage", "minute_dans_tache", "famille", "reponses", "ligne", "niveau", "aide_a_choisir", "garde_fou", "rang_essai", "carte", "titre_carte", "origine", "duree_essai_s", "resultat", "issue", "delai_reprise_s", "rebond_5min", "avis_enseignante", "reprise_observee", "mode_strategie", "carte_rouverte", "plan_attaque", "plan_a_aide", "lieu"];
+    var head = ["eleve", "date", "tache", "matiere", "statut_tache", "blocage", "minute_dans_tache", "famille", "reponses", "ligne", "niveau", "aide_a_choisir", "garde_fou", "rang_essai", "carte", "titre_carte", "origine", "duree_essai_s", "resultat", "issue", "delai_reprise_s", "rebond_5min", "avis_enseignante", "reprise_observee", "mode_strategie", "carte_rouverte", "plan_attaque", "plan_a_aide", "lieu", "adulte_disponible"];
     var rows = [head];
     S.blocks.forEach(function (b) {
       if (!b.end || b.end === "annule") return;
       var st = student(b.sid) || { name: "?" }, t = byId(S.tasks, b.tid) || {};
-      var plan = [(t.plan || []).join(" "), t.planHelped === null || t.planHelped === undefined ? "" : String(t.planHelped).replace(".", ","), t.place || b.place || ""];
+      var plan = [(t.plan || []).join(" "), t.planHelped === null || t.planHelped === undefined ? "" : String(t.planHelped).replace(".", ","), t.place || b.place || "", b.adult === true ? "oui" : (b.adult === false ? "non" : "")];
       var base = [st.name, fmtDate(b.at), t.type || b.type || "", t.subject || b.subject || "", t.status || (b.tid ? "" : "coup de main"), b.id, b.tid ? Math.round(b.t / 60000) : "", b.family === "garde" ? "garde" : famLabel(b.family), b.answers.join(" | "), b.line || "", b.level || "", b.unfolded ? "oui" : "non", b.guard || ""];
       var tail = [END_LABELS[b.end] || b.end, b.resumedAt ? Math.round((b.resumedAt - b.at) / 1000) : "", rebound(b) ? "oui" : "non", (b.teacher && b.teacher.avis) || "", (b.teacher && b.teacher.reprise) || ""];
       if (!b.tries.length) rows.push(base.concat(["", "", "", "", "", ""], tail, ["", ""], plan));
@@ -1392,10 +1469,15 @@ function boot() {
     ctxPick: function (d) {
       var b = U.block, k = U.askKey, pend = U.pending; U.pending = null;
       if (!b || !k) return;
+      if (k === "adult") { setAdult(d.id === "1"); return goHelp(); }
       b[k] = d.id; if (U.task && !U.task[k]) U.task[k] = d.id; save();
       if (pend && pend.line) setLine(pend.line); else if (pend && pend.family) pickFamily(pend.family);
     },
     place: function (d) { S.settings.place = d.id; save(); screenTask(); },
+    adult: function (d) { var v = d.id === "1"; draft.adult = draft.adult === v ? null : v; screenTask(); },
+    adultWork: function (d) { var v = d.id === "1"; U.task.adult = U.task.adult === v ? null : v; save(); screenWork(); },
+    adultNow: function () { setAdult(true); screenHelp(); },
+    adultNone: function () { setAdult(false); goHelp(); },
     checkToggle: function (d, el) { var on = el.className.indexOf(" sel") < 0; el.className = "choice" + (on ? " sel" : ""); el.setAttribute("aria-pressed", String(on)); },
     checkOk: function () { U.task.checked = document.querySelectorAll(".choice.sel").length; U.checkDone = true; save(); finishAs("terminee"); },
     sugOk: function (d) { var st = student(U.teacherSid); if (st) { st.methods[d.id] = parseInt(d.to, 10); st.msince[d.id] = now(); save(); } openTeacher(); },
@@ -1405,10 +1487,10 @@ function boot() {
     planToggle: function (d, el) {
       var i = draftPlan.indexOf(d.id);
       if (i >= 0) draftPlan.splice(i, 1); else draftPlan.push(d.id);
-      el.className = "choice" + (i >= 0 ? "" : " sel"); el.setAttribute("aria-pressed", String(i < 0));
+      el.className = "plan-item" + (i >= 0 ? "" : " sel"); el.setAttribute("aria-pressed", String(i < 0));
     },
+    planAll: function () { U.planAll = true; screenPlan(); },
     planGo: function (d) { U.task.plan = d.skip ? [] : draftPlan.slice(); U.task.start = now(); save(); screenWork(); },
-    planEval: function (d) { U.task.planHelped = parseFloat(d.r); save(); finishHelped(); },
     passe: function () { endBlock("passe"); backToWork("C’est noté. On en reparlera."); },
     blocked: function () { blocked(); },
     family: function (d) { pickFamily(d.id); },

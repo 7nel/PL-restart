@@ -28,7 +28,8 @@ README.md, LICENSE, CLAUDE.md
 - **Deux modes** : avec suivi (`U.task` défini) et coup de main (`U.free`, blocage non enregistré tant qu'il n'est pas rattaché à un élève ; `tid` reste `null`).
 - **Stratégies** : état par élève dans `st.methods[id]` (0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul) ; par défaut 0 pour le dossier de français, 1 pour tout le reste. `available()` écarte une stratégie non vue et une carte générale dont le `twin` est connu ; `effectiveSeq()` calcule la suite réelle d'une ligne (règles `pre`, doublons, `replaces`).
 - **Retrait de l'aide** : `suggestions(sid)` propose (3 reprises de suite, 2 échecs de suite, 2 cartes rouvertes au niveau « seul ») ; seule l'enseignante valide (`sugOk`, `sugNo`, `st.msince`, `st.mdismiss`). Ne jamais changer un état sans validation.
-- **Écrans par élève** : `st.plan` (« Mon plan d'attaque » au démarrage : `task.plan`, `task.planHelped`, stratégies filtrées par `planIds()`), `st.check` (« Avant de rendre » : `task.checked`).
+- **Écrans par élève** : `st.plan` (« Mon plan d'attaque » au démarrage : `task.plan` ; `planFirst()` donne les quatre stratégies montrées d'abord, `planIds()` la liste complète ; `task.planHelped` n'est plus rempli mais reste dans les données), `st.check` (« Avant de rendre » : `task.checked`).
+- **Adulte disponible** : `task.adult` et `block.adult` valent `true`, `false` ou `null` (pas encore dit). Tout passage à l'écran d'aide passe par `goHelp()` : question si `null`, puis, sans adulte, une stratégie de plus (`extraCard()`, cartes `ALONE` par famille, `block.extra`), puis `screenHelp()` et sa variante « Prépare ta question ». Ne jamais appeler `screenHelp()` directement depuis le moteur.
 - **État** `S` (clé `pl-restart-v1`) : `settings` (dont `place`, dernier lieu choisi, et `autoLevel`, désactivé par défaut), `labels` (libellés réécrits par l'enseignante), `students`, `tasks`, `blocks` (chaque blocage contient ses `tries`).
 - **Règles** : au plus trois « non » par blocage, puis écran d'aide ; niveau par famille (N1 guidé, N2 et N3 choix par l'élève), réglé à la main ou par `updateLevel()` si `autoLevel` ; deux garde-fous dans `blocked()`.
 - Un essai : `{ card, origin: "proposee" | "choisie", at, dur, result: 1 | 0.5 | 0 | null }`, plus `mode` (1 à 3) et `peek` pour une stratégie.
@@ -52,6 +53,7 @@ README.md, LICENSE, CLAUDE.md
 - [ ] Coup de main sans élève (stratégies guidées), puis rattaché à un élève
 - [ ] Coup de main en maths, en langues, en révision, « fatigué » en classe puis à la maison : la bonne stratégie, la bonne question de contexte
 - [ ] Élève avec stratégies réglées (guidée, avec la carte, seul), plan d'attaque et « Avant de rendre » activés
+- [ ] Adulte « Non » au démarrage : stratégie de plus, puis « Prépare ta question » ; adulte non renseigné : la question arrive au moment de l'aide
 - [ ] Trois reprises avec une stratégie : la suggestion apparaît dans « Suivi », « Valider » change l'état
 - [ ] Rechargement : les données persistent, la tâche en cours peut être reprise
 - [ ] Suivi, export `.json` et `.csv`, import d'une sauvegarde

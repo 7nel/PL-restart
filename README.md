@@ -6,7 +6,7 @@ Prototype d'outil de classe : aider un élève à repartir quand il bloque sur u
 
 ## Ce que fait l'outil
 
-L'élève choisit sa vignette, indique sa tâche, la matière et le lieu (en classe ou à la maison), puis travaille. L'écran ne sert qu'au moment du blocage :
+L'élève choisit sa vignette, indique sa tâche, la matière, le lieu (en classe ou à la maison) et si un adulte peut l'aider, puis travaille. L'écran ne sert qu'au moment du blocage :
 
 1. « Je suis bloqué »
 2. « Où ça coince ? » : cinq familles (comprendre, commencer, décrocher, ça ne marche pas, je ne sais pas)
@@ -14,6 +14,10 @@ L'élève choisit sa vignette, indique sa tâche, la matière et le lieu (en cla
 4. une stratégie : une à trois étapes, une à douze minutes
 5. « Ça repart ? » : oui, un peu, non
 6. après trois « non », l'outil aide à formuler une demande d'aide précise, ou à mettre un « ? » dans la marge et à passer à la suite
+
+### Adulte disponible ou non
+
+L'élève l'indique au démarrage et peut le changer sur l'écran de travail. S'il ne l'a pas dit, l'outil le demande au moment de l'aide (c'est toujours le cas en mode coup de main). Sans adulte disponible, l'outil propose une stratégie de plus, puis l'élève prépare sa question pour plus tard et met un « ? » dans la marge. Le suivi indique quels blocages ont eu lieu sans adulte disponible.
 
 Deux façons de l'utiliser :
 
@@ -37,7 +41,7 @@ L'outil propose, l'enseignante valide : après trois reprises de suite avec une 
 
 ### Plan d'attaque et vérification
 
-Deux écrans s'activent par élève : « Mon plan d'attaque » au démarrage d'une tâche (l'élève choisit ses stratégies ; à la fin, il dit si son plan l'a aidé) et « Avant de rendre » quand la tâche est terminée (trois points à vérifier).
+Deux écrans s'activent par élève : « Mon plan d'attaque » au démarrage d'une tâche (quatre stratégies au plus selon la tâche et la matière, le reste derrière « Voir toutes mes stratégies ») et « Avant de rendre » quand la tâche est terminée (trois points à vérifier).
 
 L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève, les suggestions de retrait de l'aide, l'état de chaque stratégie, les libellés modifiables, l'export et l'effacement.
 
@@ -59,6 +63,7 @@ L'outil n'enregistre ni nom complet, ni diagnostic, ni contenu de la tâche, ni 
 - L'outil ignore le contenu de la tâche : il ne vérifie ni la compréhension ni la justesse.
 - Les seuils des suggestions (3 reprises de suite, 2 échecs de suite) sont des valeurs de départ sans base empirique. Les « reprises » sont déclarées par l'élève.
 - Le retrait progressif de l'aide n'a pas montré d'avantage net dans les méta-analyses sur l'étayage informatisé : c'est un choix pédagogique, à observer.
+- La stratégie de plus proposée sans adulte (suite de la ligne, sinon une carte générale par famille) et les quatre stratégies montrées d'abord dans le plan d'attaque sont des choix de conception, à ajuster à l'usage.
 - À la maison, rien ne remonte à l'enseignante : pas de suivi partagé sans serveur.
 - En mode coup de main, la réponse « Je crois savoir, mais je rate » n'apparaît que si la tâche « Réviser » est déjà connue.
 - Le carnet affiche des comptes, sans classement.
