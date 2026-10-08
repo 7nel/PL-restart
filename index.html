@@ -321,11 +321,12 @@ function boot() {
       { when: { type: "reviser", place: "maison" }, ids: ["R06"] },
       { ids: ["E03"] }], seq: ["C12", "C15", "C20"] },
     F2c: { fam: "F2", label: "C’est trop dur", pre: [{ when: { subject: "Maths" }, ids: ["X03"] }], seq: ["C15", "C03"], then: "F1" },
-    F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", pre: [{ when: { place: "maison" }, seq: ["C05", "C16", "C11"] }], seq: ["C05", "C16", "C12"] },
+    F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", seq: ["C24", "C05", "C16"] },
     F2e: { fam: "F2", label: "Je cherche mes mots", only: { subject: "Langues" }, seq: ["L06", "C19"] },
     F2f: { fam: "F2", label: "Je suis fatigué", pre: [
       { when: { place: "classe" }, seq: ["E01", "A02", "C12", "C20"] },
       { when: { place: "maison" }, seq: ["E02", "A02", "C12", "E04"] }], seq: ["A02", "C12", "C20"] },
+    F2h: { fam: "F2", label: "Je n’ai pas envie", seq: ["C05", "C15", "C12"] },
     F2g: { fam: "F2", label: "Je stresse", seq: ["A01", "A04", "A03"], then: "F2" },
     F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C07", "C08"], then: "F2" },
     F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C12"] },
@@ -352,7 +353,7 @@ function boot() {
     F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1c" }, { line: "F1f" }] },
     F1q2: { text: "Qu’est-ce qui se passe avec le texte ?", options: [{ line: "F1d" }, { line: "F1e" }] },
     F2: { text: "Tu sais quelle est la première chose à faire ?", options: [{ label: "Oui", next: "F2q2" }, { label: "Non", line: "F2a" }] },
-    F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2d" }, { line: "F2f" }, { line: "F2g" }, { line: "F2b" }, { line: "F2c" }, { line: "F2e" }] },
+    F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2d" }, { line: "F2f" }, { line: "F2g" }, { line: "F2h" }, { line: "F2b" }, { line: "F2c" }, { line: "F2e" }] },
     F3: { text: "Qu’est-ce qui s’est passé ?", options: [{ line: "F3a" }, { line: "F3b" }, { line: "F3c" }, { line: "F3d" }] },
     F4: { text: "Qu’est-ce qui ne marche pas ?", options: [{ line: "F4a" }, { line: "F4b" }, { line: "F4e" }, { line: "F4f" }, { line: "F4c" }, { line: "F4d" }] },
     /* tri de « Je ne sais pas » : comprendre, puis planifier, puis initier */
@@ -372,7 +373,7 @@ function boot() {
     { id: "C09", title: "Ranger autour", text: "Éloigne ce qui te distrait. Change de place si tu peux.", min: 1 },
     { id: "C10", title: "Parking à pensées", text: "Note ta pensée sur un papier. Tu y reviendras après.", min: 1 },
     { id: "C11", title: "Pause courte", text: "Lève-toi, bouge, bois. Reviens quand ça sonne.", min: 3, home: true },
-    { id: "C12", title: "Tranche minutée", text: "Travaille dix minutes. Ensuite tu décides de continuer ou non.", min: 10 },
+    { id: "C12", title: "Tranche minutée", text: "Travaille sans t’arrêter le temps choisi. Ensuite tu décides de continuer ou non.", min: 10, durs: [5, 10, 15] },
     { id: "C13", title: "Corriger et noter", text: "Corrige. Écris en une phrase ce que tu as changé.", min: 2 },
     { id: "C14", title: "Comparer pas à pas", text: "Compare chaque étape avec la consigne ou l’exemple. Arrête-toi à la première différence.", min: 3 },
     { id: "C15", title: "Commencer par le facile", text: "Fais d’abord la partie que tu sais faire.", min: 5 },
@@ -383,6 +384,7 @@ function boot() {
     { id: "C20", title: "Stop propre", text: "Note où tu t’arrêtes et la prochaine action.", min: 2, stop: true },
     { id: "C21", title: "Cacher et dire", text: "Cache ta feuille. Dis ou écris ce que tu te rappelles.", min: 3 },
     { id: "C22", title: "Un paragraphe à la fois", text: "Relis un seul paragraphe. Dis de quoi il parle.", min: 3, twin: "M05" },
+    { id: "C24", title: "Je prépare ma place", text: "Sors seulement ce qu’il te faut. Pose-le devant toi.", min: 2 },
     { id: "C23", title: "Les mots de la question", text: "Souligne les mots importants de la question. Cherche-les dans le texte.", min: 3, twin: "M07" }
   ];
   /* Boîte à stratégies (dossier « Ma boîte à stratégies », français) : noms, numéros et étapes repris tels quels.
@@ -573,7 +575,7 @@ function boot() {
     d = byId(CARDS, id); if (!d) return null;
     o = S.labels.cards[id] || {};
     text = o.text || (d.alone && U.block && adultOf(U.block) === false ? d.alone : d.text);
-    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin, home: !!d.home, stop: !!d.stop };
+    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin, home: !!d.home, durs: d.durs, stop: !!d.stop };
   }
   /* Où en est l'élève avec une stratégie : 0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul.
      Par défaut : le dossier de français commence « pas encore vu », tout le reste « guidé ».
@@ -1318,7 +1320,7 @@ function boot() {
     return '<div class="card"><div class="cardhead">' + (over ? '<span class="overline">' + esc(over) + "</span>" : "") +
       '<div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(say, true) + "</div></div>" + body + annexHtml(c.annex) + dur + "</div>";
   }
-  function startTry() { U.tryStart = now(); U.step = 0; renderTry(); }
+  function startTry() { U.tryStart = now(); U.step = 0; U.dur = null; renderTry(); }
   /* Outils d'apaisement : un guide minuté (le point parcourt le carré pour la respiration, sinon une consigne à la fois). */
   function guideDef(c) {
     var g = c.guide, segs, total = 0;
@@ -1380,10 +1382,14 @@ function boot() {
     beep();
   }
   function renderTry() {
-    var c = card(U.cardId), total = c.min * 60 * 1000, rang = now() - U.tryStart >= total;
+    var c = card(U.cardId), total = (c.durs && U.dur ? U.dur : c.min) * 60 * 1000, rang = now() - U.tryStart >= total;
     if (c.guide) return startGuide();
     var last = U.mode !== 1 || U.step >= c.steps.length - 1;
     show('<h1 class="sr-only">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, U.mode, "try") +
+      (c.durs ? '<p class="sub">Combien de temps ?</p><div class="chips">' + c.durs.map(function (m) {
+        var on = (U.dur || c.min) === m;
+        return '<button class="chip' + (on ? " sel" : "") + '" data-a="setDur" data-m="' + m + '" aria-pressed="' + on + '">' + m + " min</button>";
+      }).join("") + "</div>" : "") +
       (S.settings.timer ? '<div class="timer" id="timer" role="timer" aria-live="off"></div>' : "") +
       (last ? '<button class="big" data-a="tried">' + svg("check") + "C’est fait</button>"
             : '<button class="big" data-a="nextStep">' + svg("next") + "Étape suivante</button>") +
@@ -1412,6 +1418,7 @@ function boot() {
   function pushTry(result) {
     var b = U.block, t = { card: U.cardId, origin: U.origin, at: U.tryStart, dur: U.tryDur, result: result };
     if (U.mode) { t.mode = U.mode; t.peek = !!U.peek; }
+    if (card(U.cardId) && card(U.cardId).durs) t.dm = U.dur || card(U.cardId).min;
     b.tries.push(t);
     save();
   }
@@ -1936,6 +1943,7 @@ function boot() {
       if (b.family === "F0" || card(U.cardId).stop) return tried();
       U.tryDur = now() - U.tryStart; result(0);
     },
+    setDur: function (d) { U.dur = parseInt(d.m, 10) || null; renderTry(); },
     viewMethod: function (d) { screenViewMethod(d.id); },
     planTry: function (d) { planTry(d.id); },
     planToggle: function (d, el) {
