@@ -1144,7 +1144,7 @@ function boot() {
       '<div class="taskline">' + svg(tt.icon) + "<span>" + esc(tt.label) + (t.subject ? " · " + esc(t.subject) : "") + "</span>" +
       (S.settings.chrono ? '<span class="chrono" id="chrono" aria-hidden="true"></span>' : "") + "</div>" +
       '<h1 class="sr-only">Je travaille</h1>' +
-      '<button class="big" data-a="blocked">' + svg("buoy") + "Je suis bloqué</button>" +
+      '<button class="big" data-a="blocked">' + svg("buoy") + "Je bloque</button>" +
       '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
       adultChips("adultWork", t.adult === true || t.adult === false ? t.adult : null) +
       (t.plan && t.plan.length ? '<p class="sub">Mon plan :</p><div class="chips">' + t.plan.map(function (id) {
@@ -1173,13 +1173,17 @@ function boot() {
     var bs = taskBlocks(prev.id);
     return bs.length > 0 && bs[0].t < 30000;
   }
-  function screenFamilies() {
-    var b = U.block, attach = U.free && !b.sid && S.students.length;
-    show(title("Où ça coince ?") + '<div class="choices">' + FAMILIES.map(function (f) {
+  /* Trois causes d'abord, puis « Autre chose » (le reste) : au plus quatre choix par écran, comme askQuestion. */
+  var FAM_FIRST = ["F1", "F2", "F4"];
+  function screenFamilies(rest, heading) {
+    var b = U.block, attach = !rest && U.free && !b.sid && S.students.length;
+    U.famHead = heading || null;
+    var list = FAMILIES.filter(function (f) { return (FAM_FIRST.indexOf(f.id) < 0) === !!rest; });
+    show(title(heading || "Où ça coince ?") + '<div class="choices">' + list.map(function (f) {
       return choice("family", { id: f.id }, famLabel(f.id), f.icon);
-    }).join("") + "</div>" +
+    }).join("") + (rest ? "" : choice("moreFams", {}, "Autre chose", "dots")) + "</div>" +
       '<div class="choices apart">' + choice("family", { id: "F0" }, famLabel("F0"), "storm", null, "calm") + "</div>" +
-      '<div class="foot">' + backLink() + "</div>" +
+      '<div class="foot">' + (rest ? prevLink("famsFirst") : "") + backLink() + "</div>" +
       (attach ? '<div class="foot"><button class="link" data-a="attach">' + svg("notebook") + "Enregistrer pour un élève</button></div>" : ""));
   }
   function screenAttach() {
@@ -1446,7 +1450,7 @@ function boot() {
   function afterNon() {
     var b = U.block, n = nonCount(b), L = U.line, next;
     if (n >= 3) return goHelp();
-    if (b.family === "plan") { show(title("Pas grave. Où ça coince ?") + '<div class="choices">' + FAMILIES.map(function (f) { return choice("family", { id: f.id }, famLabel(f.id), f.icon); }).join("") + "</div>" + backToTask()); return; }
+    if (b.family === "plan") return screenFamilies(false, "Pas grave. Où ça coince ?");
     next = nextUntried(L.seq, b);
     if (n === 1 && next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.");
     if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee", "Tu continues d’essayer. C’est ça qui compte.");
@@ -1546,7 +1550,7 @@ function boot() {
     var famIds = Object.keys(fam).sort(function (a, b) { return fam[b] - fam[a]; });
     var cardIds = Object.keys(cards).sort(function (a, b) { return cards[b].n - cards[a].n; });
     var html = title("Mon carnet");
-    if (!bs.length) html += '<p class="empty">Ton carnet est vide pour l’instant.<br>Il se remplit quand tu utilises « Je suis bloqué ».</p>';
+    if (!bs.length) html += '<p class="empty">Ton carnet est vide pour l’instant.<br>Il se remplit quand tu utilises « Je bloque ».</p>';
     else {
       html += "<h2>Où ça coince le plus souvent</h2><ul class=\"plain\">" + famIds.map(function (id) {
         return '<li class="count"><b>' + esc(famLabel(id)) + '</b><span class="n">' + fam[id] + " fois</span></li>";
@@ -1925,6 +1929,8 @@ function boot() {
     work: function () { backToWork(); },
     free: function () { startFree(); },
     families: function () { screenFamilies(); },
+    moreFams: function () { screenFamilies(true, U.famHead); },
+    famsFirst: function () { screenFamilies(false, U.famHead); },
     attach: function () { screenAttach(); },
     attachPick: function (d) { var b = U.block; if (b && !b.sid && student(d.id)) { b.sid = d.id; U.sid = d.id; S.blocks.push(b); save(); } screenFamilies(); },
     ctxPick: function (d) {

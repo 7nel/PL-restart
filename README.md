@@ -8,7 +8,7 @@ Prototype d'outil de classe : aider un élève à repartir quand il bloque sur u
 
 L'élève choisit sa vignette, indique sa tâche et la matière, puis (deuxième écran, déjà rempli comme la dernière fois) le lieu et si un adulte peut l'aider, puis travaille. L'écran ne sert qu'au moment du blocage :
 
-1. « Je suis bloqué »
+1. « Je bloque »
 2. « Où ça coince ? » : cinq familles (comprendre, commencer, décrocher, ça ne marche pas, je ne sais pas), et, à part, « Ça ne va pas du tout »
 3. une ou deux questions de précision, quatre réponses visibles au plus (« Autre chose » ouvre les suivantes ; « Étape précédente » revient d'un pas) et, si elle change la stratégie, la matière, la tâche ou le lieu
 4. une stratégie : une à trois étapes, une à douze minutes

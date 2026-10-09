@@ -58,7 +58,9 @@ README.md, LICENSE, CLAUDE.md
 - Tout texte saisi inséré via `innerHTML` passe par `esc()`.
 - `localStorage` toujours dans `try/catch`. Toute nouvelle propriété reçoit une valeur par défaut dans `normalize()` ; ne jamais renommer un champ exporté sans migration.
 - Couleurs par variables CSS, définies en clair et en sombre.
-- Côté élève : un écran, une question, douze mots au plus, gros boutons, bouton « Écouter ». Ni points ni récompenses.
+- Côté élève : un écran, une question, douze mots au plus, gros boutons, bouton « Écouter ». Ni points, ni scores, ni récompenses matérielles.
+- Renforcement positif voulu quand l'élève essaie (« Bravo pour ton effort », « Tu as bien essayé ») : il porte sur l'essai, jamais sur le résultat ni sur la personne. Choix de l'enseignante (2026-10-09), qui remplace l'ancien « ni récompenses ».
+- Variables CSS propres à ce projet (noms différents de la famille PL, assumés) : `--surface-alt` (= `--surface-2`), `--border` (= `--line`), `--muted` (= `--ink-2`), `--on-accent` (= `--accent-ink`), `--display` (Lexend). Teintes ajoutées : `--warm` / `--warm-soft` (ocre : « Ça ne va pas du tout », « Un peu », astuces `.tip` et « truc » des cartes, panneaux d'avertissement), `--red` / `--red-soft` (icône « Non », bouton `.danger`, notes d'erreur, étiquette `.tag.ko`). Pas d'équivalent exact de `--warn` : `--warm` en tient lieu (à vérifier : valeurs différentes de `--warn`).
 - L'outil décrit des situations, jamais l'élève. Aucune mention de diagnostic.
 - Changer `CACHE` dans `sw.js` à chaque publication.
 
