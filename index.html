@@ -1013,7 +1013,9 @@ function boot() {
   function startFree() {
     U.free = true; U.sid = null; U.task = null;
     newBlock(null);
-    screenFamilies();
+    /* la question de l'adulte se pose ici, une fois, pas au troisième « non » */
+    U.pending = { start: true };
+    screenAsk("adult");
   }
   function newBlock(t) {
     var at = now();
@@ -1817,7 +1819,7 @@ function boot() {
   function tabAide() {
     return '<div class="panel"><h2>Deux façons de l’utiliser</h2>' +
       "<p><b>Avec suivi.</b> L’élève choisit sa vignette, sa tâche, sa matière, le lieu, et dit si un adulte peut l’aider. L’outil enregistre les blocages, les stratégies essayées et les reprises.</p>" +
-      "<p><b>Juste un coup de main.</b> On arrive droit sur « Où ça coince ? ». Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
+      "<p><b>Juste un coup de main.</b> On commence par « Un adulte peut t’aider ? », puis « Où ça coince ? ». Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
       '<div class="panel"><h2>Comment l’outil choisit</h2>' +
       "<p>Il croise le blocage, la tâche, la matière et le lieu. S’il lui manque une information qui change la stratégie, il la demande en un écran.</p>" +
       "<p>Cinq domaines de stratégies : le dossier de français (14), les maths (7), réviser et mémoriser (6), les langues (6), la fatigue et le stress (6). S’y ajoutent les cartes générales et quatre outils d’apaisement guidés, repris du site PL-CPS’.</p>" +
@@ -1834,7 +1836,7 @@ function boot() {
       '<div class="panel"><h2>Le code de cet espace</h2>' +
       "<p>Le code de départ est " + DEFAULT_PIN + ". Changez-le dans « Réglages » : il est lisible dans le code source du site. Chaque élève peut aussi avoir son propre code (« Élèves ») : il est demandé quand on touche sa vignette, et le code de l’espace enseignante l’ouvre aussi. Si vous effacez le code de l’espace enseignante, tout élève qui touche le bouton « tableau » en haut de l’accueil entre ici, et un rappel s’affiche en haut de cet espace (« Plus tard » le masque jusqu’au prochain retour à l’accueil).</p></div>" +
       '<div class="panel"><h2>Adulte disponible ou non</h2>' +
-      "<p>L’élève l’indique au démarrage de la tâche et peut le changer sur l’écran de travail. S’il ne l’a pas dit, l’outil le demande au moment de l’aide (toujours le cas en coup de main).</p>" +
+      "<p>L’élève l’indique au démarrage de la tâche et peut le changer sur l’écran de travail. S’il ne l’a pas dit en tâche suivie, l’outil le demande au moment de l’aide. En coup de main, la question est posée au départ.</p>" +
       "<p>Sans adulte : l’outil propose une stratégie de plus (la suite prévue, sinon une carte générale utilisable seul : chercher dans le cours, regarder un exemple, commencer par le facile…), puis l’élève prépare sa question et met un « ? » dans la marge. « Suivi » indique les blocages sans adulte disponible.</p></div>" +
       '<div class="panel"><h2>Ce que vous notez</h2>' +
       "<p>Dans « Suivi », pour les blocages que vous avez vus : votre avis sur la cause, et si le travail a réellement repris dans les cinq minutes. Ce sont les deux mesures qui comptent ; les réponses de l’élève ne suffisent pas.</p></div>" +
@@ -1924,7 +1926,7 @@ function boot() {
     ctxPick: function (d) {
       var b = U.block, k = U.askKey, pend = U.pending; U.pending = null;
       if (!b || !k) return;
-      if (k === "adult") { setAdult(d.id === "1"); return goHelp(); }
+      if (k === "adult") { setAdult(d.id === "1"); return pend && pend.start ? screenFamilies() : goHelp(); }
       b[k] = d.id; if (U.task && !U.task[k]) U.task[k] = d.id; save();
       if (pend && pend.line) setLine(pend.line); else if (pend && pend.family) pickFamily(pend.family);
     },

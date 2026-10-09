@@ -17,12 +17,12 @@ L'élève choisit sa vignette, indique sa tâche et la matière, puis (deuxième
 
 ### Adulte disponible ou non
 
-L'élève l'indique au démarrage et peut le changer sur l'écran de travail. S'il ne l'a pas dit, l'outil le demande au moment de l'aide (c'est toujours le cas en mode coup de main). Sans adulte disponible, l'outil propose une stratégie de plus, puis l'élève prépare sa question pour plus tard et met un « ? » dans la marge. Le suivi indique quels blocages ont eu lieu sans adulte disponible.
+L'élève l'indique au démarrage et peut le changer sur l'écran de travail. S'il ne l'a pas dit en tâche suivie, l'outil le demande au moment de l'aide. En mode coup de main, la question est posée au départ. Sans adulte disponible, l'outil propose une stratégie de plus, puis l'élève prépare sa question pour plus tard et met un « ? » dans la marge. Le suivi indique quels blocages ont eu lieu sans adulte disponible.
 
 Deux façons de l'utiliser :
 
 - **Avec suivi** : l'élève choisit sa vignette et sa tâche ; blocages, stratégies essayées et reprises sont enregistrés.
-- **Juste un coup de main** : on arrive droit sur « Où ça coince ? », sans rien enregistrer (sauf rattachement à un élève). C'est le mode à projeter pour montrer la démarche, et celui qui convient à la maison : chaque appareil garde ses propres données, l'enseignante ne voit pas ce qui s'y passe.
+- **Juste un coup de main** : on commence par « Un adulte peut t'aider ? » puis « Où ça coince ? », sans rien enregistrer (sauf rattachement à un élève). C'est le mode à projeter pour montrer la démarche, et celui qui convient à la maison : chaque appareil garde ses propres données, l'enseignante ne voit pas ce qui s'y passe.
 
 ### Stratégies
 
