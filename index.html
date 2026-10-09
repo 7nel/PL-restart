@@ -241,6 +241,9 @@ function boot() {
     .avatar { width: 52px; height: 52px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; }
     .avatar .ic { width: 28px; height: 28px; color: var(--accent); }
     @media (max-width: 520px) { .choice { font-size: 1.1rem; min-height: 72px; gap: 12px; padding: 12px 14px; } .say { width: 50px; } }
+    /* Projection : grands écrans, écrans élève seulement (l'espace enseignante, .wide, garde sa taille) */
+    @media (min-width: 1400px) and (min-height: 760px) { html:has(.page:not(.wide)) { font-size: 150%; } .page:not(.wide) { max-width: 1080px; } }
+    @media (min-width: 1800px) and (min-height: 900px) { html:has(.page:not(.wide)) { font-size: 180%; } .page:not(.wide) { max-width: 1280px; } }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   `;
   var styleEl = document.createElement("style");
