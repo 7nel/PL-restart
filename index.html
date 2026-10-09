@@ -37,7 +37,7 @@ function boot() {
     [hidden] { display: none !important; }
     html { font-size: 112.5%; }
     html, body { min-height: 100%; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif; line-height: 1.4; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif; line-height: 1.5; }
     button, input, select, textarea { font: inherit; color: inherit; }
     button { cursor: pointer; }
     :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
@@ -47,7 +47,7 @@ function boot() {
     header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     /* identité commune à la famille PL : monogramme, nom de l'outil, retour vers PL */
     .pl-id { display: flex; align-items: center; gap: 6px 12px; min-width: 0; }
-    .pl-name { min-height: 44px; font-weight: 700; font-size: 1.1rem; line-height: 1.3; color: inherit; text-decoration: none; background: none; border: 0; padding: 0; }
+    .pl-name { min-height: 44px; font-weight: 700; font-size: 1.1rem; line-height: 1.5; color: inherit; text-decoration: none; background: none; border: 0; padding: 0; }
     .pl-logo { position: relative; display: inline-flex; flex: none; border-radius: 50%; line-height: 0; }
     .pl-logo::after { content: ""; position: absolute; inset: -8px; }
     .pl-mark { width: 1.6em; height: 1.6em; flex: none; }
@@ -72,15 +72,15 @@ function boot() {
 
     .choices { display: grid; gap: 12px; }
     .choice-row { display: flex; gap: 8px; align-items: stretch; }
-    .choice { flex: 1; display: flex; align-items: center; gap: 16px; min-height: 78px; padding: 14px 18px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.22rem; line-height: 1.3; text-align: left; box-shadow: var(--shadow); transition: transform .1s ease, border-color .1s ease; }
+    .choice { flex: 1; display: flex; align-items: center; gap: 16px; min-height: 78px; padding: 14px 18px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.22rem; line-height: 1.5; text-align: left; box-shadow: var(--shadow); transition: transform .1s ease, border-color .1s ease; }
     .choice:hover { border-color: var(--accent); }
     .choice:active { transform: scale(0.985); }
     .choice .ic { width: 38px; height: 38px; color: var(--accent); }
-    .choice small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.4; color: var(--muted); margin-top: 4px; }
+    .choice small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.5; color: var(--muted); margin-top: 4px; }
     .choices.apart { margin-top: 10px; padding-top: 18px; border-top: 2px dashed var(--border); }
     .choice.calm { background: var(--warm-soft); border-color: var(--warm); }
     .choice.calm .ic { color: var(--warm); }
-    .cheer { flex: 1; margin: 0; padding: 14px 18px; border-radius: 14px; border: 2px solid var(--accent); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.4; }
+    .cheer { flex: 1; margin: 0; padding: 14px 18px; border-radius: 14px; border: 2px solid var(--accent); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.5; }
     .sr-only { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; font-size: 1rem; }
     .choice.yes .ic { color: var(--accent); } .choice.no .ic { color: var(--red); } .choice.mid .ic { color: var(--warm); }
     .say { flex: none; width: 58px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--border); background: var(--surface-alt); color: var(--muted); }
@@ -123,14 +123,14 @@ function boot() {
     .card .cardhead { display: flex; flex-direction: column; gap: 4px; margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 4px; padding: var(--pad) var(--pad) 14px; background: var(--accent-soft); border-radius: 22px 22px 0 0; }
     .card .stephero { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
     .card .stephero .n { display: flex; align-items: center; justify-content: center; width: 2.2em; height: 2.2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 700; font-size: clamp(1.8rem, 6vw, 2.4rem); }
-    .card .stephero p { font-family: var(--display); font-weight: 600; font-size: clamp(1.2rem, 3.4vw, 1.4rem); line-height: 1.4; }
+    .card .stephero p { font-family: var(--display); font-weight: 600; font-size: clamp(1.2rem, 3.4vw, 1.4rem); line-height: 1.5; }
     .card .dots { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
     .card .dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
     .card .dots i.done { background: var(--accent); }
     .card .dots i.on { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 5px var(--accent); }
     .card .dots span { margin-left: 4px; }
     .card h2 { flex: 1; font-size: clamp(1.5rem, 4vw, 1.75rem); }
-    .card p { margin: 0; font-size: clamp(1.15rem, 3.2vw, 1.35rem); line-height: 1.45; }
+    .card p { margin: 0; font-size: clamp(1.15rem, 3.2vw, 1.35rem); line-height: 1.5; }
     .card .dur { color: var(--muted); font-size: 1rem; display: inline-flex; align-items: center; gap: 6px; }
     .card .dur .ic { width: 20px; height: 20px; }
     .card.mini { border-width: 2px; border-color: var(--border); padding: 16px 18px; gap: 6px; }
@@ -138,7 +138,7 @@ function boot() {
     .recall { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--accent-soft); font-weight: 700; }
     .overline { font-weight: 700; font-size: 1rem; color: var(--accent); }
     ol.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: st; }
-    ol.steps li { counter-increment: st; display: grid; grid-template-columns: 2.1em 1fr; gap: 12px; align-items: start; font-size: clamp(1.1rem, 3.2vw, 1.3rem); line-height: 1.4; }
+    ol.steps li { counter-increment: st; display: grid; grid-template-columns: 2.1em 1fr; gap: 12px; align-items: start; font-size: clamp(1.1rem, 3.2vw, 1.3rem); line-height: 1.5; }
     ol.steps li::before { content: counter(st); display: flex; align-items: center; justify-content: center; width: 2em; height: 2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 700; font-size: 1rem; }
     .card p.stepnum { font-family: var(--display); font-weight: 700; color: var(--accent); font-size: 1.05rem; }
     .card p.truc { padding: 10px 14px; border-radius: 12px; background: var(--warm-soft); font-size: 1.05rem; }
@@ -155,7 +155,7 @@ function boot() {
     .foldbar { display: flex; gap: 8px; flex-wrap: wrap; }
     .foldbar .btn { min-height: 40px; padding: 6px 14px; font-size: 0.95rem; }
     .plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.3; text-align: left; }
+    .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.5; text-align: left; }
     .plan-item .num { flex: none; width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; }
     .center .chips { justify-content: center; }
     .center .sub { text-align: center; }
