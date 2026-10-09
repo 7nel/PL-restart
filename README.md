@@ -23,6 +23,8 @@ Deux façons de l'utiliser :
 
 - **Avec suivi** : l'élève choisit sa vignette et sa tâche ; blocages, stratégies essayées et reprises sont enregistrés.
 - **Juste un coup de main** : on commence par « Un adulte peut t'aider ? » puis « Où ça coince ? », sans rien enregistrer (sauf rattachement à un élève). C'est le mode à projeter pour montrer la démarche, et celui qui convient à la maison : chaque appareil garde ses propres données, l'enseignante ne voit pas ce qui s'y passe.
+- **Projection** : sur un écran large (1400 px et plus, puis 1800 px et plus), le texte et la colonne s'agrandissent pour les écrans élève ; l'espace enseignante garde sa taille. Non vérifié sur un vrai beamer : à tester.
+- **Retour à l'essai** : sur « Ça repart ? », un lien permet de revenir à la carte si l'élève a répondu trop vite (absent pour les outils d'apaisement guidés).
 
 ### Stratégies
 
