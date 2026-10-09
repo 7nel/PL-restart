@@ -182,6 +182,8 @@ function boot() {
     .taskline { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
     .taskline .ic { width: 34px; height: 34px; color: var(--accent); }
     .starter { margin: 0; padding: 14px 18px; border: 2px dashed var(--accent); background: var(--surface); border-radius: 14px; font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
+    .starter .sl { display: block; }
+    .starter .sl + .sl { margin-top: 8px; }
     .starter small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; color: var(--muted); margin-top: 4px; }
     .tip { margin: 0; padding: 12px 16px; border-radius: 14px; background: var(--warm-soft); font-weight: 700; }
     .note { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--red-soft); font-size: 0.95rem; }
@@ -1466,9 +1468,9 @@ function boot() {
     var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
     if (!msg && nonCount(b) >= 2) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
     var starters = (msg ? cheerHtml(msg) : "") +
-      '<div class="choice-row"><p class="starter" style="flex:1">J’ai compris…</p>' + sayBtn("J’ai compris") + "</div>" +
-      '<div class="choice-row"><p class="starter" style="flex:1">Je bloque sur…</p>' + sayBtn("Je bloque sur") + "</div>" +
-      '<div class="choice-row"><p class="starter" style="flex:1">J’ai essayé…' + (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</p>" + sayBtn("J’ai essayé " + tried.join(", ")) + "</div>";
+      '<div class="choice-row"><div class="starter" style="flex:1"><span class="sl">J’ai compris…</span><span class="sl">Je bloque sur…</span><span class="sl">J’ai essayé…' +
+      (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</span></div>" +
+      sayBtn("J’ai compris. Je bloque sur. J’ai essayé " + tried.join(", ")) + "</div>";
     var passe = '<button class="btn' + (alone ? " primary" : "") + '" data-a="passe">' + svg("question") + "Je mets un ? et je passe à la suite</button>";
     var stop = U.task ? '<button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "";
     if (alone) {
@@ -1478,13 +1480,12 @@ function boot() {
         (stop ? '<details class="annex"><summary>Autre chose</summary><div class="in">' + stop + "</div></details>" : "") +
         '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
     }
-    show(title("Demande une aide précise.") + starters +
+    show(title("Montre cet écran à un adulte.") + starters +
       '<p class="tip">Demande une explication ou un indice, pas la réponse.</p>' +
-      '<p class="sub">Montre cet écran à un adulte ou à un camarade.</p>' +
-      '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + (U.task ? "J’ai eu de l’aide, je reprends" : "J’ai eu de l’aide") + "</button></div>" +
+      '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + (U.task ? "J’ai eu de l’aide, je reprends" : "J’ai eu de l’aide") + "</button>" +
+      '<button class="btn" data-a="adultNone">Aucun adulte n’est disponible</button></div>' +
       /* routine du dossier quand personne n'est disponible : un « ? » dans la marge, et on continue */
-      '<details class="annex"><summary>Autre chose</summary><div class="in">' + passe + stop + "</div></details>" +
-      '<div class="foot"><span></span><button class="link" data-a="adultNone">Aucun adulte n’est disponible</button></div>');
+      '<details class="annex"><summary>Autre chose</summary><div class="in">' + passe + stop + "</div></details>");
   }
   function screenFinish() {
     show(title("Où en es-tu ?") + '<div class="choices">' +
