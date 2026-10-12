@@ -12,8 +12,8 @@ L'élève choisit sa vignette, indique sa tâche et la matière, puis (deuxième
 2. « Où ça coince ? » : cinq familles (comprendre, commencer, décrocher, ça ne marche pas, je ne sais pas), et, à part, « Ça ne va pas du tout »
 3. une ou deux questions de précision, quatre réponses visibles au plus (« Autre chose » ouvre les suivantes ; « Étape précédente » revient d'un pas) et, si elle change la stratégie, la matière, la tâche ou le lieu
 4. une stratégie : une à trois étapes, une à douze minutes
-5. « Ça repart ? » : oui, un peu, non. Après un « non », une phrase courte reconnaît l'effort (« Pas grave. On essaie autre chose. ») ; quand ça repart, l'écran reprend le nom de la stratégie qui a aidé. Ni points ni récompenses.
-6. après trois « non », l'outil aide à formuler une demande d'aide précise, ou à mettre un « ? » dans la marge et à passer à la suite
+5. « Ça repart ? » : oui, un peu, non. Après un « non », une phrase courte reconnaît l'effort (« Pas grave. On essaie autre chose. ») ; quand ça repart, l'écran reprend le nom de la stratégie qui a aidé (un fil qui se dénoue puis file droit : le seul geste graphique propre à l'outil, immobile si l'appareil demande moins de mouvement). Ni points ni récompenses. L'écran indique « Essai 1 sur 3 ».
+6. après trois « non », une courte pause (« Tu as essayé trois fois. C'est le moment de demander de l'aide. », un seul bouton « Continuer »), puis l'outil aide à formuler une demande d'aide précise, ou à mettre un « ? » dans la marge et à passer à la suite
 
 ### Adulte disponible ou non
 
@@ -25,6 +25,7 @@ Deux façons de l'utiliser :
 - **Juste un coup de main** : on commence par « Un adulte peut t'aider ? » puis « Où ça coince ? », sans rien enregistrer (sauf rattachement à un élève). C'est le mode à projeter pour montrer la démarche, et celui qui convient à la maison : chaque appareil garde ses propres données, l'enseignante ne voit pas ce qui s'y passe.
 - **Projection** : sur un écran large (1400 px et plus, puis 1800 px et plus), le texte et la colonne s'agrandissent pour les écrans élève ; l'espace enseignante garde sa taille. Non vérifié sur un vrai beamer : à tester.
 - **Retour à l'essai** : sur « Ça repart ? », un lien permet de revenir à la carte si l'élève a répondu trop vite (absent pour les outils d'apaisement guidés).
+- **Je me suis trompé** : après un « Oui », un « Un peu » ou un « Non » tapé trop vite (écran « Tu es reparti ! », « Essaie ça. » suivant un « Non », pause avant l'aide), ce bouton retire l'essai enregistré et ramène à « Ça repart ? ». Absent après un « Oui » quand le niveau automatique est activé (le niveau aurait déjà changé).
 
 ### Stratégies
 

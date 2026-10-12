@@ -16,6 +16,7 @@ function boot() {
       --accent: #2f6f63; --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
       --warm: #b97a3d; --warm-soft: color-mix(in srgb, var(--warm) 20%, var(--surface));
       --red: #b6503f; --red-soft: color-mix(in srgb, var(--red) 18%, var(--surface));
+      --calm: #3f6f8f; --calm-soft: color-mix(in srgb, var(--calm) 16%, var(--surface));
       --border: #d7ddda; --on-accent: #ffffff;
       --shadow: 0 1px 2px rgba(37, 52, 51, 0.06), 0 10px 24px rgba(37, 52, 51, 0.08);
       --display: "Lexend", "Atkinson Hyperlegible", system-ui, sans-serif;
@@ -23,13 +24,13 @@ function boot() {
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
         --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee; --muted: #9fb0ac;
-        --accent: #6fbfae; --warm: #e3a768; --red: #d98070; --border: #33443f; --on-accent: #12201d;
+        --accent: #6fbfae; --warm: #e3a768; --red: #d98070; --calm: #8bb7d6; --border: #33443f; --on-accent: #12201d;
         --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
       }
     }
     :root[data-theme="dark"] {
       --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee; --muted: #9fb0ac;
-      --accent: #6fbfae; --warm: #e3a768; --red: #d98070; --border: #33443f; --on-accent: #12201d;
+      --accent: #6fbfae; --warm: #e3a768; --red: #d98070; --calm: #8bb7d6; --border: #33443f; --on-accent: #12201d;
       --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
     }
 
@@ -78,8 +79,8 @@ function boot() {
     .choice .ic { width: 38px; height: 38px; color: var(--accent); }
     .choice small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.5; color: var(--muted); margin-top: 4px; }
     .choices.apart { margin-top: 10px; padding-top: 18px; border-top: 2px dashed var(--border); }
-    .choice.calm { background: var(--warm-soft); border-color: var(--warm); }
-    .choice.calm .ic { color: var(--warm); }
+    .choice.calm { background: var(--calm-soft); border-color: var(--calm); }
+    .choice.calm .ic { color: var(--calm); }
     .cheer { flex: 1; margin: 0; padding: 14px 18px; border-radius: 14px; background: var(--accent-soft); font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.5; }
     .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; font-size: 1rem; }
     .choice.yes .ic { color: var(--accent); } .choice.no .ic { color: var(--red); } .choice.mid .ic { color: var(--warm); }
@@ -104,6 +105,7 @@ function boot() {
     .link { background: none; border: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; min-height: 48px; padding: 8px 10px; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; }
     .link .ic { width: 20px; height: 20px; }
     .link.leave { border: 1.5px solid var(--border); border-radius: 999px; text-decoration: none; padding: 8px 16px; background: var(--surface); }
+    .link.undo { border: 1.5px solid var(--border); border-radius: 999px; text-decoration: none; padding: 8px 16px; background: var(--surface); color: var(--ink); }
     .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 
     .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px; }
@@ -153,8 +155,9 @@ function boot() {
     details.annex details.annex summary { min-height: 44px; font-weight: 600; }
     details.annex summary .sum { margin-left: 0.4em; font-weight: 400; color: var(--muted); font-size: 0.95rem; }
     .foldbar { display: flex; gap: 8px; flex-wrap: wrap; }
-    .foldbar .btn { min-height: 40px; padding: 6px 14px; font-size: 0.95rem; }
+    .foldbar .btn { min-height: 44px; padding: 6px 14px; font-size: 0.95rem; }
     .plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    @media (max-width: 400px) { .plan-grid { grid-template-columns: 1fr; } }
     .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.5; text-align: left; }
     .plan-item .num { flex: none; width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; }
     .center .chips { justify-content: center; }
@@ -163,7 +166,7 @@ function boot() {
     .choice[data-a="checkToggle"].sel svg { opacity: 1; }
     .choice .num { flex: none; width: 2em; height: 2em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; }
     .timer { font-family: var(--display); font-weight: 700; font-size: clamp(2.6rem, 10vw, 4rem); text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
-    .timer.over { color: var(--warm); }
+    .timer.over { color: color-mix(in srgb, var(--warm) 65%, var(--ink)); }
     /* outils d'apaisement guidés */
     .guide { align-items: center; text-align: center; }
     .guide .cardhead { align-self: stretch; text-align: left; }
@@ -188,7 +191,24 @@ function boot() {
     .tip { margin: 0; padding: 12px 16px; border-radius: 14px; background: var(--warm-soft); font-weight: 700; }
     .note { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--red-soft); font-size: 0.95rem; }
     .done { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
-    .done .ic { width: 84px; height: 84px; color: var(--accent); }
+    .done:not(.restart) .ic { width: 84px; height: 84px; color: var(--accent); }
+    /* « Tu es reparti ! » : un fil qui se dénoue puis file droit, le seul geste graphique propre à l'outil */
+    .done.restart { gap: 18px; }
+    .done.restart h1 { font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1.1; text-wrap: balance; }
+    .done.restart .sub { font-size: 1.25rem; max-width: 26em; text-wrap: balance; }
+    .done.restart .sub b { color: var(--ink); }
+    .thread { width: min(100%, 360px); height: auto; overflow: visible; color: var(--accent); }
+    .thread path { fill: none; stroke: currentColor; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: thread-draw 1s cubic-bezier(.16, 1, .3, 1) both; }
+    .thread circle { fill: currentColor; transform-box: fill-box; transform-origin: center; animation: thread-dot .35s cubic-bezier(.16, 1, .3, 1) .85s both; }
+    @keyframes thread-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+    @keyframes thread-dot { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: scale(1); } }
+    /* pause après les essais : un message, un bouton */
+    .pause { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; }
+    .pause .qrow { justify-content: center; }
+    .pause h1 { flex: none; font-size: clamp(2rem, 7vw, 3rem); line-height: 1.15; text-wrap: balance; }
+    .pause .sub { font-size: 1.3rem; max-width: 24em; }
+    .pause .big { max-width: 520px; }
+    .pause .foot { justify-content: center; }
     .empty { text-align: center; color: var(--muted); padding: 24px 8px; }
     ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
     .count { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
@@ -244,7 +264,17 @@ function boot() {
     /* Projection : grands écrans, écrans élève seulement (l'espace enseignante, .wide, garde sa taille) */
     @media (min-width: 1400px) and (min-height: 760px) { html:has(.page:not(.wide)) { font-size: 150%; } .page:not(.wide) { max-width: 1080px; } }
     @media (min-width: 1800px) and (min-height: 900px) { html:has(.page:not(.wide)) { font-size: 180%; } .page:not(.wide) { max-width: 1280px; } }
-    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+      .thread path, .thread circle { opacity: 1; stroke-dashoffset: 0; transform: none; }
+      /* respiration guidée sans mouvement : le côté actif du carré s'épaissit et change de couleur */
+      .sq { border-color: var(--border); }
+      .sq i { display: none; }
+      .sq[data-side="0"] { border-left-color: var(--accent); border-left-width: 16px; }
+      .sq[data-side="1"] { border-top-color: var(--accent); border-top-width: 16px; }
+      .sq[data-side="2"] { border-right-color: var(--accent); border-right-width: 16px; }
+      .sq[data-side="3"] { border-bottom-color: var(--accent); border-bottom-width: 16px; }
+    }
   `;
   var styleEl = document.createElement("style");
   styleEl.textContent = CSS_TEXT;
@@ -291,6 +321,8 @@ function boot() {
     wave: '<path d="M2 10c3-4 5-4 8 0s5 4 8 0 4-2 4-2M2 16c3-4 5-4 8 0s5 4 8 0 4-2 4-2"/>'
   };
   var AVATARS = ["star", "moon", "leaf", "drop", "mountain", "sun", "bolt", "wave"];
+  /* le fil du « restart » : une boucle qui se dénoue, puis une ligne droite qui file */
+  var THREAD = '<svg class="thread" viewBox="0 0 240 80" aria-hidden="true"><path pathLength="1" d="M8 58 C8 20 54 20 54 46 C54 68 22 64 30 40 C36 24 66 38 92 40 L214 40"/><circle cx="226" cy="40" r="9"/></svg>';
   function svg(name) {
     return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || "") + "</svg>";
   }
@@ -788,8 +820,9 @@ function boot() {
   }
 
   /* ---------- DOM skeleton ---------- */
-  document.body.innerHTML = '<div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div>';
-  var pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main");
+  document.body.innerHTML = '<div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div><div class="sr-only" id="live" role="status" aria-live="polite"></div>';
+  var pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main"), liveEl = document.getElementById("live");
+  var pendingLive = "";
   var ticker = null, pendingTimeout = null;
   var guideRaf = 0, G = null;
   function clearTimers() {
@@ -828,6 +861,10 @@ function boot() {
     html = html.replace(/« /g, "«\u00a0").replace(/ »/g, "\u00a0»").replace(/ ([?!:;])(?=[\s<"]|$)/g, "\u00a0$1");
     mainEl.innerHTML = (storageOk ? "" : '<p class="note">L’enregistrement est bloqué sur cet appareil (navigation privée ?). Rien ne sera gardé après fermeture.</p>') + html;
     window.scrollTo(0, 0);
+    /* encouragement annoncé aux lecteurs d'écran (la page se redessine, il n'y a pas de zone vivante dans le contenu) */
+    liveEl.textContent = "";
+    if (pendingLive) { var say = pendingLive; setTimeout(function () { liveEl.textContent = say; }, 60); }
+    pendingLive = "";
     var h = mainEl.querySelector("h1");
     if (h) { h.setAttribute("tabindex", "-1"); try { h.focus({ preventScroll: true }); } catch (e) {} }
   }
@@ -942,6 +979,12 @@ function boot() {
       if (extra) { b.extra = true; save(); return proposeCard(extra, "proposee"); }
     }
     screenHelp();
+  }
+  /* Pause avant l'aide, sauf si une stratégie de plus est encore proposée (goHelp la présente alors directement). */
+  function helpOrPause() {
+    var b = U.block;
+    if (adultOf(b) === false && !b.extra && b.family !== "F0" && b.family !== "garde" && nonCount(b) < 4 && extraCard(b)) return goHelp();
+    screenPause();
   }
   function nextUntried(seq, b) {
     for (var i = 0; i < seq.length; i++) if (seq[i] === "C19" || usable(seq[i], b)) return seq[i];
@@ -1066,11 +1109,10 @@ function boot() {
     var html = title("Tu fais quoi ?") + '<div class="tiles">' + TASK_TYPES.map(function (t) {
       return '<button class="tile' + (draft.type === t.id ? " sel" : "") + '" data-a="type" data-id="' + t.id + '" aria-pressed="' + (draft.type === t.id) + '">' + svg(t.icon) + "<span>" + esc(t.label) + "</span></button>";
     }).join("") + "</div>" +
-      '<p class="sub">Matière :</p><div class="chips">' + SUBJECTS.map(function (s) {
+      /* la matière et « Suite » n'apparaissent qu'une fois la tâche choisie : cinq choix d'abord, pas dix */
+      (draft.type ? '<p class="sub">Matière :</p><div class="chips">' + SUBJECTS.map(function (s) {
         return '<button class="chip' + (draft.subject === s ? " sel" : "") + '" data-a="subject" data-id="' + esc(s) + '" aria-pressed="' + (draft.subject === s) + '">' + esc(s) + "</button>";
-      }).join("") + "</div>" +
-      '<button class="big" data-a="next"' + (draft.type ? "" : " disabled") + ">" + svg("play") + "Suite</button>" +
-      (draft.type ? "" : '<p class="hint">Choisis d’abord ce que tu fais.</p>') + footHome();
+      }).join("") + '</div><button class="big" data-a="next">' + svg("play") + "Suite</button>" : "") + footHome();
     show(html);
   }
   function screenWhere() {
@@ -1202,7 +1244,7 @@ function boot() {
     var cheer = key === "adult" && U.block && nonCount(U.block) >= 2 ? cheerHtml("Tu as bien essayé. On cherche de l’aide.") : "";
     show(title(q) + cheer + '<div class="tiles">' + opts.map(function (o) {
       return '<button class="tile" data-a="ctxPick" data-id="' + esc(o[0]) + '">' + (o[2] ? svg(o[2]) : "") + "<span>" + esc(o[1]) + "</span></button>";
-    }).join("") + "</div>" + backToTask());
+    }).join("") + "</div>" + (key === "adult" ? '<p class="hint">Pour choisir une aide qui te convient.</p>' : "") + backToTask());
   }
   function pickFamily(fid) {
     var b = U.block, st = student(b.sid);
@@ -1250,6 +1292,7 @@ function boot() {
     return '<button class="link" data-a="' + action + '">' + svg("back") + "Étape précédente</button>";
   }
   function cheerHtml(text) {
+    pendingLive = text;
     return '<div class="choice-row"><p class="cheer">' + esc(text) + "</p>" + sayBtn(text) + "</div>";
   }
   function answer(i) {
@@ -1276,8 +1319,8 @@ function boot() {
     }).join("") + "</div>" +
       '<div class="foot">' + backLink() + '<button class="link" data-a="calmHelp">' + svg("people") + "Je veux un adulte</button></div>");
   }
-  function proposeCard(id, origin, cheer) {
-    if (id === "C19") return goHelp();
+  function proposeCard(id, origin, cheer, undo) {
+    if (id === "C19") return nonCount(U.block) >= 2 ? helpOrPause() : goHelp();
     var c = card(id), b = U.block, alts, back;
     U.cardId = id; U.origin = origin; U.peek = false; U.step = 0;
     U.mode = methodState(id, b.sid) || 1;
@@ -1287,7 +1330,8 @@ function boot() {
     show(title("Essaie ça.") + (cheer ? cheerHtml(cheer) : "") + cardHtml(c, U.mode, "preview") +
       '<button class="big" data-a="try">' + svg("play") + "J’essaie</button>" +
       '<div class="foot">' + (back ? prevLink("prevCard") : "") + backLink() +
-      (alts.length && b.family !== "F0" ? '<button class="link" data-a="other">' + svg("loop") + "Une autre idée</button>" : "") + "</div>");
+      (alts.length && b.family !== "F0" ? '<button class="link" data-a="other">' + svg("loop") + "Une autre idée</button>" : "") + "</div>" +
+      (undo ? undoFoot() : ""));
   }
   function stepsHtml(c) {
     return (c.steps.length === 1 ? "<p>" + esc(c.steps[0]) + "</p>"
@@ -1337,7 +1381,7 @@ function boot() {
     var g = c.guide, segs, total = 0;
     if (g.kind === "breath") return { total: g.cycles * 16000, at: function (t) {
       var inC = t % 16000, side = Math.floor(inC / 4000), f = (inC % 4000) / 4000;
-      return { text: ["Inspire", "Retiens", "Expire", "Retiens"][side], n: 4 - Math.floor(f * 4), pos: [[0, 1 - f], [f, 0], [1, f], [1 - f, 1]][side], count: "Cycle " + (Math.floor(t / 16000) + 1) + " sur " + g.cycles };
+      return { text: ["Inspire", "Retiens", "Expire", "Retiens"][side], side: side, n: 4 - Math.floor(f * 4), pos: [[0, 1 - f], [f, 0], [1, f], [1 - f, 1]][side], count: "Cycle " + (Math.floor(t / 16000) + 1) + " sur " + g.cycles };
     } };
     segs = g.phases; segs.forEach(function (x) { total += x.s * 1000; });
     return { total: total, at: function (t) {
@@ -1353,7 +1397,7 @@ function boot() {
     show('<h1 class="sr-only">J’essaie : ' + esc(c.title) + "</h1>" +
       '<div class="card guide"><div class="cardhead"><span class="overline">' + esc(DOM_SHORT.calme) + '</span><div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(c.title + ". " + c.steps.join(" "), true) + "</div></div>" +
       '<div class="gstage">' + (br
-        ? '<div class="sq"><i id="gDot"></i><div class="ph"><div><b id="gPh">Prêt ?</b><span id="gN">4</span></div></div></div>'
+        ? '<div class="sq" id="gSq" data-side="0"><i id="gDot"></i><div class="ph"><div><b id="gPh">Prêt ?</b><span id="gN">4</span></div></div></div>'
         : '<div class="gnum" id="gNum" aria-hidden="true">0</div><p class="gtext" id="gPh" aria-live="polite"></p>' + (c.guide.sub ? '<p class="sub">' + esc(c.guide.sub) + "</p>" : "") + '<div class="gbar" aria-hidden="true"><i id="gBar"></i></div>') +
       '<p class="small" id="gCount"></p></div></div>' +
       '<div id="gStop" class="foot"><span></span><button class="link" data-a="guideStop">' + svg("pause") + "J’arrête</button></div>" +
@@ -1366,6 +1410,7 @@ function boot() {
     set("gPh", r.text); set("gCount", r.count);
     if (G.c.guide.kind === "breath") {
       set("gN", r.n);
+      el = document.getElementById("gSq"); if (el) el.setAttribute("data-side", r.side);
       el = document.getElementById("gDot");
       if (el && !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) { el.style.left = r.pos[0] * 100 + "%"; el.style.top = r.pos[1] * 100 + "%"; }
     } else {
@@ -1421,11 +1466,31 @@ function boot() {
     /* cartes sans question « ça repart ? » : retour au calme (on passe à l'aide) et arrêt propre (on clôt la tâche) */
     if (b.family === "F0") { pushTry(null); return goHelp(); }
     if (card(U.cardId).stop) { pushTry(null); endBlock("stop"); return U.task ? finishAs("reportee") : goHome(); }
-    show(title("Ça repart ?") + '<div class="choices">' +
+    screenResult();
+  }
+  /* « Ça repart ? » : l'essai en cours (« essai 2 sur 3 ») et un retour bien visible si l'élève a tapé trop vite. */
+  function screenResult() {
+    var b = U.block;
+    show(title("Ça repart ?") + '<p class="sub">Essai ' + Math.min(nonCount(b) + 1, 3) + " sur 3</p>" + '<div class="choices">' +
       choice("result", { r: "1" }, "Oui", "check", null, "yes") +
       choice("result", { r: "0.5" }, "Un peu", "half", null, "mid") +
       choice("result", { r: "0" }, "Non", "cross", null, "no") + "</div>" +
-      (card(U.cardId).guide ? "" : '<div class="foot"><button class="link" data-a="backTry">' + svg("back") + "Retour à l’essai</button><span></span></div>"));
+      (card(U.cardId).guide ? "" : '<div class="foot"><button class="link undo" data-a="backTry">' + svg("back") + "Retour à l’essai</button><span></span></div>"));
+  }
+  /* Annuler la dernière réponse à « Ça repart ? » : on retire l'essai enregistré et on revient à la question. */
+  function undoFoot() {
+    var b = U.block;
+    if (!b || !U.snap || !b.tries.length || (b.end && S.settings.autoLevel)) return "";
+    return '<div class="foot"><button class="link undo" data-a="undoResult">' + svg("back") + "Je me suis trompé</button></div>";
+  }
+  function undoResult() {
+    var b = U.block, sn = U.snap;
+    if (!b || !sn || !b.tries.length) return;
+    b.tries.pop();
+    if (b.end === "reprise") { b.end = null; b.resumedAt = null; }
+    U.cardId = sn.cardId; U.origin = sn.origin; U.mode = sn.mode; U.step = sn.step; U.dur = sn.dur; U.peek = sn.peek;
+    U.tryStart = sn.tryStart; U.tryDur = sn.tryDur; U.snap = null; save();
+    if (sn.stuck) renderTry(); else screenResult();
   }
   function pushTry(result) {
     var b = U.block, t = { card: U.cardId, origin: U.origin, at: U.tryStart, dur: U.tryDur, result: result };
@@ -1435,33 +1500,44 @@ function boot() {
     save();
   }
   function result(r) {
-    var b = U.block; pushTry(r);
+    var b = U.block;
+    U.snap = { cardId: U.cardId, origin: U.origin, mode: U.mode, step: U.step, dur: U.dur, peek: U.peek, tryStart: U.tryStart, tryDur: U.tryDur, stuck: !!U.stuckTap };
+    U.stuckTap = false; pushTry(r);
     if (r >= 0.5) {
       var c = card(U.cardId), mins = Math.max(1, Math.round((now() - b.at) / 60000));
       endBlock("reprise");
       var said = "Tu as trouvé ce qui t’aide : « " + c.title + " ». C’était en " + mins + " min.";
-      show('<div class="done">' + svg("check") + '<div class="qrow"><h1>Tu es reparti !</h1>' + sayBtn("Tu es reparti ! " + said, true) + "</div>" +
-        '<p class="sub">' + esc(said) + "</p>" +
-        '<button class="btn primary" data-a="work">' + (U.task ? "Je continue" : "Terminer") + "</button></div>", { center: true });
+      show('<div class="done restart">' + THREAD + '<div class="qrow"><h1>Tu es reparti !</h1>' + sayBtn("Tu es reparti ! " + said, true) + "</div>" +
+        '<p class="sub">Tu as trouvé ce qui t’aide : « <b>' + esc(c.title) + "</b> ». C’était en " + mins + " min.</p>" +
+        '<button class="big" data-a="work">' + svg("next") + (U.task ? "Je continue" : "Terminer") + "</button>" + undoFoot() + "</div>", { center: true });
       return;
     }
     afterNon();
   }
   function afterNon() {
     var b = U.block, n = nonCount(b), L = U.line, next;
-    if (n >= 3) return goHelp();
+    if (n >= 3) return helpOrPause();
     if (b.family === "plan") return screenFamilies(false, "Pas grave. Où ça coince ?");
     next = nextUntried(L.seq, b);
-    if (n === 1 && next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.");
-    if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee", "Tu continues d’essayer. C’est ça qui compte.");
+    if (n === 1 && next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.", true);
+    if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee", "Tu continues d’essayer. C’est ça qui compte.", true);
     if (L.then && !b.switched) {
       b.switched = L.then; b.answers.push("→ " + famLabel(L.then)); save();
       show(title("Ça coince peut-être ailleurs.") + '<p class="sub">Tu as bien essayé. On regarde une autre piste.</p>' +
         '<button class="big" data-a="switch">' + svg("loop") + "D’accord</button>" + backToTask());
       return;
     }
-    if (next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.");
+    if (next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.", true);
+    if (n >= 2) return helpOrPause();
     goHelp();
+  }
+  /* Entre le dernier « non » et l'écran d'aide : une pause, un message, un bouton. L'aide dense vient après. */
+  function screenPause() {
+    var b = U.block, n = nonCount(b), msg = n >= 3 ? "Tu as essayé trois fois." : "Tu as bien essayé.", sub = "C’est le moment de demander de l’aide.";
+    U.pausedFor = b;
+    show('<div class="pause"><div class="qrow"><h1>' + esc(msg) + "</h1>" + sayBtn(msg + " " + sub, true) + '</div><p class="sub">' + esc(sub) + "</p>" +
+      '<button class="big" data-a="pauseGo">' + svg("next") + "Continuer</button>" + undoFoot() + "</div>", { center: true });
+    liveEl.textContent = ""; setTimeout(function () { liveEl.textContent = msg + " " + sub; }, 60);
   }
   /* Deux écrans d'aide : avec un adulte (demander), sans adulte (préparer sa question, « ? » dans la marge). */
   function screenHelp() {
@@ -1476,7 +1552,7 @@ function boot() {
         '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
     }
     var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
-    if (!msg && nonCount(b) >= 2) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
+    if (!msg && nonCount(b) >= 2 && U.pausedFor !== b) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
     var starters = (msg ? cheerHtml(msg) : "") +
       '<div class="choice-row"><div class="starter" style="flex:1"><span class="sl">J’ai compris…</span><span class="sl">Je bloque sur…</span><span class="sl">J’ai essayé…' +
       (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</span></div>" +
@@ -1838,9 +1914,9 @@ function boot() {
       '<div class="panel"><h2>En classe</h2>' +
       "<p>1. Présentez d’abord les stratégies vous-même, sur une vraie tâche : l’outil rappelle une stratégie, il ne l’enseigne pas.</p>" +
       "<p>2. Donnez une règle simple : « deux minutes sans avancer, j’appuie ».</p>" +
-      "<p>3. Après trois essais sans reprise, l’outil aide à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p>" +
+      "<p>3. Après trois essais sans reprise, une courte pause (un message, un bouton « Continuer ») précède l’aide : l’outil aide alors à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p>" +
       "<p>4. Après un « Non », l’outil dit une phrase courte qui reconnaît l’effort (« Pas grave. On essaie autre chose. »). Il ne donne ni points ni récompenses. « Ça ne va pas du tout » est toujours visible, à part des cinq familles.</p>" +
-      "<p>5. Pour poser une question, l’élève voit au plus quatre réponses : « Autre chose » ouvre les suivantes. « Étape précédente » corrige une erreur de tap sans abandonner le blocage. Pendant une stratégie, « Je n’y arrive pas » compte comme un « Non » sans obliger l’élève à faire semblant de finir.</p></div>" +
+      "<p>5. Pour poser une question, l’élève voit au plus quatre réponses : « Autre chose » ouvre les suivantes. « Étape précédente » corrige une erreur de tap sans abandonner le blocage, et « Je me suis trompé » annule la dernière réponse à « Ça repart ? ». Pendant une stratégie, « Je n’y arrive pas » compte comme un « Non » sans obliger l’élève à faire semblant de finir.</p></div>" +
       '<div class="panel"><h2>Le code de cet espace</h2>' +
       "<p>Le code de départ est " + DEFAULT_PIN + ". Changez-le dans « Réglages » : il est lisible dans le code source du site. Chaque élève peut aussi avoir son propre code (« Élèves ») : il est demandé quand on touche sa vignette, et le code de l’espace enseignante l’ouvre aussi. Si vous effacez le code de l’espace enseignante, tout élève qui touche le bouton « tableau » en haut de l’accueil entre ici, et un rappel s’affiche en haut de cet espace (« Plus tard » le masque jusqu’au prochain retour à l’accueil).</p></div>" +
       '<div class="panel"><h2>Adulte disponible ou non</h2>' +
@@ -1954,7 +2030,7 @@ function boot() {
     tryStuck: function () {
       var b = U.block;
       if (b.family === "F0" || card(U.cardId).stop) return tried();
-      U.tryDur = now() - U.tryStart; result(0);
+      U.tryDur = now() - U.tryStart; U.stuckTap = true; result(0);
     },
     setDur: function (d) { U.dur = parseInt(d.m, 10) || null; renderTry(); },
     viewMethod: function (d) { screenViewMethod(d.id); },
@@ -1993,6 +2069,8 @@ function boot() {
     other: function () { var a = alternatives(U.block, U.cardId); if (a.length) proposeCard(a[0], "choisie"); },
     tried: function () { tried(); },
     backTry: function () { renderTry(); },
+    undoResult: function () { undoResult(); },
+    pauseGo: function () { goHelp(); },
     result: function (d) { result(parseFloat(d.r)); },
     "switch": function () { askQuestion(U.block.switched); },
     cancelBlock: function () { if (U.block && !U.block.end) { if (U.block.tries.length) endBlock("abandon"); else endBlock("annule"); } backToWork(); },
