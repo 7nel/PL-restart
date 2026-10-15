@@ -1097,7 +1097,7 @@ function boot() {
     { icon: "pencil", title: "Je travaille", line: "J’utilise l’outil pour travailler. Je réponds aux questions." },
     { icon: "buoy", title: "Je bloque", line: "Si je bloque, j’appuie sur « Je bloque ». C’est normal." },
     { icon: "question", title: "Je cherche une stratégie", line: "Je dis où ça coince. L’outil me propose une stratégie." },
-    { icon: "check", title: "J’essaie", line: "J’essaie la stratégie. Soit ça repart, soit je peux avoir plus d’aide." }
+    { icon: "check", title: "J’essaie", line: "J’essaie la stratégie. Si ça marche, je continue. Sinon, j’ai de l’aide." }
   ];
   function screenGuide(i) {
     i = Math.max(0, Math.min(GUIDE.length - 1, i || 0)); U.guideI = i;
@@ -1560,8 +1560,8 @@ function boot() {
   /* « Ça repart ? » : l'essai en cours (« essai 2 sur 3 ») et un retour bien visible si l'élève a tapé trop vite. */
   function screenResult() {
     var b = U.block, plan = b.family === "plan";
-    /* stratégie du plan d'attaque : on n'est pas bloqué, la question porte sur l'étape (« Tu vois plus clair ? »), sans compteur d'essais */
-    show(title(plan ? "Tu vois plus clair ?" : "Ça repart ?") + (plan ? "" : '<p class="sub">Essai ' + Math.min(nonCount(b) + 1, 3) + " sur 3</p>") + '<div class="choices">' +
+    /* stratégie du plan d'attaque : on n'est pas bloqué, la question porte sur l'étape (« Tu comprends mieux ? »), sans compteur d'essais */
+    show(title(plan ? "Tu comprends mieux ?" : "Ça repart ?") + (plan ? "" : '<p class="sub">Essai ' + Math.min(nonCount(b) + 1, 3) + " sur 3</p>") + '<div class="choices">' +
       choice("result", { r: "1" }, "Oui", "check", null, "yes") +
       choice("result", { r: "0.5" }, "Un peu", "half", null, "mid") +
       choice("result", { r: "0" }, "Pas encore", "cross", null, "no") + "</div>" +
@@ -1667,7 +1667,7 @@ function boot() {
       '<span class="sl">Je bloque sur…' + (cause ? " <b>" + esc(cause) + "</b>" : "") + "</span>" +
       '<span class="sl">J’ai essayé…' + (tried.length ? " <b>" + esc(tried.join(", ")) + "</b>" : "") + "</span></div>" +
       sayBtn("J’ai compris. Je bloque sur " + (cause || "") + ". J’ai essayé " + tried.join(", ")) + "</div>";
-    var passe = '<button class="btn' + (alone ? " primary" : "") + '" data-a="passe">' + svg("question") + "Je mets un ? et je passe à la suite</button>";
+    var passe = '<button class="btn' + (alone ? " primary" : "") + '" data-a="passe">' + svg("question") + "Je note ma question et je continue</button>";
     var stop = U.task ? '<button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "";
     if (alone) {
       return show(title("Prépare ta question.") + starters +
