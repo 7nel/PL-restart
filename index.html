@@ -209,6 +209,16 @@ function boot() {
     .pause .sub { font-size: 1.3rem; max-width: 24em; }
     .pause .big { max-width: 520px; }
     .pause .foot { justify-content: center; }
+    /* guide « Comment ça marche ? » : quatre écrans, à projeter ou à relire ; aucun mouvement */
+    .guide { display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+    .guide .qrow { justify-content: center; align-items: center; }
+    .guide h1 { flex: none; font-size: clamp(2rem, 7vw, 2.8rem); line-height: 1.15; text-wrap: balance; }
+    .guide h1:focus-visible { outline: none; } /* titre non interactif, pris au focus par show() : pas de cadre qui ressemble à un champ */
+    .guide-ic .ic { width: 88px; height: 88px; color: var(--accent); }
+    .guide-text { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .guide-line { margin: 0; max-width: 20em; font-weight: 400; font-size: clamp(1.25rem, 3.8vw, 1.6rem); line-height: 1.5; text-wrap: balance; }
+    .guide .big { max-width: 520px; }
+    .guide .foot { width: 100%; justify-content: center; gap: 12px 24px; }
     .empty { text-align: center; color: var(--muted); padding: 24px 8px; }
     ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
     .count { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
@@ -1075,6 +1085,29 @@ function boot() {
     save();
   }
 
+  /* ---------- guide « Comment ça marche ? » ---------- */
+  /* Textes proposés, douze mots au plus par phrase : à valider par l'enseignante avant diffusion. */
+  var GUIDE = [
+    { icon: "pencil", title: "Je travaille", line: "J’utilise l’outil pour travailler. Je réponds aux questions." },
+    { icon: "buoy", title: "Je bloque", line: "Si je bloque, j’appuie sur « Je bloque ». C’est normal." },
+    { icon: "question", title: "Je cherche une stratégie", line: "Je dis où ça coince. L’outil me propose une stratégie." },
+    { icon: "check", title: "J’essaie", line: "J’essaie la stratégie. Soit ça repart, soit je peux avoir plus d’aide." }
+  ];
+  function screenGuide(i) {
+    i = Math.max(0, Math.min(GUIDE.length - 1, i || 0)); U.guideI = i;
+    var g = GUIDE[i], last = i === GUIDE.length - 1;
+    show('<div class="guide"><p class="sub">Étape ' + (i + 1) + " sur " + GUIDE.length + "</p>" +
+      '<div class="guide-ic" aria-hidden="true">' + svg(g.icon) + "</div>" +
+      /* un seul haut-parleur : il lit le titre puis la phrase */
+      '<div class="guide-text"><div class="qrow"><h1>' + esc(g.title) + "</h1>" + sayBtn(g.title + ". " + g.line, true) + "</div>" +
+      '<p class="guide-line">' + esc(g.line) + "</p></div>" +
+      '<button class="big" data-a="' + (last ? "guideEnd" : "guideNext") + '">' + svg(last ? "check" : "next") + (last ? "J’ai compris" : "Suivant") + "</button>" +
+      '<div class="foot">' + (i > 0 ? '<button class="link" data-a="guidePrev">' + svg("back") + "Étape précédente</button>" : "") +
+      (last ? "" : '<button class="link" data-a="guideEnd">' + svg("home") + "Fermer</button>") + "</div></div>", { center: true });
+  }
+  function guideLink(from) {
+    return '<button class="link" data-a="guide" data-from="' + from + '">' + svg("question") + "Comment ça marche ?</button>";
+  }
   /* ---------- écrans élève ---------- */
   function goHome() {
     U.sid = null; U.task = null; U.block = null; U.unlocked = false; U.free = false; U.pinLater = false;
@@ -1087,7 +1120,8 @@ function boot() {
       }).join("") + "</div>";
     }
     /* second mode : aller droit au blocage, sans vignette ni tâche ; rien n'est enregistré sauf rattachement à un élève */
-    html += '<div class="choices">' + choice("free", {}, "Juste un coup de main", "buoy", "Sans suivi : rien n’est enregistré.") + "</div>";
+    html += '<div class="choices">' + choice("free", {}, "Juste un coup de main", "buoy", "Sans suivi : rien n’est enregistré.") + "</div>" +
+      '<div class="foot"><span></span>' + guideLink("home") + "</div>";
     show(html, { gear: true, who: false });
   }
   function startFree() {
@@ -1226,6 +1260,7 @@ function boot() {
       '<button class="big" data-a="blocked">' + svg("buoy") + "Je bloque</button>" +
       '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
       adultChips("adultWork", t.adult === true || t.adult === false ? t.adult : null) +
+      '<div class="foot"><span></span>' + guideLink("work") + "</div>" +
       "", { center: true });
     if (S.settings.chrono) {
       var el = document.getElementById("chrono");
@@ -1966,7 +2001,10 @@ function boot() {
       '<div class="formrow"><label class="field"><span>Confirmation</span><input type="text" id="wipeWord" autocomplete="off"></label><button class="btn danger fit" data-a="wipe">Tout effacer</button></div></div>';
   }
   function tabAide() {
-    return '<div class="panel"><h2>Deux façons de l’utiliser</h2>' +
+    return '<div class="panel"><h2>Présenter l’outil à la classe</h2>' +
+      "<p>Quatre écrans à projeter pour expliquer la démarche : « Je travaille », « Je bloque », « Je cherche une stratégie », « J’essaie ». Les élèves peuvent les rouvrir eux-mêmes avec « Comment ça marche ? », sur l’accueil et sur l’écran de travail.</p>" +
+      '<div class="row"><button class="btn primary" data-a="guide" data-from="teacher">' + svg("board") + "Montrer le guide à la classe</button></div></div>" +
+      '<div class="panel"><h2>Deux façons de l’utiliser</h2>' +
       "<p><b>Avec suivi.</b> L’élève choisit sa vignette, sa tâche, sa matière, le lieu, et dit si un adulte peut l’aider. L’outil enregistre les blocages, les stratégies essayées et les reprises.</p>" +
       "<p><b>Juste un coup de main.</b> On commence directement par « Où ça coince ? » ; « Un adulte peut t’aider ? » n’est posé qu’au moment de l’aide. Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
       '<div class="panel"><h2>Comment l’outil choisit</h2>' +
@@ -2053,6 +2091,10 @@ function boot() {
     piperDl: function () { piperDownload(); },
     piperRm: function () { piperRemove(); },
     home: function () { goHome(); },
+    guide: function (d) { U.guideFrom = d.from || "home"; screenGuide(0); },
+    guideNext: function () { screenGuide((U.guideI || 0) + 1); },
+    guidePrev: function () { screenGuide((U.guideI || 0) - 1); },
+    guideEnd: function () { if (U.guideFrom === "teacher") openTeacher(); else if (U.guideFrom === "work") backToWork(); else goHome(); },
     teacher: function () { openTeacher(); },
     pick: function (d) { var st = student(d.id); if (st && st.code) screenStudentCode(d.id); else pickStudent(d.id); },
     codeOk: function () {
