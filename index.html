@@ -225,11 +225,16 @@ function boot() {
     .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
     .panel p { margin: 0; }
     .panel.warn { background: var(--warm-soft); border-color: var(--warm); }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-    .stat { padding: 12px 14px; border-radius: 14px; background: var(--surface-alt); }
+    .panel.warn.compact { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 16px; }
+    .panel.warn.compact p { flex: 1 1 280px; }
+    .panel.warn.compact .row { flex: 0 1 auto; flex-wrap: nowrap; }
+    .panel.warn.compact .row > .btn { flex: 0 0 auto; min-height: 48px; padding: 8px 18px; font-size: 1rem; }
+    @media (max-width: 640px) { .panel.warn.compact .row { flex: 1 1 100%; } .panel.warn.compact .row > .btn { flex: 1 1 0; } }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+    .stat { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 14px; background: var(--surface-alt); }
     .stat b { display: block; font-family: var(--display); font-size: 1.5rem; }
-    .stat span { color: var(--muted); font-size: 0.9rem; }
-    .field { display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem; }
+    .stat span { color: var(--muted); font-size: 0.9rem; text-wrap: balance; }
+    .field { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
     .field > span { color: var(--muted); font-weight: 700; }
     input[type="text"], input[type="password"], input[type="number"], select, textarea { min-height: 46px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line-ctl); background: var(--surface); width: 100%; }
     textarea { min-height: 70px; resize: vertical; }
@@ -239,14 +244,14 @@ function boot() {
     .formrow > * { flex: 1 1 160px; }
     .formrow > .fit { flex: 0 0 auto; }
     .tw { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
     th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+    th { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
     td select { min-height: 40px; min-width: 130px; }
     progress { width: 100%; height: 14px; accent-color: var(--accent); }
     .panel details { margin-top: 10px; }
     .panel summary { font-weight: 700; min-height: 44px; display: flex; align-items: center; cursor: pointer; }
-    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; background: var(--surface-alt); white-space: nowrap; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.9rem; font-weight: 700; background: var(--surface-alt); white-space: nowrap; }
     .tag.ok { background: var(--accent-soft); } .tag.ko { background: var(--red-soft); } .tag.mid { background: var(--warm-soft); }
     .blk { display: grid; grid-template-columns: 1fr 230px; gap: 12px 20px; padding: 14px 0; border-top: 1px solid var(--border); }
     .blk-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -1676,7 +1681,7 @@ function boot() {
     if (U.teacherSid && !student(U.teacherSid)) U.teacherSid = S.students.length ? S.students[0].id : null;
     var tabs = [["suivi", "Suivi"], ["eleves", "Élèves"], ["reglages", "Réglages"], ["cartes", "Cartes et libellés"], ["donnees", "Données"], ["aide", "Mode d’emploi"]];
     var html = '<h1>Espace enseignante</h1>' + (S.settings.pin || U.pinLater || !S.students.length ? "" :
-      '<div class="panel warn"><p><b>Pas de code pour l’instant.</b> Un élève qui touche le bouton « tableau » en haut de l’accueil entre ici et voit les données de la classe.</p>' +
+      '<div class="panel warn compact"><p><b>Pas de code pour l’instant.</b> Un élève qui touche le bouton « tableau » en haut de l’accueil entre ici et voit les données de la classe.</p>' +
       '<div class="row"><button class="btn primary" data-a="goPin">Définir un code</button><button class="btn" data-a="laterPin">Plus tard</button></div></div>') +
       '<div class="tabs" role="tablist">' + tabs.map(function (t) {
       return '<button class="tab' + (U.teacherTab === t[0] ? " on" : "") + '" role="tab" aria-selected="' + (U.teacherTab === t[0]) + '" data-a="tab" data-id="' + t[0] + '">' + t[1] + "</button>";
@@ -1717,6 +1722,11 @@ function boot() {
     };
   }
   function pct(x) { return x === null ? "–" : Math.round(x * 100) + " %"; }
+  /* Réponses affichées à côté de la cause : sans celle qui répète l'intitulé de la famille (affichage seulement, b.answers reste intact). */
+  function shownAnswers(b) {
+    var fam = famLabel(b.family);
+    return b.answers.filter(function (a) { return a !== fam; });
+  }
   function tabSuivi() {
     if (!S.students.length) return '<div class="panel"><p>Ajoutez d’abord un élève dans l’onglet « Élèves ».</p></div>';
     var sid = U.teacherSid, s = stats(sid);
@@ -1730,7 +1740,7 @@ function boot() {
     if (!bs.length) return html + '<div class="panel"><p>Aucun blocage enregistré pour cet élève.</p></div>';
     html += '<div class="panel"><h2>Blocages, du plus récent au plus ancien</h2>' + bs.map(function (b) {
       var t = byId(S.tasks, b.tid) || {}, tt = byId(TASK_TYPES, t.type || b.type) || { label: b.tid ? "?" : "Tâche non précisée" };
-      var cause = b.family === "garde" ? "Blocages répétés (garde-fou)" : esc(famLabel(b.family)) + (b.answers.length ? ' <span class="small">· ' + esc(b.answers.join(" · ")) + "</span>" : "");
+      var cause = b.family === "garde" ? "Blocages répétés (garde-fou)" : esc(famLabel(b.family)) + (shownAnswers(b).length ? ' <span class="small">· ' + esc(shownAnswers(b).join(" · ")) + "</span>" : "");
       var tries = b.tries.map(function (x) {
         var c = card(x.card), r = x.result === null ? "" : (x.result === 1 ? "oui" : (x.result === 0.5 ? "un peu" : "non"));
         return esc(c ? c.title : x.card) + (r ? ' <span class="tag ' + (x.result === 1 ? "ok" : (x.result === 0 ? "ko" : "mid")) + '">' + r + "</span>" : "") + (x.origin === "choisie" ? ' <span class="tag">son choix</span>' : "") +
