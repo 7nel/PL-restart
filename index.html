@@ -49,8 +49,7 @@ function boot() {
     /* identité commune à la famille PL : monogramme, nom de l'outil, retour vers PL */
     .pl-id { display: flex; align-items: center; gap: 6px 12px; min-width: 0; }
     .pl-name { min-height: 44px; font-weight: 700; font-size: 1.1rem; line-height: 1.5; color: inherit; text-decoration: none; background: none; border: 0; padding: 0; }
-    .pl-logo { position: relative; display: inline-flex; flex: none; border-radius: 50%; line-height: 0; }
-    .pl-logo::after { content: ""; position: absolute; inset: -8px; }
+    .pl-logo { display: inline-flex; flex: none; border-radius: 50%; line-height: 0; padding: 8px; margin: -8px; } /* cible tactile de 44 px, monogramme inchangé */
     .pl-mark { width: 1.6em; height: 1.6em; flex: none; }
     .pl-mark circle { fill: var(--accent); }
     .pl-mark g { stroke: var(--bg); }
@@ -83,7 +82,7 @@ function boot() {
     .choice.calm .ic { color: var(--calm); }
     .cheer { flex: 1; margin: 0; padding: 14px 18px; border-radius: 14px; background: var(--accent-soft); font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.5; }
     .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; font-size: 1rem; }
-    .choice.yes .ic { color: var(--accent); } .choice.no .ic { color: var(--red); } .choice.mid .ic { color: var(--warm); }
+    .choice.yes .ic { color: var(--accent); } .choice.no .ic { color: var(--muted); } .choice.mid .ic { color: var(--warm); }
     .say { flex: none; width: 58px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--border); background: var(--surface-alt); color: var(--muted); }
     .say .ic { width: 26px; height: 26px; }
     .say.small { width: 48px; height: 48px; border-radius: 14px; }
@@ -233,7 +232,7 @@ function boot() {
     .field > span { color: var(--muted); font-weight: 700; }
     input[type="text"], input[type="password"], input[type="number"], select, textarea { min-height: 46px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); width: 100%; }
     textarea { min-height: 70px; resize: vertical; }
-    input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); }
+    input[type="checkbox"] { width: 28px; height: 28px; flex: none; accent-color: var(--accent); }
     label.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
     .formrow { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
     .formrow > * { flex: 1 1 160px; }
@@ -260,7 +259,22 @@ function boot() {
     .avatars { display: flex; gap: 8px; flex-wrap: wrap; }
     .avatar { width: 52px; height: 52px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; }
     .avatar .ic { width: 28px; height: 28px; color: var(--accent); }
-    @media (max-width: 520px) { .choice { font-size: 1.1rem; min-height: 72px; gap: 12px; padding: 12px 14px; } .say { width: 50px; } }
+    @media (max-width: 520px) {
+      .choice { font-size: 1.1rem; min-height: 64px; gap: 10px; padding: 10px 12px; }
+      .choice .ic { width: 30px; height: 30px; }
+      .choices { gap: 10px; }
+      .say { width: 46px; }
+      .tiles > :last-child:nth-child(odd) { grid-column: 1 / -1; } /* pas de tuile orpheline */
+      main { gap: 14px; }
+      .tab { padding: 8px 12px; }
+      /* en-tête sur une seule ligne : logo, nom, thème, pastille */
+      header.top { flex-wrap: nowrap; gap: 6px; }
+      .pl-id { gap: 8px; flex: 0 1 auto; }
+      .pl-name { font-size: 1rem; white-space: nowrap; }
+      .topright { gap: 2px; flex: none; }
+      .who { padding: 4px 10px 4px 8px; gap: 6px; font-size: 1rem; white-space: nowrap; }
+      .who .ic { width: 20px; height: 20px; }
+    }
     /* Projection : grands écrans, écrans élève seulement (l'espace enseignante, .wide, garde sa taille) */
     @media (min-width: 1400px) and (min-height: 760px) { html:has(.page:not(.wide)) { font-size: 150%; } .page:not(.wide) { max-width: 1080px; } }
     @media (min-width: 1800px) and (min-height: 900px) { html:has(.page:not(.wide)) { font-size: 180%; } .page:not(.wide) { max-width: 1280px; } }
@@ -1059,9 +1073,8 @@ function boot() {
   function startFree() {
     U.free = true; U.sid = null; U.task = null;
     newBlock(null);
-    /* la question de l'adulte se pose ici, une fois, pas au troisième « non » */
-    U.pending = { start: true };
-    screenAsk("adult");
+    /* pas de question avant la première aide : « Un adulte peut t’aider ? » se pose seulement au moment de l'aide (goHelp) */
+    screenFamilies();
   }
   function newBlock(t) {
     var at = now();
@@ -1234,14 +1247,21 @@ function boot() {
     }).join("") + '</div><div class="foot"><button class="link" data-a="families">' + svg("back") + "Retour</button></div>");
   }
   /* Question de contexte posée en route (matière, tâche ou lieu), seulement quand elle change la stratégie. */
+  var TASK_FIRST = ["lire", "ecrire", "reviser"];
   function screenAsk(key) {
     var opts, q;
+    if (key !== "type") U.askRest = false;
     if (key === "subject") { q = "C’est en quelle matière ?"; opts = SUBJECTS.map(function (x) { return [x, x, null]; }); }
-    else if (key === "type") { q = "C’est pour quelle tâche ?"; opts = TASK_TYPES.map(function (t) { return [t.id, t.label, t.icon]; }); }
+    else if (key === "type") {
+      /* trois tâches d'abord, puis « Autre chose » : au plus quatre choix par écran */
+      q = "C’est pour quelle tâche ?";
+      opts = TASK_TYPES.filter(function (t) { return (TASK_FIRST.indexOf(t.id) < 0) === !!U.askRest; }).map(function (t) { return [t.id, t.label, t.icon]; });
+      if (!U.askRest) opts.push(["__more", "Autre chose", "dots"]);
+    }
     else if (key === "adult") { q = "Un adulte peut t’aider ?"; opts = [["1", "Oui", "people"], ["0", "Non", "cross"]]; }
     else { q = "Tu es où ?"; opts = [["classe", "En classe", "book"], ["maison", "À la maison", "home"]]; }
     U.askKey = key;
-    var cheer = key === "adult" && U.block && nonCount(U.block) >= 2 ? cheerHtml("Tu as bien essayé. On cherche de l’aide.") : "";
+    var cheer = key === "adult" && U.block && nonCount(U.block) >= 1 ? cheerHtml("Tu as bien essayé. On cherche de l’aide.") : "";
     show(title(q) + cheer + '<div class="tiles">' + opts.map(function (o) {
       return '<button class="tile" data-a="ctxPick" data-id="' + esc(o[0]) + '">' + (o[2] ? svg(o[2]) : "") + "<span>" + esc(o[1]) + "</span></button>";
     }).join("") + "</div>" + (key === "adult" ? '<p class="hint">Pour choisir une aide qui te convient.</p>' : "") + backToTask());
@@ -1474,7 +1494,7 @@ function boot() {
     show(title("Ça repart ?") + '<p class="sub">Essai ' + Math.min(nonCount(b) + 1, 3) + " sur 3</p>" + '<div class="choices">' +
       choice("result", { r: "1" }, "Oui", "check", null, "yes") +
       choice("result", { r: "0.5" }, "Un peu", "half", null, "mid") +
-      choice("result", { r: "0" }, "Non", "cross", null, "no") + "</div>" +
+      choice("result", { r: "0" }, "Pas encore", "cross", null, "no") + "</div>" +
       (card(U.cardId).guide ? "" : '<div class="foot"><button class="link undo" data-a="backTry">' + svg("back") + "Retour à l’essai</button><span></span></div>"));
   }
   /* Annuler la dernière réponse à « Ça repart ? » : on retire l'essai enregistré et on revient à la question. */
@@ -1552,7 +1572,7 @@ function boot() {
         '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
     }
     var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
-    if (!msg && nonCount(b) >= 2 && U.pausedFor !== b) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
+    if (!msg && nonCount(b) >= 1 && U.pausedFor !== b) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
     var starters = (msg ? cheerHtml(msg) : "") +
       '<div class="choice-row"><div class="starter" style="flex:1"><span class="sl">J’ai compris…</span><span class="sl">Je bloque sur…</span><span class="sl">J’ai essayé…' +
       (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</span></div>" +
@@ -1819,14 +1839,15 @@ function boot() {
             [1, 2, 3].map(function (n) { return '<option value="' + n + '"' + (n === lv ? " selected" : "") + ">" + LEVEL_NAMES[n] + "</option>"; }).join("") +
             '</select></td><td><input type="checkbox" data-c="lock" data-id="' + sid + '" data-f="' + f.id + '"' + (st.lock[f.id] ? " checked" : "") + ' aria-label="Verrouiller le niveau"></td></tr>';
         }).join("") + "</tbody></table></div>";
-      html += '<div class="panel"><div class="formrow"><span class="who fit">' + svg(st.icon) + esc(st.name) + "</span><span></span>" +
-        '<button class="btn danger fit" data-a="delStudent" data-id="' + sid + '">Supprimer</button></div>' +
+      html += '<div class="panel"><div class="formrow"><span class="who fit">' + svg(st.icon) + esc(st.name) + "</span><span></span></div>" +
         '<label class="field" style="max-width:340px"><span>Code de ' + esc(st.name) + ' (facultatif)</span><input type="text" data-c="stCode" data-id="' + sid + '" maxlength="20" value="' + esc(st.code || "") + '" autocomplete="off"></label>' +
         '<label class="check"><input type="checkbox" data-c="planOn" data-id="' + sid + '"' + (st.plan ? " checked" : "") + ">Écran « Mon plan d’attaque » au démarrage d’une tâche</label>" +
         '<label class="check"><input type="checkbox" data-c="checkOn" data-id="' + sid + '"' + (st.check ? " checked" : "") + ">Liste « Avant de rendre » quand la tâche est terminée</label>" +
         fold("st:" + st.id, "Stratégies de " + esc(st.name) + ' <span class="sum">· ' + knownMethods(st.id, "fr").length + " sur 14 du dossier de français vues</span>", strat) +
         fold("lv:" + st.id, "Qui choisit la carte, par famille de blocage", levels) +
-        '<p class="small">Épinglées : ' + (st.pinned.length ? st.pinned.map(function (id) { var c = card(id); return esc(c ? c.title : id); }).join(", ") : "aucune") + "</p></div>";
+        '<p class="small">Épinglées : ' + (st.pinned.length ? st.pinned.map(function (id) { var c = card(id); return esc(c ? c.title : id); }).join(", ") : "aucune") + "</p>" +
+        /* action destructrice en fin de fiche, confirmée en deux temps */
+        '<div class="formrow"><span></span><span></span><button class="btn danger fit" data-a="delStudent" data-id="' + sid + '">Supprimer ' + esc(st.name) + "</button></div></div>";
     });
     return html;
   }
@@ -1903,7 +1924,7 @@ function boot() {
   function tabAide() {
     return '<div class="panel"><h2>Deux façons de l’utiliser</h2>' +
       "<p><b>Avec suivi.</b> L’élève choisit sa vignette, sa tâche, sa matière, le lieu, et dit si un adulte peut l’aider. L’outil enregistre les blocages, les stratégies essayées et les reprises.</p>" +
-      "<p><b>Juste un coup de main.</b> On commence par « Un adulte peut t’aider ? », puis « Où ça coince ? ». Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
+      "<p><b>Juste un coup de main.</b> On commence directement par « Où ça coince ? » ; « Un adulte peut t’aider ? » n’est posé qu’au moment de l’aide. Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
       '<div class="panel"><h2>Comment l’outil choisit</h2>' +
       "<p>Il croise le blocage, la tâche, la matière et le lieu. S’il lui manque une information qui change la stratégie, il la demande en un écran.</p>" +
       "<p>Cinq domaines de stratégies : le dossier de français (14), les maths (7), réviser et mémoriser (6), les langues (6), la fatigue et le stress (6). S’y ajoutent les cartes générales et quatre outils d’apaisement guidés, repris du site PL-CPS’.</p>" +
@@ -1915,8 +1936,8 @@ function boot() {
       "<p>1. Présentez d’abord les stratégies vous-même, sur une vraie tâche : l’outil rappelle une stratégie, il ne l’enseigne pas.</p>" +
       "<p>2. Donnez une règle simple : « deux minutes sans avancer, j’appuie ».</p>" +
       "<p>3. Après trois essais sans reprise, une courte pause (un message, un bouton « Continuer ») précède l’aide : l’outil aide alors à formuler une demande précise, ou à mettre un « ? » dans la marge et à passer à la suite.</p>" +
-      "<p>4. Après un « Non », l’outil dit une phrase courte qui reconnaît l’effort (« Pas grave. On essaie autre chose. »). Il ne donne ni points ni récompenses. « Ça ne va pas du tout » est toujours visible, à part des cinq familles.</p>" +
-      "<p>5. Pour poser une question, l’élève voit au plus quatre réponses : « Autre chose » ouvre les suivantes. « Étape précédente » corrige une erreur de tap sans abandonner le blocage, et « Je me suis trompé » annule la dernière réponse à « Ça repart ? ». Pendant une stratégie, « Je n’y arrive pas » compte comme un « Non » sans obliger l’élève à faire semblant de finir.</p></div>" +
+      "<p>4. Après un « Pas encore », l’outil dit une phrase courte qui reconnaît l’effort (« Pas grave. On essaie autre chose. »). Il ne donne ni points ni récompenses. « Ça ne va pas du tout » est toujours visible, à part des cinq familles.</p>" +
+      "<p>5. Pour poser une question, l’élève voit au plus quatre réponses : « Autre chose » ouvre les suivantes. « Étape précédente » corrige une erreur de tap sans abandonner le blocage, et « Je me suis trompé » annule la dernière réponse à « Ça repart ? ». Pendant une stratégie, « Je n’y arrive pas » compte comme un « Pas encore » sans obliger l’élève à faire semblant de finir.</p></div>" +
       '<div class="panel"><h2>Le code de cet espace</h2>' +
       "<p>Le code de départ est " + DEFAULT_PIN + ". Changez-le dans « Réglages » : il est lisible dans le code source du site. Chaque élève peut aussi avoir son propre code (« Élèves ») : il est demandé quand on touche sa vignette, et le code de l’espace enseignante l’ouvre aussi. Si vous effacez le code de l’espace enseignante, tout élève qui touche le bouton « tableau » en haut de l’accueil entre ici, et un rappel s’affiche en haut de cet espace (« Plus tard » le masque jusqu’au prochain retour à l’accueil).</p></div>" +
       '<div class="panel"><h2>Adulte disponible ou non</h2>' +
@@ -2010,7 +2031,9 @@ function boot() {
     attach: function () { screenAttach(); },
     attachPick: function (d) { var b = U.block; if (b && !b.sid && student(d.id)) { b.sid = d.id; U.sid = d.id; S.blocks.push(b); save(); } screenFamilies(); },
     ctxPick: function (d) {
-      var b = U.block, k = U.askKey, pend = U.pending; U.pending = null;
+      var b = U.block, k = U.askKey, pend = U.pending;
+      if (d.id === "__more") { U.askRest = true; return screenAsk("type"); }
+      U.pending = null; U.askRest = false;
       if (!b || !k) return;
       if (k === "adult") { setAdult(d.id === "1"); return pend && pend.start ? screenFamilies() : goHelp(); }
       b[k] = d.id; if (U.task && !U.task[k]) U.task[k] = d.id; save();
