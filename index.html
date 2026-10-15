@@ -161,6 +161,10 @@ function boot() {
     .plan-item { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-family: var(--display); font-weight: 600; font-size: 1.02rem; line-height: 1.5; text-align: left; }
     .plan-item .num { flex: none; width: 1.8em; height: 1.8em; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; }
     .center .chips { justify-content: center; }
+    /* écran de travail : plan en cartes numérotées (deux colonnes, même sur téléphone), « J'ai fini » à l'écart de « Je bloque » */
+    .plan-label { margin: 0 0 -8px; align-self: flex-start; text-align: left; font-weight: 700; }
+    .plan-grid.work { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .plan-grid.work .plan-item { min-height: 56px; padding: 8px 12px; font-size: 1rem; }
     .center .sub { text-align: center; }
     .choice[data-a="checkToggle"] svg { opacity: 0.45; }
     .choice[data-a="checkToggle"].sel svg { opacity: 1; }
@@ -186,6 +190,7 @@ function boot() {
     .taskline .ic { width: 34px; height: 34px; color: var(--accent); }
     .starter { margin: 0; padding: 14px 18px; border: 2px dashed var(--accent); background: var(--surface); border-radius: 14px; font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
     .starter .sl { display: block; }
+    .starter b { color: var(--accent); font-weight: 700; }
     .starter .sl + .sl { margin-top: 8px; }
     .starter small { display: block; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-weight: 400; font-size: 1rem; color: var(--muted); margin-top: 4px; }
     .tip { margin: 0; padding: 12px 16px; border-radius: 14px; background: var(--warm-soft); font-weight: 700; }
@@ -213,7 +218,7 @@ function boot() {
     .guide { display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
     .guide .qrow { justify-content: center; align-items: center; }
     .guide h1 { flex: none; font-size: clamp(2rem, 7vw, 2.8rem); line-height: 1.15; text-wrap: balance; }
-    .guide h1:focus-visible { outline: none; } /* titre non interactif, pris au focus par show() : pas de cadre qui ressemble à un champ */
+    main h1:focus-visible { outline: none; } /* titre non interactif, pris au focus par show() : pas de cadre qui ressemble à un champ */
     .guide-ic .ic { width: 88px; height: 88px; color: var(--accent); }
     .guide-text { display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .guide-line { margin: 0; max-width: 20em; font-weight: 400; font-size: clamp(1.25rem, 3.8vw, 1.6rem); line-height: 1.5; text-wrap: balance; }
@@ -244,7 +249,7 @@ function boot() {
           linear-gradient(to right, color-mix(in srgb, var(--ink) 16%, transparent), transparent) left / 14px 100% no-repeat scroll, linear-gradient(to left, color-mix(in srgb, var(--ink) 16%, transparent), transparent) right / 14px 100% no-repeat scroll; }
     }
     .panel { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
-    .panel p { margin: 0; }
+    .panel p { margin: 0; max-width: 70ch; }
     .panel.warn { background: var(--warm-soft); border-color: var(--warm); }
     .panel.warn.compact { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 16px; }
     .panel.warn.compact p { flex: 1 1 280px; }
@@ -260,7 +265,7 @@ function boot() {
     .field > span { color: var(--muted); font-weight: 700; }
     input[type="text"], input[type="password"], input[type="number"], select, textarea { min-height: 46px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line-ctl); background: var(--surface); width: 100%; }
     textarea { min-height: 70px; resize: vertical; }
-    input[type="checkbox"] { width: 28px; height: 28px; flex: none; accent-color: var(--accent); }
+    input[type="checkbox"] { width: 32px; height: 32px; flex: none; accent-color: var(--accent); }
     label.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
     .formrow { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
     .formrow > * { flex: 1 1 160px; }
@@ -269,7 +274,7 @@ function boot() {
     table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
     th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
     th { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
-    td select { min-height: 40px; min-width: 130px; }
+    td select { min-height: 44px; min-width: 130px; }
     progress { width: 100%; height: 14px; accent-color: var(--accent); }
     .panel details { margin-top: 10px; }
     .panel summary { font-weight: 700; min-height: 44px; display: flex; align-items: center; cursor: pointer; }
@@ -306,6 +311,7 @@ function boot() {
       .who .ic { width: 20px; height: 20px; }
     }
     /* Projection : grands écrans, écrans élève seulement (l'espace enseignante, .wide, garde sa taille) */
+    @media (min-width: 1200px) { html:has(.page:not(.wide)) { font-size: 135%; } .page:not(.wide) { max-width: 960px; } }
     @media (min-width: 1400px) and (min-height: 760px) { html:has(.page:not(.wide)) { font-size: 150%; } .page:not(.wide) { max-width: 1080px; } }
     @media (min-width: 1800px) and (min-height: 900px) { html:has(.page:not(.wide)) { font-size: 180%; } .page:not(.wide) { max-width: 1280px; } }
     @media (prefers-reduced-motion: reduce) {
@@ -1254,19 +1260,25 @@ function boot() {
       (S.settings.chrono ? '<span class="chrono" id="chrono" aria-hidden="true"></span>' : "") + "</div>" +
       '<h1 class="sr-only">Je travaille</h1>' +
       /* le plan d'attaque se fait avant de bloquer : ses stratégies passent au-dessus de « Je bloque » */
-      (t.plan && t.plan.length ? '<p class="sub">Mon plan :</p><div class="chips">' + t.plan.map(function (id) {
-        var c = card(id); return c ? '<button class="chip" data-a="planTry" data-id="' + id + '">' + (c.num ? esc(c.num) + " · " : "") + esc(c.title) + "</button>" : "";
+      (t.plan && t.plan.length ? '<p class="sub plan-label">Mon plan</p><div class="plan-grid work">' + t.plan.map(function (id) {
+        var c = card(id); return c ? '<button class="plan-item" data-a="planTry" data-id="' + id + '">' + (c.num ? '<span class="num">' + esc(c.num) + "</span>" : "") + "<span>" + esc(c.title) + "</span></button>" : "";
       }).join("") + "</div>" : "") +
       '<button class="big" data-a="blocked">' + svg("buoy") + "Je bloque</button>" +
-      '<div class="row"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
-      adultChips("adultWork", t.adult === true || t.adult === false ? t.adult : null) +
-      '<div class="foot"><span></span>' + guideLink("work") + "</div>" +
-      "", { center: true });
+      '<div class="choices apart"><button class="btn" data-a="finish">' + svg("check") + "J’ai fini</button></div>" +
+      '<div class="foot"><button class="link" data-a="adultAsk">' + svg("people") + (t.adult === true ? "Adulte : oui" : (t.adult === false ? "Adulte : non" : "Adulte ?")) + "</button>" + guideLink("work") + "</div>", { center: true });
     if (S.settings.chrono) {
       var el = document.getElementById("chrono");
       var tick = function () { if (el) el.textContent = fmtClock(now() - t.start); };
       tick(); ticker = setInterval(tick, 1000);
     }
+  }
+  /* « Adulte : oui/non » en bas de l'écran de travail : la réponse se change ici, sans surcharger l'écran */
+  function screenAdultWork() {
+    var t = U.task, cur = t.adult;
+    show(title("Un adulte peut t’aider ?") + '<div class="tiles">' + [["1", "Oui", "people", true], ["0", "Non", "cross", false]].map(function (o) {
+      return '<button class="tile' + (cur === o[3] ? " sel" : "") + '" data-a="adultWorkPick" data-id="' + o[0] + '" aria-pressed="' + (cur === o[3]) + '">' + svg(o[2]) + "<span>" + o[1] + "</span></button>";
+    }).join("") + '</div><p class="hint">Pour choisir une aide qui te convient.</p>' +
+      '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Retour à ma tâche</button></div>");
   }
   function blocked() {
     var t = U.task, at = now();
@@ -1645,10 +1657,16 @@ function boot() {
     }
     var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
     if (!msg && nonCount(b) >= 1 && U.pausedFor !== b) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
+    /* ce que l'outil sait déjà est écrit dans l'amorce (cause et essais) ; « J'ai compris… » reste à dire ou à écrire */
+    var cause = "";
+    if (b.family && b.family !== "plan" && b.family !== "garde" && b.family !== "F0") {
+      var ans = shownAnswers(b); cause = famLabel(b.family) + (ans.length ? " · " + ans.join(" · ") : "");
+    }
     var starters = (msg ? cheerHtml(msg) : "") +
-      '<div class="choice-row"><div class="starter" style="flex:1"><span class="sl">J’ai compris…</span><span class="sl">Je bloque sur…</span><span class="sl">J’ai essayé…' +
-      (tried.length ? "<small>" + esc(tried.join(", ")) + "</small>" : "") + "</span></div>" +
-      sayBtn("J’ai compris. Je bloque sur. J’ai essayé " + tried.join(", ")) + "</div>";
+      '<div class="choice-row"><div class="starter" style="flex:1"><span class="sl">J’ai compris…</span>' +
+      '<span class="sl">Je bloque sur…' + (cause ? " <b>" + esc(cause) + "</b>" : "") + "</span>" +
+      '<span class="sl">J’ai essayé…' + (tried.length ? " <b>" + esc(tried.join(", ")) + "</b>" : "") + "</span></div>" +
+      sayBtn("J’ai compris. Je bloque sur " + (cause || "") + ". J’ai essayé " + tried.join(", ")) + "</div>";
     var passe = '<button class="btn' + (alone ? " primary" : "") + '" data-a="passe">' + svg("question") + "Je mets un ? et je passe à la suite</button>";
     var stop = U.task ? '<button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "";
     if (alone) {
@@ -1799,11 +1817,13 @@ function boot() {
     if (!S.students.length) return '<div class="panel"><p>Ajoutez d’abord un élève dans l’onglet « Élèves ».</p></div>';
     var sid = U.teacherSid, s = stats(sid);
     var bs = S.blocks.filter(function (b) { return b.sid === sid && b.end && b.end !== "annule"; }).sort(function (a, b) { return b.at - a.at; });
-    var html = '<div class="panel">' + studentSelect() + '<div class="stats">' +
-      stat(s.done + " / " + s.tasks, "tâches terminées") + stat(s.blocks, "blocages") + stat(pct(s.rate), "reprises déclarées") +
+    /* sans blocage enregistré, la plupart des tuiles seraient vides : trois tuiles et une phrase d'explication */
+    var tilesAll = stat(s.done + " / " + s.tasks, "tâches terminées") + stat(s.blocks, "blocages") + stat(pct(s.rate), "reprises déclarées") +
       stat(s.delay === null ? "–" : fmtClock(s.delay), "délai médian de reprise") + stat(s.observed, "reprises observées") +
-      stat(s.agree, "accord sur la cause") + stat(pct(s.own), "cartes choisies par l’élève") + stat(s.help, "recours à l’aide") + stat(s.never, "« jamais appris ça »") + stat(s.alone, "blocages sans adulte disponible") + stat(s.plans + " / " + s.tasks, "tâches avec plan d’attaque") +
-      '</div><p class="small">Les reprises déclarées viennent de l’élève. Seules vos observations (colonnes de droite) disent si le travail a vraiment repris.</p></div>';
+      stat(s.agree, "accord sur la cause") + stat(pct(s.own), "cartes choisies par l’élève") + stat(s.help, "recours à l’aide") + stat(s.never, "« jamais appris ça »") + stat(s.alone, "blocages sans adulte disponible") + stat(s.plans + " / " + s.tasks, "tâches avec plan d’attaque");
+    var tilesFew = stat(s.done + " / " + s.tasks, "tâches terminées") + stat(s.blocks, "blocages") + stat(s.plans + " / " + s.tasks, "tâches avec plan d’attaque");
+    var html = '<div class="panel">' + studentSelect() + '<div class="stats">' + (s.blocks ? tilesAll : tilesFew) + '</div>' +
+      (s.blocks ? '<p class="small">Les reprises déclarées viennent de l’élève. Seules vos observations (colonnes de droite) disent si le travail a vraiment repris.</p>' : '<p class="small">Les autres statistiques apparaissent dès qu’un blocage est enregistré.</p>') + "</div>";
     html += suggestionsHtml(sid);
     if (!bs.length) return html + '<div class="panel"><p>Aucun blocage enregistré pour cet élève.</p></div>';
     html += '<div class="panel"><h2>Blocages, du plus récent au plus ancien</h2>' + bs.map(function (b) {
@@ -2127,7 +2147,8 @@ function boot() {
     },
     place: function (d) { S.settings.place = d.id; save(); screenTask(); },
     adult: function (d) { var v = d.id === "1"; draft.adult = draft.adult === v ? null : v; screenTask(); },
-    adultWork: function (d) { var v = d.id === "1"; U.task.adult = U.task.adult === v ? null : v; save(); screenWork(); },
+    adultAsk: function () { screenAdultWork(); },
+    adultWorkPick: function (d) { U.task.adult = d.id === "1"; save(); screenWork(); },
     adultNow: function () { setAdult(true); screenHelp(); },
     adultNone: function () { setAdult(false); goHelp(); },
     checkToggle: function (d, el) { var on = el.className.indexOf(" sel") < 0; el.className = "choice" + (on ? " sel" : ""); el.setAttribute("aria-pressed", String(on)); },

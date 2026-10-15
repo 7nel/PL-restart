@@ -17,7 +17,7 @@ L'élève choisit sa vignette, indique sa tâche et la matière, puis (deuxième
 
 ### Adulte disponible ou non
 
-L'élève l'indique au démarrage et peut le changer sur l'écran de travail. S'il ne l'a pas dit en tâche suivie, l'outil le demande au moment de l'aide. En mode coup de main, elle est posée seulement au moment de l'aide, jamais avant la première stratégie. Sans adulte disponible, l'outil propose une stratégie de plus, puis l'élève prépare sa question pour plus tard et met un « ? » dans la marge. Le suivi indique quels blocages ont eu lieu sans adulte disponible.
+L'élève l'indique au démarrage et peut le changer sur l'écran de travail avec le lien « Adulte : oui / non » en bas de l'écran. S'il ne l'a pas dit en tâche suivie, l'outil le demande au moment de l'aide. En mode coup de main, elle est posée seulement au moment de l'aide, jamais avant la première stratégie. Sans adulte disponible, l'outil propose une stratégie de plus, puis l'élève prépare sa question pour plus tard et met un « ? » dans la marge. Le suivi indique quels blocages ont eu lieu sans adulte disponible.
 
 Deux façons de l'utiliser :
 
