@@ -8,7 +8,7 @@ Langue du projet : **français** (interface, commentaires, commits, README).
 
 - Confidentialité : **aucune donnée ne quitte le navigateur** (`localStorage`). Ne jamais ajouter de réseau, de télémétrie ni de service tiers. Seule exception de téléchargement : la voix naturelle, fichiers du dossier `voix/` du même site (jamais un autre domaine).
 - Licence : CC BY-NC 4.0.
-- Même famille que PL-planif’, PL-lect’, PL-CPS’, PL-neurodev’ : même en-tête (monogramme PL, nom de l'outil), vert `#2f6f63`, fond chaud `#f4f0e8` (charte v2.2 : pas encore appliqué à ce dépôt), Atkinson Hyperlegible et Lexend autohébergées, apostrophe courbe dans le nom.
+- Même famille que PL-planif’, PL-lect’, PL-CPS’, PL-neurodev’ : même en-tête (monogramme PL, nom de l'outil), vert `#2f6f63`, fond chaud `#f4f0e8` (charte v2.2, appliquée le 2026-10-15), Atkinson Hyperlegible et Lexend autohébergées, apostrophe courbe dans le nom.
 
 ## Structure
 
@@ -60,21 +60,22 @@ README.md, LICENSE, CLAUDE.md
 - Couleurs par variables CSS, définies en clair et en sombre.
 - Côté élève : un écran, une question, douze mots au plus, gros boutons, bouton « Écouter ». Ni points, ni scores, ni récompenses matérielles.
 - Renforcement positif voulu quand l'élève essaie (« Bravo pour ton effort », « Tu as bien essayé ») : il porte sur l'essai, jamais sur le résultat ni sur la personne. Choix de l'enseignante (2026-10-09), qui remplace l'ancien « ni récompenses ».
-- Variables CSS propres à ce projet (noms différents de la famille PL, assumés) : `--surface-alt` (= `--surface-2`), `--border` (= `--line`), `--muted` (= `--ink-2`), `--on-accent` (= `--accent-ink`), `--display` (Lexend). Teintes ajoutées : `--warm` / `--warm-soft` (ocre : « Un peu », astuces `.tip` et « truc » des cartes, panneaux d'avertissement), `--calm` / `--calm-soft` (bleu apaisant, réservé à « Ça ne va pas du tout » et aux outils d’apaisement, pour qu’il ne se confonde pas avec l’ocre d’avertissement), `--red` / `--red-soft` (icône « Non », bouton `.danger`, notes d'erreur, étiquette `.tag.ko`). Pas d'équivalent exact de `--warn` : `--warm` en tient lieu ; écart déclaré dans « Écarts assumés ».
+- Variables CSS propres à ce projet (noms différents de la famille PL, assumés) : `--surface-alt` (= `--surface-2`), `--border` (= `--line`), `--muted` (= `--ink-2`), `--on-accent` (= `--accent-ink`), `--display` (Lexend). Teintes ajoutées : `--warm` / `--warm-soft` (ocre : « Un peu », astuces `.tip` et « truc » des cartes, panneaux d'avertissement), `--calm` / `--calm-soft` (bleu apaisant, réservé à « Ça ne va pas du tout » et aux outils d’apaisement, pour qu’il ne se confonde pas avec l’ocre d’avertissement), `--red` / `--red-soft` (bouton `.danger`, notes d'erreur, étiquette `.tag.ko` ; l'icône de « Pas encore » est en `--muted`, pas en rouge). Pas d'équivalent exact de `--warn` : `--warm` en tient lieu ; écart déclaré dans « Écarts assumés ».
 - Contours de champs et de boutons secondaires : `--line-ctl` de la charte, pas `--border`. Jaune `--mark` : réservé aux repères qui sautent aux yeux (un seul par écran, texte en `--mark-ink`) ; aucun usage dans cet outil à ce jour.
 - L'outil décrit des situations, jamais l'élève. Aucune mention de diagnostic.
 - Changer `CACHE` dans `sw.js` à chaque publication.
 
 ## Écarts assumés avec la charte commune
 
-État au 2026-10-15 : la palette de la charte v2.2 n'est pas encore appliquée à ce dépôt. Ces écarts valent jusqu'à l'application, qui se décide à part. Les valeurs ci-dessous sont celles lues dans le code.
+État au 2026-10-15 : la palette de la charte v2.2 est appliquée à ce dépôt (neutres chauds, `--line-ctl`, `--red` aligné sur `--danger`). Restent les écarts ci-dessous, relus dans le code.
 
 | Variable | Valeur dans le code | Équivalent charte | Raison, suite |
 |---|---|---|---|
-| `--surface-alt`, `--border`, `--muted`, `--on-accent` | (voir le CSS) | `--surface-2`, `--line`, `--ink-2`, `--accent-ink` | Anciens noms, assumés. Migration à décider séparément. |
-| `--warm`, `--warm-soft` | `#b97a3d` (clair), `#e3a768` (sombre) ; mélange de 20 % | `--warn` `#8f520f` (clair), `#e6b366` (sombre) | Ocre propre à l'outil (« Ça ne va pas du tout », « Un peu », astuces). À l'application, deux options : aligner sur `--warn`, ou garder `--warm` comme teinte déclarée. Sur le fond chaud clair, `#b97a3d` fait 3,12:1 : à ne pas utiliser pour du texte courant. |
+| `--surface-alt`, `--border`, `--on-accent` | mêmes valeurs que `--surface-2`, `--line`, `--accent-ink`, sauf `--on-accent` sombre `#12201d` | `--surface-2`, `--line`, `--accent-ink` | Anciens noms, assumés. Migration à décider séparément. |
+| `--muted` | `#435452` (clair), `#b3b6ab` (sombre) | `--ink-2` `#52635f` (clair), `#b3b6ab` (sombre) | Ancien nom ; gris de texte plus foncé que la charte en clair, pour les petits textes de l'élève. |
+| `--warm`, `--warm-soft` | `#b97a3d` (clair), `#e3a768` (sombre) ; mélange de 20 % | `--warn` `#8f520f` (clair), `#e6b366` (sombre) | Ocre propre à l'outil (« Ça ne va pas du tout », « Un peu », astuces). Deux options à décider : aligner sur `--warn`, ou garder `--warm` comme teinte déclarée. Sur le fond chaud clair, `#b97a3d` fait 3,12:1 : à ne pas utiliser pour du texte courant. |
 | `--calm`, `--calm-soft` | `#3f6f8f` (clair), `#8bb7d6` (sombre) ; mélange de 16 % | aucun | Bleu apaisant, réservé à « Ça ne va pas du tout » et aux outils d'apaisement (ajouté le 2026-10-15, hors socle). Teinte propre à l'outil, déclarée ici ; à valider dans la charte comme teinte de projet. Contraste calculé : 4,76:1 sur `--bg` en clair, 7,54:1 en sombre. |
-| `--red`, `--red-soft` | `#b6503f` (clair), `#d98070` (sombre) ; mélange de 18 % | `--danger` `#a03a2a` (clair), `#eb9b8b` (sombre) ; mélange de 14 % | Ancien nom et ancienne valeur. `#b6503f` ne tient que 3,94:1 sur `--surface-2` : à aligner à l'application. |
+| `--red`, `--red-soft` | `#a03a2a` (clair), `#eb9b8b` (sombre) ; mélange de 14 % | `--danger` (mêmes valeurs) | Ancien nom seulement : valeurs alignées sur la charte v2.2. |
 
 Les valeurs de contraste de ce tableau sont calculées par formule, pas mesurées avec un outil tiers.
 
@@ -85,7 +86,7 @@ Les valeurs de contraste de ce tableau sont calculées par formule, pas mesurée
 - [ ] Coup de main sans élève (stratégies guidées), puis rattaché à un élève
 - [ ] Coup de main en maths, en langues, en révision, « fatigué » en classe puis à la maison : la bonne stratégie, la bonne question de contexte
 - [ ] Élève avec stratégies réglées (guidée, avec la carte, seul), plan d'attaque et « Avant de rendre » activés
-- [ ] Adulte « Non » au démarrage : stratégie de plus, puis « Prépare ta question » ; adulte non renseigné : la question arrive au moment de l'aide
+- [ ] Adulte « Non » au moment de l'aide : stratégie de plus, puis « Prépare ta question » ; en coup de main, aucune question d'adulte avant la première stratégie
 - [ ] Trois reprises avec une stratégie : la suggestion apparaît dans « Suivi », « Valider » change l'état
 - [ ] Rechargement : les données persistent, la tâche en cours peut être reprise
 - [ ] Suivi, export `.json` (complet et par élève, sans le code), `.csv`, import fusionné (réimport sans doublon, réglage le plus récent gagne, ancienne sauvegarde)
