@@ -8,7 +8,7 @@ Langue du projet : **français** (interface, commentaires, commits, README).
 
 - Confidentialité : **aucune donnée ne quitte le navigateur** (`localStorage`). Ne jamais ajouter de réseau, de télémétrie ni de service tiers. Seule exception de téléchargement : la voix naturelle, fichiers du dossier `voix/` du même site (jamais un autre domaine).
 - Licence : CC BY-NC 4.0.
-- Même famille que PL-planif’, PL-lect’, PL-CPS’, PL-neurodev’ : même en-tête (monogramme PL, nom de l'outil), vert `#2f6f63`, Atkinson Hyperlegible et Lexend autohébergées, apostrophe courbe dans le nom.
+- Même famille que PL-planif’, PL-lect’, PL-CPS’, PL-neurodev’ : même en-tête (monogramme PL, nom de l'outil), vert `#2f6f63`, fond chaud `#f4f0e8` (charte v2.2 : pas encore appliqué à ce dépôt), Atkinson Hyperlegible et Lexend autohébergées, apostrophe courbe dans le nom.
 
 ## Structure
 
@@ -60,9 +60,23 @@ README.md, LICENSE, CLAUDE.md
 - Couleurs par variables CSS, définies en clair et en sombre.
 - Côté élève : un écran, une question, douze mots au plus, gros boutons, bouton « Écouter ». Ni points, ni scores, ni récompenses matérielles.
 - Renforcement positif voulu quand l'élève essaie (« Bravo pour ton effort », « Tu as bien essayé ») : il porte sur l'essai, jamais sur le résultat ni sur la personne. Choix de l'enseignante (2026-10-09), qui remplace l'ancien « ni récompenses ».
-- Variables CSS propres à ce projet (noms différents de la famille PL, assumés) : `--surface-alt` (= `--surface-2`), `--border` (= `--line`), `--muted` (= `--ink-2`), `--on-accent` (= `--accent-ink`), `--display` (Lexend). Teintes ajoutées : `--warm` / `--warm-soft` (ocre : « Un peu », astuces `.tip` et « truc » des cartes, panneaux d'avertissement), `--calm` / `--calm-soft` (bleu apaisant, réservé à « Ça ne va pas du tout » et aux outils d’apaisement, pour qu’il ne se confonde pas avec l’ocre d’avertissement), `--red` / `--red-soft` (icône « Non », bouton `.danger`, notes d'erreur, étiquette `.tag.ko`). Pas d'équivalent exact de `--warn` : `--warm` en tient lieu (à vérifier : valeurs différentes de `--warn`).
+- Variables CSS propres à ce projet (noms différents de la famille PL, assumés) : `--surface-alt` (= `--surface-2`), `--border` (= `--line`), `--muted` (= `--ink-2`), `--on-accent` (= `--accent-ink`), `--display` (Lexend). Teintes ajoutées : `--warm` / `--warm-soft` (ocre : « Un peu », astuces `.tip` et « truc » des cartes, panneaux d'avertissement), `--calm` / `--calm-soft` (bleu apaisant, réservé à « Ça ne va pas du tout » et aux outils d’apaisement, pour qu’il ne se confonde pas avec l’ocre d’avertissement), `--red` / `--red-soft` (icône « Non », bouton `.danger`, notes d'erreur, étiquette `.tag.ko`). Pas d'équivalent exact de `--warn` : `--warm` en tient lieu ; écart déclaré dans « Écarts assumés ».
+- Contours de champs et de boutons secondaires : `--line-ctl` de la charte, pas `--border`. Jaune `--mark` : réservé aux repères qui sautent aux yeux (un seul par écran, texte en `--mark-ink`) ; aucun usage dans cet outil à ce jour.
 - L'outil décrit des situations, jamais l'élève. Aucune mention de diagnostic.
 - Changer `CACHE` dans `sw.js` à chaque publication.
+
+## Écarts assumés avec la charte commune
+
+État au 2026-10-15 : la palette de la charte v2.2 n'est pas encore appliquée à ce dépôt. Ces écarts valent jusqu'à l'application, qui se décide à part. Les valeurs ci-dessous sont celles lues dans le code.
+
+| Variable | Valeur dans le code | Équivalent charte | Raison, suite |
+|---|---|---|---|
+| `--surface-alt`, `--border`, `--muted`, `--on-accent` | (voir le CSS) | `--surface-2`, `--line`, `--ink-2`, `--accent-ink` | Anciens noms, assumés. Migration à décider séparément. |
+| `--warm`, `--warm-soft` | `#b97a3d` (clair), `#e3a768` (sombre) ; mélange de 20 % | `--warn` `#8f520f` (clair), `#e6b366` (sombre) | Ocre propre à l'outil (« Ça ne va pas du tout », « Un peu », astuces). À l'application, deux options : aligner sur `--warn`, ou garder `--warm` comme teinte déclarée. Sur le fond chaud clair, `#b97a3d` fait 3,12:1 : à ne pas utiliser pour du texte courant. |
+| `--calm`, `--calm-soft` | `#3f6f8f` (clair), `#8bb7d6` (sombre) ; mélange de 16 % | aucun | Bleu apaisant, réservé à « Ça ne va pas du tout » et aux outils d'apaisement (ajouté le 2026-10-15, hors socle). Teinte propre à l'outil, déclarée ici ; à valider dans la charte comme teinte de projet. Contraste calculé : 4,76:1 sur `--bg` en clair, 7,54:1 en sombre. |
+| `--red`, `--red-soft` | `#b6503f` (clair), `#d98070` (sombre) ; mélange de 18 % | `--danger` `#a03a2a` (clair), `#eb9b8b` (sombre) ; mélange de 14 % | Ancien nom et ancienne valeur. `#b6503f` ne tient que 3,94:1 sur `--surface-2` : à aligner à l'application. |
+
+Les valeurs de contraste de ce tableau sont calculées par formule, pas mesurées avec un outil tiers.
 
 ## Vérification
 
@@ -76,4 +90,4 @@ README.md, LICENSE, CLAUDE.md
 - [ ] Rechargement : les données persistent, la tâche en cours peut être reprise
 - [ ] Suivi, export `.json` (complet et par élève, sans le code), `.csv`, import fusionné (réimport sans doublon, réglage le plus récent gagne, ancienne sauvegarde)
 - [ ] Voix : choix et débit conservés, voix naturelle téléchargée puis lue, retirée ; `sw.js` ne supprime que les caches `plrestart-`
-- [ ] Clair et sombre, largeur téléphone et tablette
+- [ ] Clair et sombre, largeur téléphone et tablette ; contrastes du texte ≥ 4,5:1 et des contours de contrôle ≥ 3:1 (voir la charte)
