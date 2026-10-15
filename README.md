@@ -44,7 +44,7 @@ L'outil propose, l'enseignante valide : après trois reprises de suite avec une 
 
 ### Plan d'attaque et vérification
 
-Deux écrans s'activent par élève : « Mon plan d'attaque » au démarrage d'une tâche (quatre stratégies au plus selon la tâche et la matière, le reste derrière « Voir toutes mes stratégies ») et « Avant de rendre » quand la tâche est terminée (trois points à vérifier).
+Deux écrans s'activent par élève : « Mon plan d'attaque » au démarrage d'une tâche (quatre stratégies au plus selon la tâche et la matière, le reste derrière « Voir toutes mes stratégies ») et « Avant de rendre » quand la tâche est terminée (trois points à vérifier). Pendant le travail, les stratégies du plan sont proposées au-dessus de « Je bloque » : l'élève en choisit une, est guidé, puis répond à « Tu vois plus clair ? » (oui, un peu, pas encore) et reprend son travail ; la question « Ça repart ? » est réservée aux vrais blocages.
 
 L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève, les suggestions de retrait de l'aide, l'état de chaque stratégie, les libellés modifiables, l'export et l'effacement.
 
