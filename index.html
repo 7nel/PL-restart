@@ -402,7 +402,7 @@ function boot() {
       { when: { subject: "Maths" }, ids: ["X02", "X04"] },
       { when: { subject: "Langues", type: "ecrire" }, ids: ["L04"] },
       { when: { type: "ecrire" }, not: { subject: "Maths" }, ids: ["M09", "M10", "M11"] },
-      { not: { type: "ecrire" }, ids: ["M13"] }], seq: ["C04", "C03"], then: "F1" },
+      { not: { type: "ecrire" }, ids: ["M01"] }], seq: ["C25", "C03"], then: "F1" },
     F2b: { fam: "F2", label: "C’est trop long", pre: [
       { when: { type: "reviser" }, ids: ["R05"] },
       { when: { type: "reviser", place: "maison" }, ids: ["R06"] },
@@ -415,7 +415,7 @@ function boot() {
       { when: { place: "maison" }, seq: ["E02", "A02", "C12", "E04"] }], seq: ["A02", "C12", "C20"] },
     F2h: { fam: "F2", label: "Je n’ai pas envie", seq: ["C05", "C15", "C12"] },
     F2g: { fam: "F2", label: "Je stresse", seq: ["A01", "A04", "A03"], then: "F2" },
-    F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C07", "C08"], then: "F2" },
+    F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C08", "C07"], then: "F2" },
     F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C12"] },
     F3c: { fam: "F3", label: "Je suis fatigué ou agité", pre: [
       { when: { place: "classe" }, seq: ["E01", "A02", "C12", "C20"] },
@@ -425,7 +425,7 @@ function boot() {
     F4b: { fam: "F4", label: "C’est faux, je ne sais pas où", pre: [
       { when: { subject: "Maths" }, ids: ["X06", "X07"] },
       { when: { subject: "Langues" }, ids: ["L05"] },
-      { when: { type: "ecrire" }, not: { subject: "Maths" }, ids: ["M08"] }], seq: ["C14", "C03", "C19"] },
+      { when: { type: "ecrire" }, not: { subject: "Maths" }, ids: ["M08"] }], seq: ["C26", "C03", "C19"] },
     F4c: { fam: "F4", label: "Ma façon de faire ne marche pas", pre: [
       { when: { type: "reviser" }, ids: ["R01", "R02", "R03", "R04"] },
       { when: { type: "ecrire" }, ids: ["M12"] }], seq: ["C21", "C03", "C19"] },
@@ -455,7 +455,7 @@ function boot() {
     { id: "C04", title: "Couper en 3", text: "Écris trois étapes. Entoure la première.", min: 3 },
     { id: "C05", title: "Deux minutes", text: "Fais seulement la première action pendant deux minutes.", min: 2 },
     { id: "C06", title: "Si… alors", text: "Complète : si je bloque encore ici, alors je…", min: 1 },
-    { id: "C07", title: "Ma dernière ligne", text: "Relis ta dernière ligne. Dis l’étape d’après.", min: 1 },
+    { id: "C07", title: "Ma dernière ligne", text: "Relis la consigne, puis ta dernière ligne. Montre où tu en es.", min: 1 },
     { id: "C08", title: "Où j’en suis", text: "Relis le but. Coche ce qui est déjà fait.", min: 2 },
     { id: "C09", title: "Ranger autour", text: "Éloigne ce qui te distrait. Change de place si tu peux.", min: 1 },
     { id: "C10", title: "Parking à pensées", text: "Note ta pensée sur un papier. Tu y reviendras après.", min: 1 },
@@ -472,6 +472,8 @@ function boot() {
     { id: "C21", title: "Cacher et dire", text: "Cache ta feuille. Dis ou écris ce que tu te rappelles.", min: 3 },
     { id: "C22", title: "Un paragraphe à la fois", text: "Relis un seul paragraphe. Dis de quoi il parle.", min: 3, twin: "M05" },
     { id: "C24", title: "Je prépare ma place", text: "Sors seulement ce qu’il te faut. Pose-le devant toi.", min: 2 },
+    { id: "C25", title: "La première phrase", text: "Relis seulement la première phrase de la consigne. Fais ce qu’elle dit.", min: 2 },
+    { id: "C26", title: "Je refais le début", text: "Cache ton travail. Refais seulement la première étape. Compare : c’est pareil ?", min: 3 },
     { id: "C23", title: "Les mots de la question", text: "Souligne les mots importants de la question. Cherche-les dans le texte.", min: 3, twin: "M07" }
   ];
   /* Boîte à stratégies (dossier « Ma boîte à stratégies », français) : noms, numéros et étapes repris tels quels.
@@ -535,7 +537,7 @@ function boot() {
     { id: "E03", dom: "etat", title: "Une seule priorité", min: 5, steps: ["Je REGARDE tout ce que j’ai à faire.", "Je CHOISIS le plus important.", "Je fais SEULEMENT ça."] },
     { id: "E04", dom: "etat", title: "Mode minimum", min: 10, stop: true, replaces: ["C20"], steps: ["Je fais l’INDISPENSABLE pour demain.", "Je NOTE où je m’arrête.", "J’ARRÊTE et je me repose."] },
     { id: "E05", dom: "etat", title: "Stop, respire, choisis", min: 2, replaces: ["C18"], steps: ["STOP : je pose mon crayon.", "Je RESPIRE : j’expire lentement, trois fois.", "Je CHOISIS la plus petite chose à faire, et je commence."] },
-    { id: "E06", dom: "etat", title: "Pas encore", min: 3, steps: ["Je DIS : « Je ne sais pas encore. »", "Je CHERCHE où je bloque exactement.", "Je fais UNE question que je sais faire."] }
+    { id: "E06", dom: "etat", title: "Je ne sais pas encore", min: 3, steps: ["Je DIS : « Je ne sais pas encore. »", "Je CHERCHE où je bloque exactement.", "Je fais UNE question que je sais faire."] }
   ]);
   /* Sans adulte disponible : une stratégie de plus avant l'écran d'aide, prise dans la ligne en cours,
      sinon parmi ces cartes générales, par famille (ressources que l'élève peut utiliser seul). */
