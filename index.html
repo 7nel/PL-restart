@@ -374,7 +374,14 @@ function boot() {
     .st .choice.calm .ic { display: block; order: 1; width: 34px; height: 34px; margin: 0; color: var(--calm); }
     .st .choice.calm:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28); }
     .st .choice-row:has(> .choice.calm) .say { color: var(--ink); border: 2px solid var(--line-ctl); border-radius: 14px; width: 48px; height: 48px; flex: none; }
-    .st .cheer { border-radius: 0; padding: 10px 0 10px 18px; background: none; border-left: 8px solid var(--ink); font-weight: 700; }
+    .st .cheer { margin: 0; padding: 0; background: none; font-weight: 700; }
+    /* écran d'aide : « Tu as bien essayé » mène (même poids que le titre), la feuille et la consigne forment un seul bloc */
+    .st main:has(.starter) h1 { font-size: clamp(1.8rem, 7.2vw, 2.6rem); }
+    .st main:has(.starter) .cheer { font: 700 clamp(1.45rem, 6vw, 2rem) / 1.25 var(--display); max-width: 24ch; }
+    .st .choice-row:has(> .starter) { position: relative; display: block; }
+    .st .choice-row:has(> .starter) > .say { position: absolute; top: 8px; right: 8px; width: 48px; height: 48px; border: 2px solid var(--line-ctl); border-radius: 14px; }
+    .st .starter .sl:first-child { padding-right: 56px; }
+    .st .tip { margin: 0; padding: 0; background: none; border: 0; color: var(--muted); font-size: 1.05rem; font-weight: 400; max-width: 44ch; }
     /* tuiles (noms, tâches, oui / non) : rangées à contour, sans ombre */
     .st .tiles { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
     .st .tile { flex-direction: row; justify-content: flex-start; gap: 14px; min-height: 76px; padding: 12px 16px; border: 2px solid var(--line-ctl); border-radius: 16px; background: transparent; box-shadow: none; font-size: 1.25rem; font-weight: 700; text-align: left; }
@@ -1092,6 +1099,7 @@ function boot() {
   /* étape du blocage à montrer : 0 tant que rien n'est essayé, sinon l'essai en cours ; pas de fil pour le plan d'attaque */
   function essaiNow() { return U.block ? Math.min(nonCount(U.block) + 1, 3) : 1; }
   function stageNow() { return !U.block || U.block.family === "plan" ? undefined : (U.block.tries.length ? essaiNow() : 0); }
+  function stageHelp() { var b = U.block; return !b || b.family === "plan" ? undefined : (b.tries.length ? Math.max(1, Math.min(nonCount(b), 3)) : 0); }
   function stageTry() { return !U.block || U.block.family === "plan" ? undefined : essaiNow(); }
   /* le nœud se desserre et le repère glisse d'une étape à l'autre (0,35 s au plus ; aucun mouvement si prefers-reduced-motion) */
   function animateD() {
@@ -1894,13 +1902,13 @@ function boot() {
     var passe = '<button class="btn' + (alone ? " primary" : "") + '" data-a="passe">' + svg("question") + "Je note ma question et je continue</button>";
     var stop = U.task ? '<button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "";
     if (alone) {
-      return show(title("Prépare ta question.", 2, true) + starters +
+      return show(title("Prépare ta question.", stageHelp()) + starters +
         '<p class="tip">Tu la poseras dès qu’un adulte sera là.</p>' +
         '<div class="row">' + passe + "</div>" +
         (stop ? '<details class="annex"><summary>Autre chose</summary><div class="in">' + stop + "</div></details>" : "") +
         '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
     }
-    show(title("Montre cet écran à un adulte.", 2, true) + starters +
+    show(title("Montre cet écran à un adulte.", stageHelp()) + starters +
       '<p class="tip">Demande une explication ou un indice, pas la réponse.</p>' +
       '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + (U.task ? "J’ai eu de l’aide, je reprends" : "J’ai eu de l’aide") + "</button>" +
       '<button class="btn" data-a="adultNone">Aucun adulte n’est disponible</button></div>' +
