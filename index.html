@@ -394,10 +394,9 @@ function boot() {
        « when » exige une valeur, « not » l'exclut, « seq » remplace la suite de base. « only » : réponse visible dans ce seul contexte. */
     F1a: { fam: "F1", label: "Un mot", pre: [{ when: { subject: "Langues" }, ids: ["L01"] }], seq: ["M06", "C01", "C19"] },
     F1b: { fam: "F1", label: "La consigne", pre: [{ when: { subject: "Maths" }, ids: ["X01"] }], seq: ["M01", "M02", "C02", "C03"], then: "F2" },
-    F1c: { fam: "F1", label: "Je n’ai jamais appris ça", seq: ["C17", "C19"] },
+    F1c: { fam: "F1", label: "Je n’ai jamais appris ça", seq: ["C17", "C27", "C19"] },
     F1d: { fam: "F1", label: "Je ne sais plus ce que j’ai lu", pre: [{ when: { subject: "Langues" }, ids: ["L02"] }], seq: ["M05", "C22", "C19"] },
     F1e: { fam: "F1", label: "Je ne trouve pas la réponse", pre: [{ when: { subject: "Langues" }, ids: ["L02"] }], seq: ["M07", "M04", "C23", "C19"] },
-    F1f: { fam: "F1", label: "Ce que j’entends", only: { subject: "Langues" }, seq: ["C19"] },
     F2a: { fam: "F2", label: "Je ne vois pas par quoi commencer", pre: [
       { when: { subject: "Maths" }, ids: ["X02", "X04"] },
       { when: { subject: "Langues", type: "ecrire" }, ids: ["L04"] },
@@ -437,7 +436,7 @@ function boot() {
   /* familles dont une réponse dépend de la matière : on la demande avant la question si elle n'est pas connue */
   var FAMILY_SUBJECT = { F1: true, F2: true, F4: true };
   var QUESTIONS = {
-    F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1c" }, { line: "F1f" }] },
+    F1: { text: "Qu’est-ce que tu ne comprends pas ?", options: [{ line: "F1a" }, { line: "F1b" }, { label: "Le texte", next: "F1q2" }, { line: "F1c" }] },
     F1q2: { text: "Qu’est-ce qui se passe avec le texte ?", options: [{ line: "F1d" }, { line: "F1e" }] },
     F2: { text: "Tu sais quelle est la première chose à faire ?", options: [{ label: "Oui", next: "F2q2" }, { label: "Non", line: "F2a" }] },
     F2q2: { text: "Qu’est-ce qui t’arrête ?", options: [{ line: "F2d" }, { line: "F2f" }, { line: "F2g" }, { line: "F2h" }, { line: "F2b" }, { line: "F2c" }, { line: "F2e" }] },
@@ -474,6 +473,7 @@ function boot() {
     { id: "C24", title: "Je prépare ma place", text: "Sors seulement ce qu’il te faut. Pose-le devant toi.", min: 2 },
     { id: "C25", title: "La première phrase", text: "Relis seulement la première phrase de la consigne. Fais ce qu’elle dit.", min: 2 },
     { id: "C26", title: "Je refais le début", text: "Cache ton travail. Refais seulement la première étape. Compare : c’est pareil ?", min: 3 },
+    { id: "C27", title: "Chercher sur internet", text: "Cherche le mot avec ta matière. Choisis un site d’école. Lis seulement l’explication.", min: 5, home: true, ifNo: "C17" },
     { id: "C23", title: "Les mots de la question", text: "Souligne les mots importants de la question. Cherche-les dans le texte.", min: 3, twin: "M07" }
   ];
   /* Boîte à stratégies (dossier « Ma boîte à stratégies », français) : noms, numéros et étapes repris tels quels.
@@ -506,8 +506,8 @@ function boot() {
       steps: ["J’ÉCRIS une idée par phrase : qui + fait quoi.", "Je METS LE POINT dès que mon idée est finie.", "Je RELIE mes phrases avec un connecteur de la banque."], truc: "Trop de « et » dans ma phrase ? Je coupe avec un point !" },
     { id: "M13", num: "13", title: "Mon plan d’attaque", when: "Devant un exercice, un test ou un devoir, avant de commencer.", min: 3, annex: "boite",
       steps: ["Je REGARDE la tâche : consigne ? texte à lire ? questions ? texte à écrire ?", "Je CHOISIS mes stratégies dans ma boîte à outils.", "À la fin, j’ÉVALUE : est-ce que ça m’a aidé ?"], truc: "Je commence presque toujours par la stratégie 1 : le détective de consigne." },
-    { id: "M14", num: "★", title: "Le schéma narratif en couleurs", ask: "Tu as ton schéma narratif ?", when: "Quand je lis une histoire ou quand j’en invente une.", min: 10,
-      steps: ["Je LIS toute l’histoire une première fois.", "Je SURLIGNE chaque partie avec sa couleur.", "Je RÉSUME chaque partie en une phrase dans le schéma."], truc: "Je cherche d’abord l’élément perturbateur (le problème). Avant = début. Après = la suite." }
+    { id: "M14", num: "★", title: "Le schéma narratif en couleurs", ask: "Tu as ton schéma narratif ?", annex: "schema", when: "Quand je lis une histoire ou quand j’en invente une.", min: 10,
+      steps: ["Je LIS toute l’histoire une première fois.", "Je SURLIGNE chaque partie avec sa couleur (voir « Mes couleurs »).", "Je RÉSUME chaque partie en une phrase dans le schéma."], truc: "Je cherche d’abord l’élément perturbateur (le problème). Avant = début. Après = la suite." }
   ];
   METHODS.forEach(function (m) { m.dom = "fr"; });
   /* Stratégies des quatre autres domaines : noms et étapes validés par l'enseignante dans le dossier de conception.
@@ -541,7 +541,9 @@ function boot() {
   ]);
   /* Sans adulte disponible : une stratégie de plus avant l'écran d'aide, prise dans la ligne en cours,
      sinon parmi ces cartes générales, par famille (ressources que l'élève peut utiliser seul). */
-  var ALONE = { F1: ["C17", "C03"], F2: ["C03", "C15", "C24"], F3: ["C08", "C15"], F4: ["C03", "C14", "C17"], F5: ["C03", "C15"] };
+  /* Couleurs du schéma narratif (M14) : attribuées le 2026-10-22, le dossier n'en fixe pas. */
+  var SCHEMA = [["Jaune", "Situation initiale : le début"], ["Rose", "Élément perturbateur : le problème"], ["Orange", "Péripéties : les actions"], ["Vert", "Élément de résolution : la solution"], ["Bleu", "Situation finale : la fin"]];
+  var ALONE = { F1: ["C17", "C27", "C03"], F2: ["C03", "C15", "C24"], F3: ["C08", "C15"], F4: ["C03", "C14", "C17"], F5: ["C03", "C15"] };
   /* Outils d'apaisement : repris du site PL-CPS’ (mois « Gestion du stress »), durées et consignes d'origine.
      Les titres pour l'élève et le découpage en phases sont à valider par l'enseignante. */
   var TOOLS = [
@@ -667,7 +669,7 @@ function boot() {
     d = byId(CARDS, id); if (!d) return null;
     o = S.labels.cards[id] || {};
     text = o.text || (d.alone && U.block && adultOf(U.block) === false ? d.alone : (d.homeText && U.block && context(U.block).place === "maison" ? d.homeText : d.text));
-    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false && !retired(id), twin: d.twin, home: !!d.home, durs: d.durs, stop: !!d.stop, ask: d.ask || "" };
+    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false && !retired(id), twin: d.twin, home: !!d.home, ifNo: d.ifNo || "", durs: d.durs, stop: !!d.stop, ask: d.ask || "" };
   }
   /* Où en est l'élève avec une stratégie : 0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul.
      Par défaut : le dossier de français commence « pas encore vu », tout le reste « guidé ».
@@ -686,6 +688,8 @@ function boot() {
     if (!c || !c.active || methodState(id, b.sid) === 0) return false;
     /* se lever et bouger : pas en classe (ni sans lieu connu) */
     if (c.home && context(b).place !== "maison") return false;
+    /* carte de repli : seulement si l'élève a répondu « Non » à la question de la carte nommée (ex. pas de cours → internet) */
+    if (c.ifNo && !(b.asked && b.asked[c.ifNo] === false)) return false;
     return !(c.twin && methodState(c.twin, b.sid) > 0);
   }
 
@@ -983,13 +987,15 @@ function boot() {
       if (r.ids) ids = ids.concat(r.ids);
     });
     ids = ids.concat(seq);
-    ids = ids.filter(function (id, i) { return ids.indexOf(id) === i && (id === "C19" || available(id, b)); });
+    /* une carte de repli (ifNo) reste dans la suite : elle ne devient disponible qu'après le « Non » à sa question */
+    ids = ids.filter(function (id, i) { var d = byId(CARDS, id); return ids.indexOf(id) === i && (id === "C19" || available(id, b) || (d && d.ifNo && !retired(id))); });
     ids.forEach(function (id) { var m = card(id); if (m && m.replaces) drop = drop.concat(m.replaces); });
     return ids.filter(function (id) { return drop.indexOf(id) < 0; });
   }
   /* Quelle information manque pour choisir ? On ne la demande que si elle change la stratégie proposée. */
   function needsCtx(lid, b) {
     var L = LINES[lid], c = context(b), i, j, k, q, r, other;
+    if (!c.place && L.seq.concat((L.pre || []).reduce(function (a, x) { return a.concat(x.ids || [], x.seq || []); }, [])).some(function (id) { var d = byId(CARDS, id); return d && d.home && !retired(id); })) return "place";
     if (!L.pre) return null;
     for (i = 0; i < CTX_KEYS.length; i++) {
       k = CTX_KEYS[i];
@@ -1457,6 +1463,8 @@ function boot() {
       "</tbody></table><p><b>Les petits mots pièges</b></p>" + PIEGES.map(function (x) { return "<p>" + esc(x) + "</p>"; }).join("") + "</div></details>";
     if (kind === "cles") return '<details class="annex" open><summary>Mon trousseau de clés</summary><div class="in"><table><tbody>' +
       CLES.map(function (r) { return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>"; }).join("") + "</tbody></table></div></details>";
+    if (kind === "schema") return '<details class="annex" open><summary>Mes couleurs</summary><div class="in"><table><tbody>' +
+      SCHEMA.map(function (r) { return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>"; }).join("") + "</tbody></table></div></details>";
     if (kind === "boite") {
       ids = knownMethods(sid, "fr");
       return ids.length ? '<details class="annex"><summary>Ma boîte à outils</summary><div class="in">' + ids.map(function (id) {
