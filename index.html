@@ -423,8 +423,6 @@ function boot() {
     .st details.annex summary::-webkit-details-marker { display: none; }
     .st details.annex summary::before { content: "+"; width: 1em; font: 800 1.6rem var(--display); }
     .st details.annex[open] > summary::before { content: "–"; }
-    .st .nth { font: 800 clamp(4.5rem, 20vw, 8rem) / 0.9 var(--display); font-variant-numeric: tabular-nums; }
-    .st .nth span:last-child { font-size: 1.6rem; font-weight: 700; }
     /* feuille à montrer à un adulte */
     .st .starter { padding: 4px 18px 0; border: 2px solid var(--panel-ink); border-radius: 10px; background: var(--panel); color: var(--panel-ink); font: 700 1.15rem / 1.35 "Atkinson Hyperlegible", system-ui, sans-serif; }
     .st .starter .sl { display: block; min-height: 56px; padding: 12px 0; border-bottom: 2px solid var(--line-strong); color: var(--panel-ink); }
@@ -1793,7 +1791,7 @@ function boot() {
   function screenResult() {
     var b = U.block, plan = b.family === "plan";
     /* stratégie du plan d'attaque : on n'est pas bloqué, la question porte sur l'étape (« Tu comprends mieux ? »), sans compteur d'essais */
-    show(title(plan ? "Tu comprends mieux ?" : "Ça repart ?", plan ? undefined : essaiNow()) + (plan ? "" : '<div class="nth"><span class="sr-only">Essai </span><span>' + essaiNow() + "</span><span> sur 3</span></div>") + '<div class="choices">' +
+    show(title(plan ? "Tu comprends mieux ?" : "Ça repart ?", plan ? undefined : essaiNow()) + (plan ? "" : '<p class="sr-only">Essai ' + essaiNow() + " sur 3</p>") + '<div class="choices">' +
       choice("result", { r: "1" }, "Oui", "check", null, "yes") +
       choice("result", { r: "0.5" }, "Un peu", "half", null, "mid") +
       choice("result", { r: "0" }, "Pas encore", "cross", null, "no") + "</div>" +
