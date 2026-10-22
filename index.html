@@ -347,6 +347,29 @@ function boot() {
     body[data-layout="split"][data-field="win"] { background: var(--deep); }
     .fld-gap { flex: none; height: clamp(44px, 9vw, 76px); }
     body[data-layout="split"] main.center { justify-content: flex-start; }
+    .col-h, .col-b { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    .col-b { flex: 1; }
+    .col-h > h1, .col-b > h1 { flex: none; }
+    /* l'en-tête de carte est sorti de la carte (colonne du haut) : ses styles ne dépendent plus de .card */
+    .st .cardhead { display: flex; flex-direction: column; gap: 4px; background: none; margin: 0; padding: 0; border-radius: 0; }
+    .st .cardhead .cardtop { display: flex; align-items: flex-start; gap: 10px; }
+    .st .cardhead h2 { flex: 1; margin: 0; font-family: var(--display); font-weight: 500; font-size: clamp(1.8rem, 7.4vw, 2.6rem); line-height: 1.08; letter-spacing: -0.02em; }
+    .st .cardhead .overline { color: var(--muted); font-size: 1rem; font-weight: 700; }
+    .st .card.guide .cardhead, .st .cardhead:has(+ *) { text-align: left; }
+    .field .fv { display: none; }
+    /* grand écran : la ligne devient verticale ; colonne gauche = en-tête et titre, colonne droite = choix et actions */
+    @media (min-width: 900px) {
+      body[data-layout="split"] .page.st { max-width: none; padding: 0; gap: 0; display: grid; grid-template-columns: 42% 76px minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh; }
+      body[data-layout="split"] .page.st > header.top { grid-column: 1; grid-row: 1; padding: 28px 32px 0 56px; }
+      body[data-layout="split"] main, body[data-layout="split"] main > .done.restart { display: contents; }
+      body[data-layout="split"] .col-h { grid-column: 1; grid-row: 2; padding: 16px 32px 56px 56px; justify-content: center; }
+      body[data-layout="split"] .col-b { grid-column: 3; grid-row: 1 / 3; padding: 56px 56px 56px 8px; justify-content: center; max-width: 780px; width: 100%; }
+      body[data-layout="split"] .fld-gap { display: none; }
+      body[data-layout="split"] .field { bottom: 0; }
+      body[data-layout="split"] .field .ft { width: 42%; height: 100% !important; }
+      body[data-layout="split"] .field .fe { display: none; }
+      body[data-layout="split"] .field .fv { display: block; position: absolute; top: 0; left: 42%; width: 76px; height: 100%; margin-left: -1px; overflow: visible; }
+    }
     .st .big, .st .btn.primary { color: var(--on-accent); }
     .st { gap: 20px; }
     .st main { gap: 20px; }
@@ -1057,7 +1080,7 @@ function boot() {
   }
 
   /* ---------- DOM skeleton ---------- */
-  document.body.innerHTML = '<div class="field" id="field" aria-hidden="true"><div class="ft"></div><svg class="fe" viewBox="0 0 100 44" preserveAspectRatio="none"><path class="ff"/><path class="fl"/></svg></div><div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div><div class="sr-only" id="live" role="status" aria-live="polite"></div>';
+  document.body.innerHTML = '<div class="field" id="field" aria-hidden="true"><div class="ft"></div><svg class="fe" viewBox="0 0 100 44" preserveAspectRatio="none"><path class="ff"/><path class="fl"/></svg><svg class="fv" viewBox="0 0 44 100" preserveAspectRatio="none"><path class="ff"/><path class="fl"/></svg></div><div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div><div class="sr-only" id="live" role="status" aria-live="polite"></div>';
   var fieldEl = document.getElementById("field"), pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main"), liveEl = document.getElementById("live");
   var pendingLive = "";
   var ticker = null, pendingTimeout = null;
@@ -1126,10 +1149,17 @@ function boot() {
     for (k = 0; k <= n; k++) pts.push((100 * k / n).toFixed(1) + " " + (22 + a * Math.sin(k / n * Math.PI * 1.35 + 0.35)).toFixed(1));
     return "M" + pts.join(" L");
   }
+  function edgeDV(a) {
+    var pts = [], k, n = 40;
+    for (k = 0; k <= n; k++) pts.push((22 + a * Math.sin(k / n * Math.PI * 1.35 + 0.35)).toFixed(1) + " " + (100 * k / n).toFixed(1));
+    return "M" + pts.join(" L");
+  }
   function setEdge(a) {
-    var d = edgeD(a);
-    fieldEl.querySelector(".ff").setAttribute("d", d + " L100 0 L0 0 Z");
-    fieldEl.querySelector(".fl").setAttribute("d", d);
+    var d = edgeD(a), v = edgeDV(a);
+    fieldEl.querySelector(".fe .ff").setAttribute("d", d + " L100 0 L0 0 Z");
+    fieldEl.querySelector(".fe .fl").setAttribute("d", d);
+    fieldEl.querySelector(".fv .ff").setAttribute("d", v + " L0 100 L0 0 Z");
+    fieldEl.querySelector(".fv .fl").setAttribute("d", v);
   }
   /* creux de la ligne : 7 quand ça coince, de moins en moins à chaque essai, 0 quand ça repart */
   function ampFor(tone) {
@@ -1159,8 +1189,15 @@ function boot() {
     if (!head.length || !tone) { document.body.setAttribute("data-layout", "full"); return; }
     last = head[head.length - 1];
     sp = document.createElement("div"); sp.className = "fld-gap"; last.insertAdjacentElement("afterend", sp);
+    /* deux colonnes de contenu : l'en-tête (avec l'en-tête de carte sorti de la carte) et le reste */
+    var colH = document.createElement("div"), colB = document.createElement("div");
+    colH.className = "col-h"; colB.className = "col-b";
+    head.forEach(function (h) { colH.appendChild(h); });
+    colH.appendChild(sp);
+    Array.prototype.slice.call(root.children).forEach(function (c) { if (c !== colH && c !== colB) colB.appendChild(c); });
+    root.appendChild(colH); root.appendChild(colB);
     tgt = tone === "calm" ? "fld-calm" : "fld-deep";
-    if (win) { for (el = sp.nextElementSibling; el; el = el.nextElementSibling) el.classList.add("fld-deep"); }
+    if (win) { colB.classList.add("fld-deep"); }
     else { head.forEach(function (h) { h.classList.add(tgt); }); topEl.classList.add(tgt); }
     document.body.setAttribute("data-layout", "split");
     document.body.setAttribute("data-field", win ? "win" : (tone === "calm" ? "calm" : "deep"));
@@ -1170,7 +1207,7 @@ function boot() {
   }
   function placeField() {
     var sp = U.fieldSp, r, top;
-    if (!sp || !sp.isConnected) return;
+    if (!sp || !sp.isConnected || (window.matchMedia && matchMedia("(min-width: 900px)").matches)) return;
     r = sp.getBoundingClientRect(); top = r.top + window.pageYOffset;
     fieldEl.querySelector(".ft").style.height = top + "px";
     fieldEl.querySelector(".fe").style.top = top + "px";
