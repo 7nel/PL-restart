@@ -31,10 +31,12 @@ Deux façons de l'utiliser :
 
 Cinq domaines, plus les cartes générales :
 
-- **Dossier de français** « Ma boîte à stratégies » : quatorze stratégies (consigne, lecture, relecture, écriture), avec leurs trois étapes et leur « truc ».
-- **Maths** (7), **Réviser et mémoriser** (6), **Langues** (6), **Fatigue et stress** (6) : stratégies en trois étapes, rédigées et validées par l'enseignante.
+- **Dossier de français** « Ma boîte à stratégies » : treize stratégies (consigne, lecture, relecture, écriture ; « Mon plan d’attaque » n’est plus proposée), avec leurs trois étapes et leur « truc ».
+- **Maths** (7), **Réviser et mémoriser** (6), **Langues** (5), **Fatigue et stress** (6) : stratégies en trois étapes, rédigées et validées par l'enseignante.
 
-L'outil choisit en croisant le blocage, la tâche, la matière et le lieu. Certaines réponses n'apparaissent que dans leur contexte (« Je bloque sur un calcul » en maths, « Ce que j'entends » en langues).
+L'outil choisit en croisant le blocage, la tâche, la matière et le lieu. Quand une carte demande du matériel (cahier, cours, schéma) ou un savoir-faire, il pose d'abord une question courte (« Tu as ton cahier avec des exemples ? ») ; si la réponse est non, il passe à la carte suivante sans compter d'essai.
+
+Relecture du 2026-10-22 : l'enseignante a revu les 69 cartes ; six sont retirées (Deux minutes, Ma dernière ligne, Pause courte, Respirer d'abord, Mon plan d'attaque, Les trois écoutes), la tranche minutée est réservée à la maison, plusieurs textes sont réécrits. Certaines réponses n'apparaissent que dans leur contexte (« Je bloque sur un calcul » en maths, « Ce que j'entends » en langues).
 
 ### Retrait de l'aide
 

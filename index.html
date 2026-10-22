@@ -397,29 +397,30 @@ function boot() {
     F1c: { fam: "F1", label: "Je n’ai jamais appris ça", seq: ["C17", "C19"] },
     F1d: { fam: "F1", label: "Je ne sais plus ce que j’ai lu", pre: [{ when: { subject: "Langues" }, ids: ["L02"] }], seq: ["M05", "C22", "C19"] },
     F1e: { fam: "F1", label: "Je ne trouve pas la réponse", pre: [{ when: { subject: "Langues" }, ids: ["L02"] }], seq: ["M07", "M04", "C23", "C19"] },
-    F1f: { fam: "F1", label: "Ce que j’entends", only: { subject: "Langues" }, seq: ["L03", "C19"] },
+    F1f: { fam: "F1", label: "Ce que j’entends", only: { subject: "Langues" }, seq: ["C19"] },
     F2a: { fam: "F2", label: "Je ne vois pas par quoi commencer", pre: [
       { when: { subject: "Maths" }, ids: ["X02", "X04"] },
       { when: { subject: "Langues", type: "ecrire" }, ids: ["L04"] },
       { when: { type: "ecrire" }, not: { subject: "Maths" }, ids: ["M09", "M10", "M11"] },
+      { when: { type: "lire" }, ids: ["M03"] },
       { not: { type: "ecrire" }, ids: ["M01"] }], seq: ["C25", "C03"], then: "F1" },
     F2b: { fam: "F2", label: "C’est trop long", pre: [
       { when: { type: "reviser" }, ids: ["R05"] },
       { when: { type: "reviser", place: "maison" }, ids: ["R06"] },
-      { ids: ["E03"] }], seq: ["C12", "C15", "C20"] },
+      { ids: ["E03"] }], seq: ["C04", "C15", "C20"] },
     F2c: { fam: "F2", label: "C’est trop dur", pre: [{ when: { subject: "Maths" }, ids: ["X03"] }], seq: ["C15", "C03"], then: "F1" },
-    F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", seq: ["C24", "C05", "C16"] },
+    F2d: { fam: "F2", label: "Je n’arrive pas à m’y mettre", seq: ["C24", "C16", "C15"] },
     F2e: { fam: "F2", label: "Je cherche mes mots", only: { subject: "Langues" }, seq: ["L06", "C19"] },
     F2f: { fam: "F2", label: "Je suis fatigué", pre: [
       { when: { place: "classe" }, seq: ["E01", "A02", "C12", "C20"] },
       { when: { place: "maison" }, seq: ["E02", "A02", "C12", "E04"] }], seq: ["A02", "C12", "C20"] },
-    F2h: { fam: "F2", label: "Je n’ai pas envie", seq: ["C05", "C15", "C12"] },
+    F2h: { fam: "F2", label: "Je n’ai pas envie", seq: ["C12", "C15", "C24"] },
     F2g: { fam: "F2", label: "Je stresse", seq: ["A01", "A04", "A03"], then: "F2" },
-    F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C08", "C07"], then: "F2" },
-    F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C12"] },
+    F3a: { fam: "F3", label: "J’ai perdu le fil", pre: [{ when: { type: "lire" }, ids: ["M05"] }, { when: { type: "ecrire" }, ids: ["M11"] }], seq: ["C08"], then: "F2" },
+    F3b: { fam: "F3", label: "Quelque chose me distrait", seq: ["C09", "C10", "C15"] },
     F3c: { fam: "F3", label: "Je suis fatigué ou agité", pre: [
       { when: { place: "classe" }, seq: ["E01", "A02", "C12", "C20"] },
-      { when: { place: "maison" }, seq: ["E02", "A02", "C12", "E04"] }], seq: ["C11", "A02", "C12", "C20"] },
+      { when: { place: "maison" }, seq: ["E02", "A02", "C12", "E04"] }], seq: ["A02", "C12", "C20"] },
     F3d: { fam: "F3", label: "Je stresse", seq: ["A01", "A04", "A03"], then: "F2" },
     F4a: { fam: "F4", label: "J’ai fait une erreur, je sais où", seq: ["C13", "C14", "C19"] },
     F4b: { fam: "F4", label: "C’est faux, je ne sais pas où", pre: [
@@ -427,12 +428,11 @@ function boot() {
       { when: { subject: "Langues" }, ids: ["L05"] },
       { when: { type: "ecrire" }, not: { subject: "Maths" }, ids: ["M08"] }], seq: ["C26", "C03", "C19"] },
     F4c: { fam: "F4", label: "Ma façon de faire ne marche pas", pre: [
-      { when: { type: "reviser" }, ids: ["R01", "R02", "R03", "R04"] },
-      { when: { type: "ecrire" }, ids: ["M12"] }], seq: ["C21", "C03", "C19"] },
+      { when: { type: "reviser" }, ids: ["R01", "R02", "R03", "R04"] }], seq: ["C21", "C03", "C19"] },
     F4d: { fam: "F4", label: "Tout est faux", seq: ["E05", "A01", "E06", "C14", "C19"] },
-    F4e: { fam: "F4", label: "Je bloque sur un calcul", only: { subject: "Maths" }, seq: ["X05", "X06", "C19"] },
+    F4e: { fam: "F4", label: "Je bloque sur un calcul", only: { subject: "Maths" }, seq: ["X06", "X05", "C19"] },
     F4f: { fam: "F4", label: "Je crois savoir, mais je rate", only: { type: "reviser" }, seq: ["R03", "R04", "R01", "C19"] },
-    F5a: { fam: "F5", label: "Je peux faire la prochaine action", seq: ["C05", "C19"] }
+    F5a: { fam: "F5", label: "Je peux faire la prochaine action", seq: ["C15", "C19"] }
   };
   /* familles dont une réponse dépend de la matière : on la demande avant la question si elle n'est pas connue */
   var FAMILY_SUBJECT = { F1: true, F2: true, F4: true };
@@ -449,26 +449,26 @@ function boot() {
     F5q3: { text: "Tu peux la faire maintenant ?", options: [{ label: "Oui", line: "F5a" }, { label: "Non", line: "F2d" }] }
   };
   var CARDS = [
-    { id: "C01", title: "Le mot qui bloque", text: "Souligne le mot que tu ne comprends pas. Cherche-le ou demande seulement ce mot.", min: 2, twin: "M06" },
-    { id: "C02", title: "Dire avec mes mots", text: "Dis tout bas : je dois… pour obtenir…", min: 2, twin: "M02" },
-    { id: "C03", title: "Regarder un exemple", text: "Trouve un exemple déjà fait. Repère ses étapes.", min: 3 },
-    { id: "C04", title: "Couper en 3", text: "Écris trois étapes. Entoure la première.", min: 3 },
+    { id: "C01", title: "Le mot qui bloque", text: "Souligne le mot. Cherche-le dans le dictionnaire. Sinon, demande ce qu’il veut dire.", homeText: "Souligne le mot. Cherche-le sur ton téléphone. Sinon, demande ce qu’il veut dire.", min: 2, twin: "M06" },
+    { id: "C02", title: "Dire avec mes mots", text: "Redis la consigne dans ta tête : « Dans cet exercice, je dois réussir à… Pour ça, je dois… »", min: 2, twin: "M02" },
+    { id: "C03", title: "Regarder un exemple", ask: "Tu as ton cahier avec des exemples ?", text: "Trouve un exemple déjà fait. Repère ses étapes.", min: 3 },
+    { id: "C04", title: "Couper en 3", text: "Divise ce que tu dois faire maintenant en trois étapes. Entoure la première.", min: 3 },
     { id: "C05", title: "Deux minutes", text: "Fais seulement la première action pendant deux minutes.", min: 2 },
     { id: "C06", title: "Si… alors", text: "Complète : si je bloque encore ici, alors je…", min: 1 },
     { id: "C07", title: "Ma dernière ligne", text: "Relis la consigne, puis ta dernière ligne. Montre où tu en es.", min: 1 },
-    { id: "C08", title: "Où j’en suis", text: "Relis le but. Coche ce qui est déjà fait.", min: 2 },
-    { id: "C09", title: "Ranger autour", text: "Éloigne ce qui te distrait. Change de place si tu peux.", min: 1 },
+    { id: "C08", title: "Où j’en suis", ask: "Tu as déjà écrit ton but et tes étapes ?", text: "Relis le but. Coche ce qui est déjà fait.", min: 2 },
+    { id: "C09", title: "Ranger autour", text: "Éloigne ce qui te distrait.", homeText: "Éloigne ce qui te distrait. Change de place si tu peux.", min: 1 },
     { id: "C10", title: "Parking à pensées", text: "Note ta pensée sur un papier. Tu y reviendras après.", min: 1 },
     { id: "C11", title: "Pause courte", text: "Lève-toi, bouge, bois. Reviens quand ça sonne.", min: 3, home: true },
-    { id: "C12", title: "Tranche minutée", text: "Travaille sans t’arrêter le temps choisi. Ensuite tu décides de continuer ou non.", min: 10, durs: [5, 10, 15] },
-    { id: "C13", title: "Corriger et noter", text: "Corrige. Écris en une phrase ce que tu as changé.", min: 2 },
-    { id: "C14", title: "Comparer pas à pas", text: "Compare chaque étape avec la consigne ou l’exemple. Arrête-toi à la première différence.", min: 3 },
+    { id: "C12", title: "Tranche minutée", text: "Travaille sans t’arrêter le temps choisi. Ensuite tu décides de continuer ou non.", min: 10, durs: [5, 10, 15], home: true },
+    { id: "C13", title: "Corriger et noter", ask: "Tu sais comment corriger ?", text: "Corrige. Écris en une phrase ce que tu as changé.", min: 2 },
+    { id: "C14", title: "Comparer pas à pas", text: "Compare chaque étape avec la consigne ou l’exemple. À la première différence, corrige. Sinon, entoure-la et demande.", min: 3 },
     { id: "C15", title: "Commencer par le facile", text: "Fais d’abord la partie que tu sais faire.", min: 5 },
     { id: "C16", title: "Brouillon libre", text: "Écris une première version sans la corriger. Elle a le droit d’être fausse.", min: 5 },
-    { id: "C17", title: "Chercher dans le cours", text: "Trouve la page de ton cours qui parle de ça.", min: 3 },
+    { id: "C17", title: "Chercher dans le cours", ask: "Tu as ton cours avec toi ?", text: "Trouve la page de ton cours qui parle de ça.", min: 3 },
     { id: "C18", title: "Respirer d’abord", text: "Respire lentement cinq fois. Puis montre cet écran à un adulte.", alone: "Respire lentement cinq fois. Parles-en à un adulte dès que tu peux.", min: 1 },
-    { id: "C19", title: "Demande précise", text: "Complète : j’ai compris… je bloque sur… j’ai essayé… Demande une explication ou un indice, pas la réponse.", min: 2 },
-    { id: "C20", title: "Stop propre", text: "Note où tu t’arrêtes et la prochaine action.", min: 2, stop: true },
+    { id: "C19", title: "Demande précise", text: "Prépare ta question pour obtenir une aide précise : j’ai compris… je bloque sur… j’ai essayé… Puis va poser ta question.", min: 2 },
+    { id: "C20", title: "Stop propre", text: "Note où tu t’arrêtes et ce que tu devras faire en reprenant.", min: 2, stop: true },
     { id: "C21", title: "Cacher et dire", text: "Cache ta feuille. Dis ou écris ce que tu te rappelles.", min: 3 },
     { id: "C22", title: "Un paragraphe à la fois", text: "Relis un seul paragraphe. Dis de quoi il parle.", min: 3, twin: "M05" },
     { id: "C24", title: "Je prépare ma place", text: "Sors seulement ce qu’il te faut. Pose-le devant toi.", min: 2 },
@@ -506,22 +506,22 @@ function boot() {
       steps: ["J’ÉCRIS une idée par phrase : qui + fait quoi.", "Je METS LE POINT dès que mon idée est finie.", "Je RELIE mes phrases avec un connecteur de la banque."], truc: "Trop de « et » dans ma phrase ? Je coupe avec un point !" },
     { id: "M13", num: "13", title: "Mon plan d’attaque", when: "Devant un exercice, un test ou un devoir, avant de commencer.", min: 3, annex: "boite",
       steps: ["Je REGARDE la tâche : consigne ? texte à lire ? questions ? texte à écrire ?", "Je CHOISIS mes stratégies dans ma boîte à outils.", "À la fin, j’ÉVALUE : est-ce que ça m’a aidé ?"], truc: "Je commence presque toujours par la stratégie 1 : le détective de consigne." },
-    { id: "M14", num: "★", title: "Le schéma narratif en couleurs", when: "Quand je lis une histoire ou quand j’en invente une.", min: 10,
+    { id: "M14", num: "★", title: "Le schéma narratif en couleurs", ask: "Tu as ton schéma narratif ?", when: "Quand je lis une histoire ou quand j’en invente une.", min: 10,
       steps: ["Je LIS toute l’histoire une première fois.", "Je SURLIGNE chaque partie avec sa couleur.", "Je RÉSUME chaque partie en une phrase dans le schéma."], truc: "Je cherche d’abord l’élément perturbateur (le problème). Avant = début. Après = la suite." }
   ];
   METHODS.forEach(function (m) { m.dom = "fr"; });
   /* Stratégies des quatre autres domaines : noms et étapes validés par l'enseignante dans le dossier de conception.
      « replaces » : cartes que la stratégie rend inutiles dans la même ligne. « stop » : la stratégie clôt la tâche pour aujourd'hui. */
   METHODS = METHODS.concat([
-    { id: "X01", dom: "maths", title: "J’organise la lecture de l’énoncé", min: 3, steps: ["J’ENTOURE ce que je connais.", "Je SOULIGNE ce que je cherche.", "J’ÉCRIS : « Je cherche… »"] },
-    { id: "X02", dom: "maths", title: "J’illustre", min: 4, steps: ["Je CHOISIS : dessin, tableau ou droite graduée.", "Je PLACE les nombres de l’énoncé.", "Je REGARDE ce qui manque."] },
+    { id: "X01", dom: "maths", title: "J’organise la lecture de l’énoncé", min: 3, steps: ["J’ENTOURE les éléments donnés par l’énoncé.", "Je SOULIGNE ce que je cherche.", "J’ÉCRIS : « Je cherche… »"] },
+    { id: "X02", dom: "maths", title: "J’illustre", min: 4, steps: ["Je CHOISIS : dessin, tableau ou droite graduée.", "Je PLACE les informations et les nombres de l’énoncé.", "Je REGARDE ce qui manque."] },
     { id: "X03", dom: "maths", title: "Des nombres plus simples", min: 4, steps: ["Je REMPLACE les nombres par des petits.", "Je RÉSOUS ce problème simple.", "Je REFAIS pareil avec les vrais nombres."] },
-    { id: "X04", dom: "maths", title: "L’exercice jumeau", min: 4, replaces: ["C03"], steps: ["Je CHERCHE un exercice qui ressemble dans mon cahier.", "Je REPÈRE ses étapes.", "Je fais les MÊMES étapes ici."] },
+    { id: "X04", dom: "maths", title: "L’exercice jumeau", ask: "Tu as ton cahier d’exercices ?", min: 4, replaces: ["C03"], steps: ["Je CHERCHE un exercice qui ressemble dans mon cahier.", "Je REPÈRE ses étapes.", "Je fais les MÊMES étapes ici."] },
     { id: "X05", dom: "maths", title: "Mes outils de calcul", min: 3, steps: ["Je POSE le calcul, je prends une table de multiplication. En dernier recours, ma calculatrice.", "Je TROUVE la ligne dont j’ai besoin.", "Je CALCULE, puis je range l’outil."] },
     { id: "X06", dom: "maths", title: "Je pose tout", min: 4, steps: ["J’ÉCRIS une ligne par étape.", "Je POSE le calcul au lieu de le faire de tête.", "Je REFAIS seulement l’étape qui cloche."] },
     { id: "X07", dom: "maths", title: "Est-ce possible ?", min: 2, steps: ["J’ESTIME : à peu près combien ?", "Je COMPARE avec mon résultat.", "Je VÉRIFIE l’unité."] },
     { id: "R01", dom: "reviser", title: "Cacher, dire, vérifier", min: 5, replaces: ["C21"], steps: ["Je LIS un petit bout.", "Je CACHE et je DIS ce que je retiens.", "Je VÉRIFIE et je reprends ce qui manque."] },
-    { id: "R02", dom: "reviser", title: "J’explique", min: 4, steps: ["Je FERME mon cahier.", "J’EXPLIQUE la leçon à voix basse, comme à un plus jeune.", "Je NOTE ce que je n’ai pas su expliquer."] },
+    { id: "R02", dom: "reviser", title: "J’explique", min: 4, steps: ["Je FERME mon cahier.", "J’EXPLIQUE la leçon dans ma tête.", "Je NOTE ce que je n’ai pas su expliquer."] },
     { id: "R03", dom: "reviser", title: "Mes trois questions", min: 6, steps: ["J’ÉCRIS trois questions sur la leçon.", "Je RÉPONDS sans regarder.", "Je GARDE celles que j’ai ratées."] },
     { id: "R04", dom: "reviser", title: "Je refais sans regarder", min: 6, steps: ["Je CHOISIS un exercice déjà corrigé.", "Je CACHE la correction et je le refais.", "Je COMPARE étape par étape."] },
     { id: "R05", dom: "reviser", title: "Je trie ce que je sais", min: 4, steps: ["Je COCHE ce que je sais déjà.", "J’ENTOURE ce que je ne sais pas encore.", "Je travaille SEULEMENT ce qui est entouré."] },
@@ -541,7 +541,7 @@ function boot() {
   ]);
   /* Sans adulte disponible : une stratégie de plus avant l'écran d'aide, prise dans la ligne en cours,
      sinon parmi ces cartes générales, par famille (ressources que l'élève peut utiliser seul). */
-  var ALONE = { F1: ["C17", "C03"], F2: ["C03", "C15", "C05"], F3: ["C08", "C12", "C15"], F4: ["C03", "C14", "C17"], F5: ["C03", "C15"] };
+  var ALONE = { F1: ["C17", "C03"], F2: ["C03", "C15", "C24"], F3: ["C08", "C15"], F4: ["C03", "C14", "C17"], F5: ["C03", "C15"] };
   /* Outils d'apaisement : repris du site PL-CPS’ (mois « Gestion du stress »), durées et consignes d'origine.
      Les titres pour l'élève et le découpage en phases sont à valider par l'enseignante. */
   var TOOLS = [
@@ -551,13 +551,16 @@ function boot() {
       phases: [{ t: "Les deux pieds bien posés au sol.", s: 8 }, { t: "Sens le contact pieds / sol.", s: 11 }, { t: "Sens le poids de tes pieds.", s: 11 }],
       steps: ["Les deux pieds bien posés au sol.", "Sens le contact pieds / sol, 30 secondes.", "Respire normalement."] },
     { id: "A03", kind: "phases", title: "Je serre, je relâche", durTxt: "1 min", text: "Serre un muscle fort, puis relâche d’un coup.", rounds: 3,
-      phases: [{ t: "Choisis un groupe musculaire.", s: 6 }, { t: "Serre fort.", s: 5, warm: true, round: 1 }, { t: "Relâche d’un coup en expirant.", s: 10, round: 1 },
+      phases: [{ t: "Choisis : les mains, les épaules ou les pieds.", s: 6 }, { t: "Serre fort.", s: 5, warm: true, round: 1 }, { t: "Relâche d’un coup en expirant.", s: 10, round: 1 },
         { t: "Serre fort.", s: 5, warm: true, round: 2 }, { t: "Relâche d’un coup en expirant.", s: 10, round: 2 }, { t: "Serre fort.", s: 5, warm: true, round: 3 }, { t: "Relâche d’un coup en expirant.", s: 10, round: 3 }],
-      steps: ["Choisis un groupe musculaire.", "Serre-le fort 5 secondes.", "Relâche d’un coup en expirant, 10 secondes. Répète 3 fois."] },
-    { id: "A04", kind: "phases", title: "Mon endroit calme", durTxt: "1 min", text: "Ferme les yeux. Imagine un endroit où tu te sens calme.", sub: "Dans ton endroit calme.",
-      phases: [{ t: "Ferme les yeux. Imagine un endroit où tu te sens totalement calme.", s: 12 }, { t: "Un son.", s: 12 }, { t: "Une couleur.", s: 12 }, { t: "Une sensation.", s: 12 }, { t: "Reste dans cet endroit.", s: 12 }],
-      steps: ["Ferme les yeux. Imagine un endroit où tu te sens totalement calme.", "Pense à trois détails : un son, une couleur, une sensation.", "Reste une minute dans cet endroit."] }
+      steps: ["Choisis : les mains, les épaules ou les pieds.", "Serre-le fort 5 secondes.", "Relâche d’un coup en expirant, 10 secondes. Répète 3 fois."] },
+    { id: "A04", kind: "phases", title: "Mon endroit calme", durTxt: "1 min", text: "Ferme les yeux ou regarde un point fixe. Imagine un endroit où tu te sens calme.", sub: "Dans ton endroit calme.",
+      phases: [{ t: "Ferme les yeux ou regarde un point fixe. Imagine un endroit calme.", s: 12 }, { t: "Un son.", s: 12 }, { t: "Une couleur.", s: 12 }, { t: "Une sensation.", s: 12 }, { t: "Reste dans cet endroit.", s: 12 }],
+      steps: ["Ferme les yeux ou regarde un point fixe. Imagine un endroit où tu te sens totalement calme.", "Pense à trois détails : un son, une couleur, une sensation.", "Reste une minute dans cet endroit."] }
   ];
+  /* Cartes retirées par l'enseignante (relecture du 2026-10-22) : gardées pour l'historique, jamais proposées ni listées. */
+  var RETIRED = ["C05", "C07", "C11", "C18", "M13", "L03"];
+  function retired(id) { return RETIRED.indexOf(id) >= 0; }
   var CALM_TOOLS = [["A01", "Je respire", "square"], ["A02", "Mes pieds au sol", "ground"], ["A03", "Je serre, je relâche", "squeeze"], ["A04", "Mon endroit calme", "place"]];
   var DOMAINS = [["fr", "Boîte à stratégies de français"], ["maths", "Maths"], ["reviser", "Réviser et mémoriser"], ["langues", "Langues"], ["etat", "Fatigue et stress"], ["gen", "Cartes générales"]];
   var DOM_SHORT = { maths: "Maths", reviser: "Réviser", langues: "Langues", etat: "Énergie et stress", calme: "Pour se calmer" };
@@ -619,7 +622,7 @@ function boot() {
       st.msince = st.msince || {}; st.mdismiss = st.mdismiss || {}; st.cfgAt = st.cfgAt || 0; st.code = typeof st.code === "string" ? st.code : "";
     });
     s.tasks.forEach(function (t) { t.plan = t.plan || []; if (!("planHelped" in t)) t.planHelped = null; if (!("adult" in t)) t.adult = null; });
-    s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.teacher = b.teacher || {}; if (!("adult" in b)) b.adult = null; });
+    s.blocks.forEach(function (b) { b.tries = b.tries || []; b.answers = b.answers || []; b.asked = b.asked || {}; b.teacher = b.teacher || {}; if (!("adult" in b)) b.adult = null; });
     return s;
   }
   function loadState() {
@@ -658,13 +661,13 @@ function boot() {
   /* Format unique : toute carte a un titre, une à trois étapes, parfois un « truc », et un état par élève. */
   function card(id) {
     var m = byId(METHODS, id), d, o, text;
-    if (m) return { id: id, dom: m.dom, num: m.num || "", title: m.title, label: m.label || m.title, text: m.when || "", steps: m.steps, truc: m.truc || "", annex: m.annex, min: m.min, active: true, replaces: m.replaces, stop: !!m.stop };
+    if (m) return { id: id, dom: m.dom, num: m.num || "", title: m.title, label: m.label || m.title, text: m.when || "", steps: m.steps, truc: m.truc || "", annex: m.annex, min: m.min, active: !retired(id), replaces: m.replaces, stop: !!m.stop, ask: m.ask || "" };
     d = byId(TOOLS, id);
     if (d) return { id: id, dom: "calme", num: "", title: d.title, label: d.title, text: d.text, steps: d.steps, truc: "", min: 1, durTxt: d.durTxt, active: true, guide: d, stop: false };
     d = byId(CARDS, id); if (!d) return null;
     o = S.labels.cards[id] || {};
-    text = o.text || (d.alone && U.block && adultOf(U.block) === false ? d.alone : d.text);
-    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false, twin: d.twin, home: !!d.home, durs: d.durs, stop: !!d.stop };
+    text = o.text || (d.alone && U.block && adultOf(U.block) === false ? d.alone : (d.homeText && U.block && context(U.block).place === "maison" ? d.homeText : d.text));
+    return { id: id, dom: "gen", num: "", title: o.title || d.title, label: o.title || d.title, text: text, steps: [text], truc: "", min: o.min > 0 ? o.min : d.min, active: o.active !== false && !retired(id), twin: d.twin, home: !!d.home, durs: d.durs, stop: !!d.stop, ask: d.ask || "" };
   }
   /* Où en est l'élève avec une stratégie : 0 pas encore vue, 1 guidée, 2 avec la carte, 3 seul.
      Par défaut : le dossier de français commence « pas encore vu », tout le reste « guidé ».
@@ -676,7 +679,7 @@ function boot() {
     return fr ? 0 : 1;
   }
   function knownMethods(sid, dom) {
-    return METHODS.filter(function (m) { return (!dom || m.dom === dom) && methodState(m.id, sid) > 0; }).map(function (m) { return m.id; });
+    return METHODS.filter(function (m) { return (!dom || m.dom === dom) && !retired(m.id) && methodState(m.id, sid) > 0; }).map(function (m) { return m.id; });
   }
   function available(id, b) {
     var c = card(id);
@@ -953,7 +956,7 @@ function boot() {
   function triedIn(b) { return b.tries.map(function (t) { return t.card; }); }
   function nonCount(b) { return b.tries.filter(function (t) { return t.result === 0; }).length; }
   function usable(id, b) {
-    return available(id, b) && triedIn(b).indexOf(id) < 0;
+    return available(id, b) && triedIn(b).indexOf(id) < 0 && !(b.asked && b.asked[id] === false);
   }
   /* Contexte d'un blocage : matière, tâche, lieu. Vient de la tâche (mode suivi) ou des réponses données en route. */
   var CTX_KEYS = ["subject", "type", "place"];
@@ -1140,7 +1143,7 @@ function boot() {
   }
   function newBlock(t) {
     var at = now();
-    var b = { id: uid("b"), tid: t ? t.id : null, sid: t ? t.sid : null, at: at, t: t ? at - t.start : null, adult: t && (t.adult === true || t.adult === false) ? t.adult : null, extra: false, type: null, family: null, answers: [], line: null, level: null, unfolded: false, tries: [], help: false, end: null, resumedAt: null, teacher: {} };
+    var b = { id: uid("b"), tid: t ? t.id : null, sid: t ? t.sid : null, at: at, t: t ? at - t.start : null, adult: t && (t.adult === true || t.adult === false) ? t.adult : null, extra: false, asked: {}, type: null, family: null, answers: [], line: null, level: null, unfolded: false, tries: [], help: false, end: null, resumedAt: null, teacher: {} };
     if (t) S.blocks.push(b);
     U.block = b; U.line = null; U.pendingLine = null;
     return b;
@@ -1212,7 +1215,7 @@ function boot() {
     var doms = t.type === "reviser" ? ["reviser"] : (t.subject === "Maths" ? ["maths"] : (t.subject === "Langues" ? ["langues"] : ["fr"]));
     var extra = t.type !== "reviser" && (t.subject === "Maths" || t.subject === "Langues") ? ["M01", "M02"] : [];
     return METHODS.filter(function (m) {
-      return m.id !== "M13" && (doms.indexOf(m.dom) >= 0 || extra.indexOf(m.id) >= 0) && methodState(m.id, sid) > 0;
+      return !retired(m.id) && (doms.indexOf(m.dom) >= 0 || extra.indexOf(m.id) >= 0) && methodState(m.id, sid) > 0;
     }).map(function (m) { return m.id; });
   }
   /* « Mon plan d'attaque » (stratégie 13) au démarrage : facultatif, activé par élève dans l'espace enseignante. */
@@ -1413,6 +1416,8 @@ function boot() {
   function proposeCard(id, origin, cheer, undo) {
     if (id === "C19") return nonCount(U.block) >= 2 ? helpOrPause() : goHelp();
     var c = card(id), b = U.block, alts, back;
+    /* question intermédiaire : le matériel ou le savoir nécessaire est-il là ? Sinon on passe à la carte suivante, sans compter d'essai. */
+    if (c.ask && !(b.asked && id in b.asked)) return screenCardAsk(id, origin, cheer, undo);
     U.cardId = id; U.origin = origin; U.peek = false; U.step = 0;
     U.mode = methodState(id, b.sid) || 1;
     alts = alternatives(b, id);
@@ -1424,6 +1429,22 @@ function boot() {
       (alts.length && b.family !== "F0" ? '<button class="link" data-a="other">' + svg("loop") + "Une autre idée</button>" : "") + "</div>" +
       (undo ? undoFoot() : ""));
   }
+  function screenCardAsk(id, origin, cheer, undo) {
+    var c = card(id);
+    U.askCard = { id: id, origin: origin, cheer: cheer, undo: undo };
+    show(title(c.ask) + '<div class="tiles">' +
+      '<button class="tile" data-a="cardAsk" data-v="1">' + svg("check") + "<span>Oui</span></button>" +
+      '<button class="tile" data-a="cardAsk" data-v="0">' + svg("cross") + "<span>Non</span></button></div>" + backToTask());
+  }
+  function cardAsk(yes) {
+    var a = U.askCard, b = U.block, next;
+    b.asked = b.asked || {}; b.asked[a.id] = yes; save();
+    if (yes) return proposeCard(a.id, a.origin, a.cheer, a.undo);
+    next = U.line ? nextUntried(U.line.seq, b) : null;
+    if (!next) next = alternatives(b, a.id)[0] || null;
+    if (!next) return goHelp();
+    proposeCard(next, a.origin === "choisie" ? "choisie" : "proposee");
+  }
   function stepsHtml(c) {
     return (c.steps.length === 1 ? "<p>" + esc(c.steps[0]) + "</p>"
       : '<ol class="steps">' + c.steps.map(function (s) { return "<li><span>" + esc(s) + "</span></li>"; }).join("") + "</ol>") +
@@ -1434,7 +1455,7 @@ function boot() {
     if (kind === "dico") return '<details class="annex"><summary>Mon dico des verbes de consigne</summary><div class="in"><table><tbody>' +
       DICO.map(function (r) { return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>"; }).join("") +
       "</tbody></table><p><b>Les petits mots pièges</b></p>" + PIEGES.map(function (x) { return "<p>" + esc(x) + "</p>"; }).join("") + "</div></details>";
-    if (kind === "cles") return '<details class="annex"><summary>Mon trousseau de clés</summary><div class="in"><table><tbody>' +
+    if (kind === "cles") return '<details class="annex" open><summary>Mon trousseau de clés</summary><div class="in"><table><tbody>' +
       CLES.map(function (r) { return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td></tr>"; }).join("") + "</tbody></table></div></details>";
     if (kind === "boite") {
       ids = knownMethods(sid, "fr");
@@ -1711,7 +1732,7 @@ function boot() {
     var c06 = card("C06"), c = card(id);
     if (!c06.active) return screenBye();
     show(title("Pour la prochaine fois") + '<div class="card"><div class="cardhead"><div class="cardtop"><h2>' + esc(c06.title) + "</h2>" +
-      sayBtn("Si je bloque encore, alors j’essaie " + c.title, true) + "</div></div><p>Si je bloque encore, alors j’essaie « " + esc(c.title) + " ».</p></div>" +
+      sayBtn("Si je bloque encore, alors j’essaie " + c.title, true) + "</div></div><p>Si je bloque encore, alors j’essaie « " + esc(c.title) + " ».</p><p class=\"sub\">Cette stratégie t’a aidé aujourd’hui. On la garde de côté pour la prochaine fois que tu bloques.</p></div>" +
       '<div class="row"><button class="btn primary" data-a="plan" data-id="' + esc(id) + '">' + svg("pin") + 'D’accord, je la garde</button><button class="btn" data-a="bye">Non merci</button></div>');
   }
   function screenBye() {
@@ -1849,7 +1870,7 @@ function boot() {
   /* Retrait de l'aide : l'outil propose, l'enseignante valide. Seuils de départ arbitraires :
      3 reprises de suite pour alléger ; 2 échecs de suite, ou 2 cartes rouvertes au niveau « seul », pour renforcer. */
   function strategyIds() {
-    return METHODS.map(function (m) { return m.id; }).concat(CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19"; }).map(function (d) { return d.id; }));
+    return METHODS.filter(function (m) { return !retired(m.id); }).map(function (m) { return m.id; }).concat(CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19" && !retired(d.id); }).map(function (d) { return d.id; }));
   }
   function strategyTries(sid, id) {
     var st = student(sid), since = st.msince[id] || 0, out = [];
@@ -1900,8 +1921,8 @@ function boot() {
   }
   var STATE_SHORT = ["pas encore vues", "guidées", "avec la carte", "seul"];
   function domIds(dom) {
-    return dom === "gen" ? CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19"; }).map(function (d) { return d.id; })
-      : METHODS.filter(function (m) { return m.dom === dom; }).map(function (m) { return m.id; });
+    return dom === "gen" ? CARDS.filter(function (d) { return d.id !== "C06" && d.id !== "C19" && !retired(d.id); }).map(function (d) { return d.id; })
+      : METHODS.filter(function (m) { return m.dom === dom && !retired(m.id); }).map(function (m) { return m.id; });
   }
   function stateSummary(st, ids) {
     var n = [0, 0, 0, 0], out = [];
@@ -1982,6 +2003,7 @@ function boot() {
     html += '</div><div class="panel"><h2>Cartes générales</h2><p class="small">Rangées selon la première famille où elles sont proposées. Une seule action par carte, à l’impératif. Décochez une carte pour la retirer.</p>';
     var groups = {}, order = FAMILIES.map(function (f) { return f.id; }).concat(["autre"]);
     CARDS.forEach(function (d) {
+      if (retired(d.id)) return;
       var g = "autre", k;
       for (k in LINES) {
         var L = LINES[k], ids = (L.seq || []).concat((L.pre || []).reduce(function (a, r) { return a.concat(r.ids || [], r.seq || []); }, []));
@@ -2031,7 +2053,7 @@ function boot() {
       "<p><b>Juste un coup de main.</b> On commence directement par « Où ça coince ? » ; « Un adulte peut t’aider ? » n’est posé qu’au moment de l’aide. Rien n’est enregistré, sauf si l’on choisit « Enregistrer pour un élève ». C’est le mode à projeter, et celui qui convient à la maison : chaque appareil garde ses propres données, vous ne voyez pas ce qui s’y passe.</p></div>" +
       '<div class="panel"><h2>Comment l’outil choisit</h2>' +
       "<p>Il croise le blocage, la tâche, la matière et le lieu. S’il lui manque une information qui change la stratégie, il la demande en un écran.</p>" +
-      "<p>Cinq domaines de stratégies : le dossier de français (14), les maths (7), réviser et mémoriser (6), les langues (6), la fatigue et le stress (6). S’y ajoutent les cartes générales et quatre outils d’apaisement guidés, repris du site PL-CPS’.</p>" +
+      "<p>Cinq domaines de stratégies : le dossier de français (13), les maths (7), réviser et mémoriser (6), les langues (5), la fatigue et le stress (6). S’y ajoutent les cartes générales et quatre outils d’apaisement guidés, repris du site PL-CPS’.</p>" +
       "<p><b>Outils d’apaisement</b> : respiration carrée (le point parcourt le carré, 4 cycles d’environ une minute), pieds au sol (30 s), je serre, je relâche (3 tours), mon endroit calme (1 min). Ils s’ouvrent depuis « Ça ne va pas du tout » (l’élève en choisit un, ou demande un adulte) et sont proposés dans « Je stresse », « Je suis fatigué ou agité » et « Tout est faux ».</p></div>" +
       '<div class="panel"><h2>Le retrait de l’aide</h2>' +
       "<p>Chaque stratégie a quatre états par élève : pas encore vue, guidée étape par étape, avec la carte, seul. Le dossier de français commence « pas encore vu » ; le reste commence « guidé ».</p>" +
@@ -2203,6 +2225,7 @@ function boot() {
     backTry: function () { renderTry(); },
     undoResult: function () { undoResult(); },
     pauseGo: function () { goHelp(); },
+    cardAsk: function (d) { cardAsk(d.v === "1"); },
     result: function (d) { result(parseFloat(d.r)); },
     "switch": function () { askQuestion(U.block.switched); },
     cancelBlock: function () { if (U.block && !U.block.end) { if (U.block.tries.length) endBlock("abandon"); else endBlock("annule"); } backToWork(); },
