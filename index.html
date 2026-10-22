@@ -1110,10 +1110,10 @@ function boot() {
     var h = mainEl.querySelector("h1");
     if (h) { h.setAttribute("tabindex", "-1"); try { h.focus({ preventScroll: true }); } catch (e) {} }
   }
-  /* stage : absent = pas de nœud ; 0 = la cause, 1 à 3 = essai ; knotOnly = nœud sans le fil des étapes */
-  function title(text, stage, knotOnly) {
+  /* stage : absent = ni fil ni nœud ; 0 = la cause, 1 à 3 = essai ; noTrail = sans le fil des étapes ; knot = avec le nœud (accueil seulement : le nœud n'apparaît qu'une fois, ici, puis dans « Tu es reparti ! ») */
+  function title(text, stage, noTrail, knot) {
     var has = stage !== undefined && stage !== null;
-    return (has && !knotOnly ? trailHtml(stage) : "") + '<div class="qrow"><h1>' + esc(text) + "</h1>" + (has ? knotHtml(knotX(stage)) : "") + sayBtn(text, true) + "</div>";
+    return (has && !noTrail ? trailHtml(stage) : "") + '<div class="qrow"><h1>' + esc(text) + "</h1>" + (has && knot ? knotHtml(knotX(stage)) : "") + sayBtn(text, true) + "</div>";
   }
   /* étape du blocage à montrer : 0 tant que rien n'est essayé, sinon l'essai en cours ; pas de fil pour le plan d'attaque */
   function essaiNow() { return U.block ? Math.min(nonCount(U.block) + 1, 3) : 1; }
@@ -1412,7 +1412,7 @@ function boot() {
   /* ---------- écrans élève ---------- */
   function goHome() {
     U.sid = null; U.task = null; U.block = null; U.unlocked = false; U.free = false; U.pinLater = false;
-    var html = title("Qui travaille ?", 0, true);
+    var html = title("Qui travaille ?", 0, true, true);
     if (!S.students.length) {
       html += '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>';
     } else {
@@ -1552,7 +1552,7 @@ function boot() {
     var t = U.task, tt = byId(TASK_TYPES, t.type) || TASK_TYPES[4];
     show((msg ? '<p class="recall">' + esc(msg) + "</p>" : "") +
       '<div class="taskline">' + svg(tt.icon) + "<span>" + esc(tt.label) + (t.subject ? " · " + esc(t.subject) : "") + "</span>" +
-      (S.settings.chrono ? '<span class="chrono" id="chrono" aria-hidden="true"></span>' : "") + knotHtml(3) + "</div>" +
+      (S.settings.chrono ? '<span class="chrono" id="chrono" aria-hidden="true"></span>' : "") + "</div>" +
       '<h1 class="sr-only">Je travaille</h1>' +
       /* le plan d'attaque se fait avant de bloquer : ses stratégies passent au-dessus de « Je bloque » */
       (t.plan && t.plan.length ? '<p class="sub plan-label">Mon plan</p><div class="plan-grid work">' + t.plan.map(function (id) {
@@ -1767,7 +1767,7 @@ function boot() {
     var dur = view === "preview" ? '<span class="dur">' + svg("timer") + (c.durTxt || c.min + " min") + "</span>" : "";
     var one = c.steps.length === 1, over = c.dom === "fr" ? "Stratégie " + c.num : (DOM_SHORT[c.dom] || ""), body, say;
     say = c.title + ". " + c.steps.join(" ");
-    var knot = (view === "preview" || view === "try") && stageTry() !== undefined ? knotHtml(knotX(essaiNow(), view === "try" ? U.step : 0)) : "";
+    var knot = "";
     if (c.guide && view !== "full") body = "<p>" + esc(c.text) + "</p>";
     else if (view === "full" || mode === 2 || (one && mode !== 3)) body = stepsHtml(c);
     else if (mode === 3) {
