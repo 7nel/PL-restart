@@ -374,7 +374,7 @@ function boot() {
     .st .choice { position: relative; border: 0; border-radius: 0; background: transparent; box-shadow: none; min-height: 80px; padding: 12px 8px; gap: 18px; color: inherit; font-weight: 500; font-size: clamp(1.2rem, 5vw, 1.6rem); transition: none; }
     .st .choice:active { transform: none; }
     /* fin de ligne : un bout de fil terminé par un point (le geste « je choisis ce fil ») */
-    .st .choice:not([data-a="checkToggle"])::after, .st .tile:not(.sel)::after { content: ""; flex: none; width: clamp(44px, 12vw, 72px); height: 16px; margin-left: auto; background: linear-gradient(currentColor, currentColor) left center / calc(100% - 8px) 4px no-repeat, radial-gradient(circle at right center, currentColor 0 7px, transparent 8px) right center / 16px 16px no-repeat; }
+    .st .choice:not([data-a="checkToggle"])::after, .st .tile:not(.sel)::after { content: ""; flex: none; width: clamp(44px, 12vw, 72px); height: 16px; margin-left: auto; background: linear-gradient(currentColor, currentColor) left center / calc(100% - 8px) 4px no-repeat, radial-gradient(circle 7px at 8px 8px, currentColor 98%, transparent) right center / 16px 16px no-repeat; }
     .st .choice.yes::after, .st .choice.no::after, .st .choice.mid::after { display: none; }
     .st .choice .ic { display: none; }
     .st .choice.yes .ic, .st .choice.no .ic, .st .choice.mid .ic, .st .choice[data-a="checkToggle"] .ic { display: block; order: 3; width: 32px; height: 32px; margin-left: auto; margin-right: 6px; color: currentColor; }
