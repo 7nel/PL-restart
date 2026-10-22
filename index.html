@@ -325,13 +325,29 @@ function boot() {
     /* ===== Écrans élève : « le nœud et le fil » (2026-10-22) =====
        Un blocage est un nœud : chaque essai le desserre. Trois tons d'écran (body[data-tone]) : deep = je cherche, calm = je me calme,
        light = je fais, win = ça repart. Les écrans de l'espace enseignante (.wide) ne changent pas. */
-    body[data-tone="deep"], body[data-tone="calm"] {
-      --tbg: var(--deep);
+    body[data-layout="full"][data-tone="deep"], body[data-layout="full"][data-tone="calm"], .fld-deep, .fld-calm {
+      --tbg: var(--deep); color: var(--ink);
       --bg: var(--tbg); --ink: var(--on-deep); --muted: var(--on-deep); --surface: transparent; --surface-alt: color-mix(in srgb, var(--on-deep) 14%, transparent);
       --rule: color-mix(in srgb, var(--on-deep) 32%, transparent); --border: var(--rule); --line-strong: var(--rule); --line-ctl: var(--on-deep);
       --accent: var(--on-deep); --on-accent: var(--tbg); --accent-soft: color-mix(in srgb, var(--on-deep) 16%, transparent); --shadow: none;
     }
-    body[data-tone="calm"] { --tbg: var(--calm-deep); }
+    body[data-layout="full"][data-tone="calm"], .fld-calm { --tbg: var(--calm-deep); }
+    /* deux champs de couleur : le haut porte la question, le bas porte les actions ; la ligne qui les sépare est le fil
+       (une courbe douce quand ça coince, qui s'aplatit à chaque essai, droite quand ça repart) */
+    body { position: relative; }
+    .page { position: relative; z-index: 1; }
+    .field { position: absolute; top: 0; left: 0; right: 0; z-index: 0; pointer-events: none; display: none; }
+    body[data-layout="split"] .field { display: block; }
+    .field .ft { background: var(--deep); }
+    .field .fe { position: absolute; left: 0; width: 100%; display: block; overflow: visible; }
+    .field .ff { fill: var(--deep); }
+    .field[data-f="calm"] .ft { background: var(--calm-deep); } .field[data-f="calm"] .ff { fill: var(--calm-deep); }
+    .field[data-f="win"] .ft { background: var(--bg); } .field[data-f="win"] .ff { fill: var(--bg); }
+    .field .fl { fill: none; stroke: var(--ink); stroke-width: 6px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+    body[data-layout="split"][data-field="win"] { background: var(--deep); }
+    .fld-gap { flex: none; height: clamp(44px, 9vw, 76px); }
+    body[data-layout="split"] main.center { justify-content: flex-start; }
+    .st .big, .st .btn.primary { color: var(--on-accent); }
     .st { gap: 20px; }
     .st main { gap: 20px; }
     .st h1 { font-weight: 500; font-size: clamp(2rem, 9.2vw, 3.4rem); line-height: 1.05; letter-spacing: -0.02em; text-wrap: balance; }
@@ -1046,14 +1062,15 @@ function boot() {
   }
 
   /* ---------- DOM skeleton ---------- */
-  document.body.innerHTML = '<div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div><div class="sr-only" id="live" role="status" aria-live="polite"></div>';
-  var pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main"), liveEl = document.getElementById("live");
+  document.body.innerHTML = '<div class="field" id="field" aria-hidden="true"><div class="ft"></div><svg class="fe" viewBox="0 0 100 44" preserveAspectRatio="none"><path class="ff"/><path class="fl"/></svg></div><div class="page" id="page"><header class="top" id="top"></header><main id="main"></main></div><div class="sr-only" id="live" role="status" aria-live="polite"></div>';
+  var fieldEl = document.getElementById("field"), pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main"), liveEl = document.getElementById("live");
   var pendingLive = "";
   var ticker = null, pendingTimeout = null;
-  var guideRaf = 0, G = null, knotRaf = 0;
+  var guideRaf = 0, G = null, knotRaf = 0, edgeRaf = 0;
   function clearTimers() {
     if (guideRaf) { cancelAnimationFrame(guideRaf); guideRaf = 0; }
     if (knotRaf) { cancelAnimationFrame(knotRaf); knotRaf = 0; }
+    if (edgeRaf) { cancelAnimationFrame(edgeRaf); edgeRaf = 0; }
     if (ticker) { clearInterval(ticker); ticker = null; }
     if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
   }
@@ -1089,7 +1106,8 @@ function boot() {
     html = html.replace(/« /g, "«\u00a0").replace(/ »/g, "\u00a0»").replace(/ ([?!:;])(?=[\s<"]|$)/g, "\u00a0$1");
     mainEl.innerHTML = (storageOk ? "" : '<p class="note">L’enregistrement est bloqué sur cet appareil (navigation privée ?). Rien ne sera gardé après fermeture.</p>') + html;
     window.scrollTo(0, 0);
-    animateD();
+    layoutField(opts);
+    animateD(); animateEdge();
     /* encouragement annoncé aux lecteurs d'écran (la page se redessine, il n'y a pas de zone vivante dans le contenu) */
     liveEl.textContent = "";
     if (pendingLive) { var say = pendingLive; setTimeout(function () { liveEl.textContent = say; }, 60); }
@@ -1107,6 +1125,76 @@ function boot() {
   function stageNow() { return !U.block || U.block.family === "plan" ? undefined : (U.block.tries.length ? essaiNow() : 0); }
   function stageHelp() { var b = U.block; return !b || b.family === "plan" ? undefined : (b.tries.length ? Math.max(1, Math.min(nonCount(b), 3)) : 0); }
   function stageTry() { return !U.block || U.block.family === "plan" ? undefined : essaiNow(); }
+  /* ----- deux champs de couleur ----- */
+  function edgeD(a) {
+    var pts = [], k, n = 40;
+    for (k = 0; k <= n; k++) pts.push((100 * k / n).toFixed(1) + " " + (22 + a * Math.sin(k / n * Math.PI * 1.35 + 0.35)).toFixed(1));
+    return "M" + pts.join(" L");
+  }
+  function setEdge(a) {
+    var d = edgeD(a);
+    fieldEl.querySelector(".ff").setAttribute("d", d + " L100 0 L0 0 Z");
+    fieldEl.querySelector(".fl").setAttribute("d", d);
+  }
+  /* creux de la ligne : 7 quand ça coince, de moins en moins à chaque essai, 0 quand ça repart */
+  function ampFor(tone) {
+    var tr = mainEl.querySelector(".trail");
+    if (tone === "win") return 0;
+    return tr ? [7, 5, 4, 3][Math.min(+tr.getAttribute("data-i") || 0, 3)] : 6;
+  }
+  /* repère les éléments d'en-tête (fil des étapes, titre, en-tête de carte) et colore les deux champs ; sans en-tête, l'écran reste d'un seul ton */
+  function layoutField(opts) {
+    var tone = opts.wide ? "" : (opts.tone || "light"), win = tone === "win", root = mainEl, kids, head = [], i, el, last, sp, tgt;
+    topEl.classList.remove("fld-deep", "fld-calm");
+    U.fieldSp = null;
+    document.body.removeAttribute("data-field");
+    if (opts.wide) { document.body.setAttribute("data-layout", "wide"); return; }
+    if (win) { el = mainEl.querySelector(".done.restart"); if (el) root = el; }
+    kids = root.children;
+    for (i = 0; i < kids.length; i++) {
+      el = kids[i];
+      if (el.matches(".note")) continue;
+      if (el.matches(".trail, .qrow, h1, .recall, .taskline, .thread, .sub") || el.querySelector(":scope > .cheer")) { head.push(el); continue; }
+      if (el.matches(".card") && !win && el.firstElementChild && el.firstElementChild.matches(".cardhead")) head.push(el.firstElementChild);
+      break;
+    }
+    if (win) { /* « Tu es reparti ! » : le haut est clair, le bas est profond (les champs s'inversent) */
+      head = head.filter(function (h) { return !h.matches(".big"); });
+    }
+    if (!head.length || !tone) { document.body.setAttribute("data-layout", "full"); return; }
+    last = head[head.length - 1];
+    sp = document.createElement("div"); sp.className = "fld-gap"; last.insertAdjacentElement("afterend", sp);
+    tgt = tone === "calm" ? "fld-calm" : "fld-deep";
+    if (win) { for (el = sp.nextElementSibling; el; el = el.nextElementSibling) el.classList.add("fld-deep"); }
+    else { head.forEach(function (h) { h.classList.add(tgt); }); topEl.classList.add(tgt); }
+    document.body.setAttribute("data-layout", "split");
+    document.body.setAttribute("data-field", win ? "win" : (tone === "calm" ? "calm" : "deep"));
+    fieldEl.setAttribute("data-f", win ? "win" : (tone === "calm" ? "calm" : "deep"));
+    U.fieldSp = sp; U.fieldAmp = ampFor(tone);
+    placeField();
+  }
+  function placeField() {
+    var sp = U.fieldSp, r, top;
+    if (!sp || !sp.isConnected) return;
+    r = sp.getBoundingClientRect(); top = r.top + window.pageYOffset;
+    fieldEl.querySelector(".ft").style.height = top + "px";
+    fieldEl.querySelector(".fe").style.top = top + "px";
+    fieldEl.querySelector(".fe").style.height = r.height + "px";
+  }
+  function animateEdge() {
+    var to = U.fieldAmp, from, reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches, t0;
+    if (to === undefined || !U.fieldSp) return;
+    from = U.ampPrev == null ? to : U.ampPrev; U.ampPrev = to;
+    if (reduce || from === to) { setEdge(to); return; }
+    t0 = performance.now();
+    (function step(t) {
+      var p = Math.min((t - t0) / 380, 1), e = 1 - Math.pow(1 - p, 3);
+      setEdge(from + (to - from) * e);
+      edgeRaf = p < 1 ? requestAnimationFrame(step) : 0;
+    })(t0);
+  }
+  window.addEventListener("resize", placeField);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeField);
   /* le nœud se desserre et le repère glisse d'une étape à l'autre (0,35 s au plus ; aucun mouvement si prefers-reduced-motion) */
   function animateD() {
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
