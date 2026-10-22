@@ -21,18 +21,27 @@ function boot() {
       --border: #dcd6c8; --line-strong: #c4bdad; --line-ctl:#7a8077; --on-accent: #ffffff;
       --shadow: 0 1px 2px rgba(37, 52, 51, 0.06), 0 10px 24px rgba(37, 52, 51, 0.08);
       --display: "Lexend", "Atkinson Hyperlegible", system-ui, sans-serif;
+      /* écrans élève (direction « le nœud et le fil ») : profondeur, calme, repère jaune */
+      --deep: color-mix(in srgb, var(--accent) 62%, var(--ink)); --on-deep: var(--bg);
+      --calm-deep: color-mix(in srgb, var(--calm) 62%, var(--ink));
+      --mark: #FFD83D; --panel: var(--surface); --panel-ink: var(--ink);
+      --rule: color-mix(in srgb, var(--ink) 30%, transparent);
     }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
         --bg: #1e2220; --surface: #282d2a; --surface-alt: #2d332f; --ink: #f0ede6; --muted: #b3b6ab;
         --accent: #6fbfae; --warm: #e3a768; --red: #eb9b8b; --calm: #8bb7d6; --border: #3b423d; --line-strong: #505a53; --line-ctl:#778179; --on-accent: #12201d;
         --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
+        --deep: color-mix(in srgb, var(--accent) 30%, var(--bg)); --on-deep: var(--ink);
+        --calm-deep: color-mix(in srgb, var(--calm) 30%, var(--bg));
       }
     }
     :root[data-theme="dark"] {
       --bg: #1e2220; --surface: #282d2a; --surface-alt: #2d332f; --ink: #f0ede6; --muted: #b3b6ab;
       --accent: #6fbfae; --warm: #e3a768; --red: #eb9b8b; --calm: #8bb7d6; --border: #3b423d; --line-strong: #505a53; --line-ctl:#778179; --on-accent: #12201d;
       --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
+      --deep: color-mix(in srgb, var(--accent) 30%, var(--bg)); --on-deep: var(--ink);
+      --calm-deep: color-mix(in srgb, var(--calm) 30%, var(--bg));
     }
 
     * { box-sizing: border-box; }
@@ -310,10 +319,132 @@ function boot() {
       .who { padding: 4px 10px 4px 8px; gap: 6px; font-size: 1rem; white-space: nowrap; }
       .who .ic { width: 20px; height: 20px; }
     }
-    /* Projection : grands écrans, écrans élève seulement (l'espace enseignante, .wide, garde sa taille) */
-    @media (min-width: 1200px) { html:has(.page:not(.wide)) { font-size: 135%; } .page:not(.wide) { max-width: 960px; } }
-    @media (min-width: 1400px) and (min-height: 760px) { html:has(.page:not(.wide)) { font-size: 150%; } .page:not(.wide) { max-width: 1080px; } }
-    @media (min-width: 1800px) and (min-height: 900px) { html:has(.page:not(.wide)) { font-size: 180%; } .page:not(.wide) { max-width: 1280px; } }
+    /* Outil non projeté (décision du 2026-10-22) : plus d'agrandissement automatique ; la colonne élève s'élargit un peu. */
+    @media (min-width: 700px) { .page:not(.wide) { max-width: 860px; } }
+
+    /* ===== Écrans élève : « le nœud et le fil » (2026-10-22) =====
+       Un blocage est un nœud : chaque essai le desserre. Trois tons d'écran (body[data-tone]) : deep = je cherche, calm = je me calme,
+       light = je fais, win = ça repart. Les écrans de l'espace enseignante (.wide) ne changent pas. */
+    body[data-tone="deep"], body[data-tone="calm"] {
+      --tbg: var(--deep);
+      --bg: var(--tbg); --ink: var(--on-deep); --muted: var(--on-deep); --surface: transparent; --surface-alt: color-mix(in srgb, var(--on-deep) 14%, transparent);
+      --rule: color-mix(in srgb, var(--on-deep) 32%, transparent); --border: var(--rule); --line-strong: var(--rule); --line-ctl: var(--on-deep);
+      --accent: var(--on-deep); --on-accent: var(--tbg); --accent-soft: color-mix(in srgb, var(--on-deep) 16%, transparent); --shadow: none;
+    }
+    body[data-tone="calm"] { --tbg: var(--calm-deep); }
+    .st { gap: 20px; }
+    .st main { gap: 20px; }
+    .st h1 { font-weight: 800; font-size: clamp(2.2rem, 9.4vw, 3.8rem); line-height: 1.04; letter-spacing: -0.015em; text-wrap: balance; }
+    .st h1.kick { font: 700 1.1rem var(--display); color: var(--muted); letter-spacing: 0; margin: 0; }
+    .st .qrow { align-items: center; }
+    .knot { flex: none; width: clamp(72px, 22vw, 170px); color: var(--ink); }
+    .knot svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .knot path { fill: none; stroke: currentColor; stroke-width: 8px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+    .card .cardtop .knot { width: clamp(56px, 16vw, 130px); }
+    .card .cardtop .knot path { stroke-width: 6px; }
+    /* le fil : une station par étape du blocage ; le repère jaune dit « tu es ici » (le libellé le dit aussi) */
+    .trail { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 -2px; }
+    .trail::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: 14px; height: 4px; border-radius: 2px; background: var(--rule); }
+    .trail .st-i { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 6px; font-size: 0.9rem; font-weight: 700; text-align: center; }
+    .trail .st-i i { display: block; width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--ink); background: var(--bg); }
+    .trail .st-i.done i { background: var(--ink); }
+    .trail .st-i.now i { visibility: hidden; }
+    .trail .bead { position: absolute; top: 0; left: calc(12.5% + 25% * var(--i, 0) - 16px); width: 32px; height: 32px; border-radius: 50%; background: var(--mark); border: 4px solid var(--ink); transition: left .35s ease; }
+    /* choix : une liste sur le fil, plus une pile de cartes */
+    .st .choices { position: relative; display: block; margin-inline: -8px; border-top: 2px solid var(--rule); }
+    .st .choices::before { content: ""; position: absolute; left: 19px; top: 0; bottom: 0; width: 4px; background: var(--rule); }
+    .st .choices .choice-row { gap: 0; border-bottom: 2px solid var(--rule); transition: background .12s ease, color .12s ease; }
+    .st .choices .choice-row:has(.choice:hover), .st .choices .choice-row:has(.choice:focus-visible), .st .choices .choice-row:has(.choice:active) { background: var(--ink); color: var(--bg); }
+    .st .choice { position: relative; border: 0; border-radius: 0; background: transparent; box-shadow: none; min-height: 80px; padding: 12px 8px; gap: 18px; color: inherit; font-weight: 700; font-size: clamp(1.25rem, 5.4vw, 1.7rem); transition: none; }
+    .st .choice:active { transform: none; }
+    .st .choice:not([data-a="checkToggle"])::before { content: ""; flex: none; width: 26px; height: 26px; border-radius: 50%; border: 4px solid var(--ink); background: var(--bg); }
+    .st .choice-row:has(.choice:hover) .choice:not([data-a="checkToggle"])::before, .st .choice-row:has(.choice:focus-visible) .choice:not([data-a="checkToggle"])::before { background: var(--bg); border-color: var(--bg); }
+    .st .choice .ic { display: none; }
+    .st .choice.yes .ic, .st .choice.no .ic, .st .choice.mid .ic, .st .choice[data-a="checkToggle"] .ic { display: block; order: 3; width: 32px; height: 32px; margin-left: auto; margin-right: 6px; color: currentColor; }
+    .st .choice small { color: inherit; opacity: 1; }
+    .st .choice-row .say { width: 56px; border: 0; border-radius: 0; background: transparent; color: inherit; }
+    .st .choice.sel { background: var(--accent-soft); }
+    .st .choices.apart { margin: 8px 0 0; padding-top: 0; border-top: 0; }
+    .st .row > .btn { flex: 1 1 100%; }
+    .st .choices.apart::before { display: none; }
+    .st .choices.apart .choice-row { border-bottom: 0; align-items: center; gap: 10px; }
+    .st .choices.apart .choice-row:has(.choice:hover), .st .choices.apart .choice-row:has(.choice:focus-visible) { background: transparent; color: inherit; }
+    .st .choice.calm { min-height: 76px; padding: 10px 18px 10px 0; gap: 16px; border-radius: 16px; border-left: 0; overflow: hidden; background: var(--panel); color: var(--panel-ink); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28); }
+    .st .choice.calm::before { content: ""; flex: none; align-self: stretch; width: 12px; height: auto; border: 0; border-radius: 0; background: var(--calm); }
+    .st .choice.calm .ic { display: block; order: 1; width: 34px; height: 34px; margin: 0; color: var(--calm); }
+    .st .choice.calm:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28); }
+    .st .choice-row:has(> .choice.calm) .say { color: var(--ink); border: 2px solid var(--line-ctl); border-radius: 14px; width: 48px; height: 48px; flex: none; }
+    .st .cheer { border-radius: 0; padding: 10px 0 10px 18px; background: none; border-left: 8px solid var(--ink); font-weight: 700; }
+    /* tuiles (noms, tâches, oui / non) : rangées à contour, sans ombre */
+    .st .tiles { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .st .tile { flex-direction: row; justify-content: flex-start; gap: 14px; min-height: 76px; padding: 12px 16px; border: 2px solid var(--line-ctl); border-radius: 16px; background: transparent; box-shadow: none; font-size: 1.25rem; font-weight: 700; text-align: left; }
+    .st .tile .ic { width: 34px; height: 34px; }
+    .st .tile:not(.sel):hover { background: var(--ink); color: var(--bg); }
+    .st .tile:not(.sel):hover .ic { color: var(--bg); }
+    .st .tile.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+    .st .plan-item { border-color: var(--line-ctl); background: transparent; }
+    /* boutons : appui « touche de clavier » */
+    .st .big { min-height: 88px; border-radius: 24px; font-weight: 800; box-shadow: 0 7px 0 rgba(0, 0, 0, 0.3); transition: transform .1s ease, box-shadow .1s ease; }
+    .st .big:active { transform: translateY(6px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3); }
+    .st .big:disabled { box-shadow: none; transform: none; }
+    .st .btn { border-radius: 18px; }
+    .st .btn.primary { box-shadow: 0 5px 0 rgba(0, 0, 0, 0.3); }
+    .st .btn.primary:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3); }
+    .st .link.leave, .st .link.undo { border: 2px solid var(--line-ctl); background: transparent; color: inherit; }
+    .st .iconbtn { background: transparent; border-color: transparent; }
+    .st .who { background: transparent; border: 2px solid var(--line-ctl); }
+    /* carte de stratégie : le texte d'abord, pas de cadre */
+    .st .card { background: none; border: 0; box-shadow: none; padding: 0; border-radius: 0; gap: 16px; }
+    .st .card .cardhead { background: none; margin: 0; padding: 0; border-radius: 0; }
+    .st .card h2 { font-weight: 800; font-size: clamp(2rem, 8.4vw, 3.2rem); line-height: 1.05; }
+    .st .card .overline { color: var(--muted); font-size: 1rem; }
+    .st .card.mini { border: 2px solid var(--rule); border-radius: 16px; padding: 16px 18px; }
+    .st .card .stephero { display: none; }
+    .st ol.steps { position: relative; gap: 6px; }
+    .st ol.steps::before { content: ""; position: absolute; left: 15px; top: 20px; bottom: 20px; width: 4px; border-radius: 2px; background: var(--rule); }
+    .st ol.steps li { position: relative; grid-template-columns: 34px 1fr; gap: 16px; padding: 8px 0; max-width: 56ch; }
+    .st ol.steps li::before { width: 34px; height: 34px; border: 4px solid var(--ink); background: var(--bg); color: var(--ink); font-size: 0.95rem; }
+    .st ol.steps li.todo { color: var(--muted); }
+    .st ol.steps li.done::before { background: var(--ink); color: var(--bg); }
+    .st ol.steps li.now { font-weight: 700; font-size: clamp(1.3rem, 4.4vw, 1.6rem); padding: 10px 0 12px; }
+    .st ol.steps li.now::before { background: var(--ink); color: var(--bg); }
+    .kw { font-family: var(--display); font-weight: 800; }
+    .st .card p.truc, .st .tip { background: none; border-left: 8px solid var(--warm); border-radius: 0; padding: 6px 0 6px 18px; font-weight: 400; max-width: 56ch; }
+    .st .card p.truc b, .st .tip b { font-weight: 700; }
+    .st details.annex { border: 0; border-top: 2px solid var(--line-strong); border-bottom: 2px solid var(--line-strong); border-radius: 0; background: transparent; max-width: 56ch; }
+    .st details.annex summary { display: flex; align-items: center; gap: 12px; list-style: none; }
+    .st details.annex summary::-webkit-details-marker { display: none; }
+    .st details.annex summary::before { content: "+"; width: 1em; font: 800 1.6rem var(--display); }
+    .st details.annex[open] > summary::before { content: "–"; }
+    .st .nth { font: 800 clamp(4.5rem, 20vw, 8rem) / 0.9 var(--display); font-variant-numeric: tabular-nums; }
+    .st .nth span:last-child { font-size: 1.6rem; font-weight: 700; }
+    /* feuille à montrer à un adulte */
+    .st .starter { padding: 4px 18px 0; border: 2px solid var(--panel-ink); border-radius: 10px; background: var(--panel); color: var(--panel-ink); font: 700 1.15rem / 1.35 "Atkinson Hyperlegible", system-ui, sans-serif; }
+    .st .starter .sl { display: block; min-height: 56px; padding: 12px 0; border-bottom: 2px solid var(--line-strong); color: var(--panel-ink); }
+    .st .starter .sl:first-child { min-height: 112px; color: var(--ink-2, var(--muted)); }
+    .st .starter .sl:last-of-type { border-bottom: 0; }
+    .st .starter .sl + .sl { margin-top: 0; }
+    .st .starter b { display: block; color: var(--panel-ink); font-weight: 700; }
+    /* guides d'apaisement */
+    .st .sq { width: min(72vw, 300px); border: 8px solid var(--rule); border-radius: 12px; }
+    .st .sq i { width: 34px; height: 34px; margin: -17px; background: var(--mark); border: 4px solid var(--ink); box-shadow: none; }
+    .st .sq[data-side="0"] { border-left-color: var(--ink); }
+    .st .sq[data-side="1"] { border-top-color: var(--ink); }
+    .st .sq[data-side="2"] { border-right-color: var(--ink); }
+    .st .sq[data-side="3"] { border-bottom-color: var(--ink); }
+    .st .sq .ph span { color: var(--ink); }
+    .st .gnum { width: clamp(150px, 44vw, 220px); height: auto; aspect-ratio: 1; border: 8px solid var(--ink); background: transparent; color: var(--ink); font-size: clamp(4rem, 18vw, 6rem); transition: background .15s ease, color .15s ease; }
+    .st .gnum.warm { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .st .gbar { overflow: visible; height: 8px; background: var(--rule); margin: 14px 0 8px; }
+    .st .gbar i { position: relative; background: var(--ink); border-radius: 4px; }
+    .st .gbar i::after { content: ""; position: absolute; right: -17px; top: 50%; width: 34px; height: 34px; margin-top: -17px; border-radius: 50%; background: var(--mark); border: 4px solid var(--ink); }
+    .st .card.guide { align-items: center; text-align: center; }
+    .st .card.guide .cardhead { align-self: stretch; text-align: left; }
+    /* « Tu es reparti ! » : fond clair, le fil se défait et file droit */
+    .st .thread { width: min(100%, 520px); color: var(--accent); }
+    .st .done.restart h1 { font-size: clamp(2.6rem, 11vw, 4.6rem); }
+    .st .pause h1 { font-size: clamp(2.4rem, 9.4vw, 3.6rem); }
+    @media (prefers-reduced-motion: reduce) { .trail .bead { transition: none; } }
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; }
       .thread path, .thread circle { opacity: 1; stroke-dashoffset: 0; transform: none; }
@@ -373,6 +504,29 @@ function boot() {
   var AVATARS = ["star", "moon", "leaf", "drop", "mountain", "sun", "bolt", "wave"];
   /* le fil du « restart » : une boucle qui se dénoue, puis une ligne droite qui file */
   var THREAD = '<svg class="thread" viewBox="0 0 240 80" aria-hidden="true"><path pathLength="1" d="M8 58 C8 20 54 20 54 46 C54 68 22 64 30 40 C36 24 66 38 92 40 L214 40"/><circle cx="226" cy="40" r="9"/></svg>';
+  /* le nœud (quatre états, même structure de courbe pour passer de l'un à l'autre) et le fil des étapes du blocage */
+  var KNOT = [
+    "M8 120 C50 120 70 60 110 60 C150 60 160 122 125 126 C90 130 78 70 120 40 C160 12 205 50 178 86 C158 112 116 92 138 72 C150 60 178 66 192 80 L232 80",
+    "M8 110 C50 110 80 52 120 62 C152 70 150 110 120 102 C94 94 110 70 140 76 C160 80 170 80 190 80 C205 80 215 80 225 80 L232 80",
+    "M8 96 C70 96 100 78 128 82 C150 86 150 100 134 97 C120 94 136 80 162 80 C175 80 180 80 192 80 C205 80 215 80 225 80 L232 80",
+    "M8 80 C60 80 90 80 110 80 C130 80 150 80 165 80 C180 80 195 80 205 80 C212 80 218 80 222 80 C226 80 229 80 230 80 L232 80"
+  ];
+  var KNOT_NUM = KNOT.map(function (d) { return d.match(/-?\d+(\.\d+)?/g).map(Number); });
+  function knotD(x) {
+    var i = Math.min(Math.floor(x), 2), f = x - i, a = KNOT_NUM[i], b = KNOT_NUM[i + 1], k = 0;
+    return KNOT[0].replace(/-?\d+(\.\d+)?/g, function () { var v = a[k] + (b[k] - a[k]) * f; k++; return Math.round(v * 10) / 10; });
+  }
+  function knotHtml(x) {
+    return '<div class="knot" aria-hidden="true"><svg viewBox="0 0 240 150"><path data-x="' + x + '" d="' + knotD(x) + '"/></svg></div>';
+  }
+  /* position du nœud : 0 = serré (la cause), puis il se desserre à chaque essai et à chaque étape ; droit seulement quand ça repart */
+  function knotX(e, step) { return e ? [0, 1, 1.8, 2.5][Math.min(e, 3)] + (step || 0) * 0.12 : 0; }
+  function trailHtml(i) {
+    var L = ["La cause", "Essai 1", "Essai 2", "Essai 3"];
+    return '<div class="trail" data-i="' + i + '" style="--i:' + i + '" role="img" aria-label="Étape : ' + L[i] + '">' + L.map(function (l, k) {
+      return '<div class="st-i ' + (k < i ? "done" : (k === i ? "now" : "")) + '"><i></i>' + l + "</div>";
+    }).join("") + '<span class="bead"></span></div>';
+  }
   function svg(name) {
     return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || "") + "</svg>";
   }
@@ -883,9 +1037,10 @@ function boot() {
   var pageEl = document.getElementById("page"), topEl = document.getElementById("top"), mainEl = document.getElementById("main"), liveEl = document.getElementById("live");
   var pendingLive = "";
   var ticker = null, pendingTimeout = null;
-  var guideRaf = 0, G = null;
+  var guideRaf = 0, G = null, knotRaf = 0;
   function clearTimers() {
     if (guideRaf) { cancelAnimationFrame(guideRaf); guideRaf = 0; }
+    if (knotRaf) { cancelAnimationFrame(knotRaf); knotRaf = 0; }
     if (ticker) { clearInterval(ticker); ticker = null; }
     if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
   }
@@ -913,13 +1068,15 @@ function boot() {
     opts = opts || {};
     clearTimers();
     stopSpeech();
-    pageEl.className = "page" + (opts.wide ? " wide" : "");
+    pageEl.className = "page" + (opts.wide ? " wide" : " st");
+    document.body.setAttribute("data-tone", opts.wide ? "" : (opts.tone || "light"));
     mainEl.className = opts.center ? "center" : "";
     header(opts);
     /* typographie française : espaces insécables autour des guillemets et avant la ponctuation double, pour éviter un « » ou un « ? » seul en début de ligne */
     html = html.replace(/« /g, "«\u00a0").replace(/ »/g, "\u00a0»").replace(/ ([?!:;])(?=[\s<"]|$)/g, "\u00a0$1");
     mainEl.innerHTML = (storageOk ? "" : '<p class="note">L’enregistrement est bloqué sur cet appareil (navigation privée ?). Rien ne sera gardé après fermeture.</p>') + html;
     window.scrollTo(0, 0);
+    animateD();
     /* encouragement annoncé aux lecteurs d'écran (la page se redessine, il n'y a pas de zone vivante dans le contenu) */
     liveEl.textContent = "";
     if (pendingLive) { var say = pendingLive; setTimeout(function () { liveEl.textContent = say; }, 60); }
@@ -927,8 +1084,38 @@ function boot() {
     var h = mainEl.querySelector("h1");
     if (h) { h.setAttribute("tabindex", "-1"); try { h.focus({ preventScroll: true }); } catch (e) {} }
   }
-  function title(text) {
-    return '<div class="qrow"><h1>' + esc(text) + "</h1>" + sayBtn(text, true) + "</div>";
+  /* stage : absent = pas de nœud ; 0 = la cause, 1 à 3 = essai ; knotOnly = nœud sans le fil des étapes */
+  function title(text, stage, knotOnly) {
+    var has = stage !== undefined && stage !== null;
+    return (has && !knotOnly ? trailHtml(stage) : "") + '<div class="qrow"><h1>' + esc(text) + "</h1>" + (has ? knotHtml(knotX(stage)) : "") + sayBtn(text, true) + "</div>";
+  }
+  /* étape du blocage à montrer : 0 tant que rien n'est essayé, sinon l'essai en cours ; pas de fil pour le plan d'attaque */
+  function essaiNow() { return U.block ? Math.min(nonCount(U.block) + 1, 3) : 1; }
+  function stageNow() { return !U.block || U.block.family === "plan" ? undefined : (U.block.tries.length ? essaiNow() : 0); }
+  function stageTry() { return !U.block || U.block.family === "plan" ? undefined : essaiNow(); }
+  /* le nœud se desserre et le repère glisse d'une étape à l'autre (0,35 s au plus ; aucun mouvement si prefers-reduced-motion) */
+  function animateD() {
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var k = mainEl.querySelector(".knot path"), tr = mainEl.querySelector(".trail"), to, from;
+    if (k) {
+      to = parseFloat(k.getAttribute("data-x")); from = U.knotPrev == null ? to : U.knotPrev; U.knotPrev = to;
+      if (!reduce && from !== to) {
+        k.setAttribute("d", knotD(from));
+        var t0 = performance.now();
+        (function step(t) {
+          var p = Math.min((t - t0) / 380, 1), e = 1 - Math.pow(1 - p, 3);
+          k.setAttribute("d", knotD(from + (to - from) * e));
+          knotRaf = p < 1 ? requestAnimationFrame(step) : 0;
+        })(t0);
+      }
+    }
+    if (tr) {
+      to = parseFloat(tr.getAttribute("data-i")); from = U.trailPrev == null ? to : U.trailPrev; U.trailPrev = to;
+      if (!reduce && from !== to) {
+        tr.style.setProperty("--i", from);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { tr.style.setProperty("--i", to); }); });
+      }
+    }
   }
   function choice(action, data, label, icon, extra, cls) {
     var attrs = "";
@@ -1128,7 +1315,7 @@ function boot() {
   /* ---------- écrans élève ---------- */
   function goHome() {
     U.sid = null; U.task = null; U.block = null; U.unlocked = false; U.free = false; U.pinLater = false;
-    var html = title("Qui travaille ?");
+    var html = title("Qui travaille ?", 0, true);
     if (!S.students.length) {
       html += '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>';
     } else {
@@ -1139,7 +1326,7 @@ function boot() {
     /* second mode : aller droit au blocage, sans vignette ni tâche ; rien n'est enregistré sauf rattachement à un élève */
     html += '<div class="choices">' + choice("free", {}, "Juste un coup de main", "buoy", "Sans suivi : rien n’est enregistré.") + "</div>" +
       '<div class="foot"><span></span>' + guideLink("home") + "</div>";
-    show(html, { gear: true, who: false });
+    show(html, { gear: true, who: false, tone: "deep" });
   }
   function startFree() {
     U.free = true; U.sid = null; U.task = null;
@@ -1151,7 +1338,7 @@ function boot() {
     var at = now();
     var b = { id: uid("b"), tid: t ? t.id : null, sid: t ? t.sid : null, at: at, t: t ? at - t.start : null, adult: t && (t.adult === true || t.adult === false) ? t.adult : null, extra: false, asked: {}, type: null, family: null, answers: [], line: null, level: null, unfolded: false, tries: [], help: false, end: null, resumedAt: null, teacher: {} };
     if (t) S.blocks.push(b);
-    U.block = b; U.line = null; U.pendingLine = null;
+    U.block = b; U.line = null; U.pendingLine = null; U.knotPrev = null; U.trailPrev = null;
     return b;
   }
   /* code facultatif de l'élève : évite d'ouvrir le carnet d'un camarade ; le code de l'enseignante ouvre aussi */
@@ -1169,8 +1356,8 @@ function boot() {
     /* une tâche restée ouverte depuis moins de 3 heures peut être reprise ; plus ancienne, elle est classée abandonnée */
     if (t && now() - t.start > 3 * 3600 * 1000) { closeTask(t, "abandonnee"); save(); t = null; }
     if (t) {
-      show(title("Tu avais une tâche en cours.") +
-        '<div class="choices">' + choice("resume", {}, "Je la reprends", "play") + choice("newTask", {}, "Nouvelle tâche", "more") + "</div>" + footHome());
+      show(title("Tu avais une tâche en cours.", 0, true) +
+        '<div class="choices">' + choice("resume", {}, "Je la reprends", "play") + choice("newTask", {}, "Nouvelle tâche", "more") + "</div>" + footHome(), { tone: "deep" });
     } else screenTask();
   }
   function footHome() {
@@ -1190,22 +1377,22 @@ function boot() {
   function screenTask() {
     if (draft.step === 2 && draft.type) return screenWhere();
     draft.step = 1;
-    var html = title("Tu fais quoi ?") + '<div class="tiles">' + TASK_TYPES.map(function (t) {
+    var html = title("Tu fais quoi ?", 0, true) + '<div class="tiles">' + TASK_TYPES.map(function (t) {
       return '<button class="tile' + (draft.type === t.id ? " sel" : "") + '" data-a="type" data-id="' + t.id + '" aria-pressed="' + (draft.type === t.id) + '">' + svg(t.icon) + "<span>" + esc(t.label) + "</span></button>";
     }).join("") + "</div>" +
       /* la matière et « Suite » n'apparaissent qu'une fois la tâche choisie : cinq choix d'abord, pas dix */
       (draft.type ? '<p class="sub">Matière :</p><div class="chips">' + SUBJECTS.map(function (s) {
         return '<button class="chip' + (draft.subject === s ? " sel" : "") + '" data-a="subject" data-id="' + esc(s) + '" aria-pressed="' + (draft.subject === s) + '">' + esc(s) + "</button>";
       }).join("") + '</div><button class="big" data-a="next">' + svg("play") + "Suite</button>" : "") + footHome();
-    show(html);
+    show(html, { tone: "deep" });
   }
   function screenWhere() {
     var place = S.settings.place || "classe";
-    show(title("Tu es où ?") + '<div class="chips">' + [["classe", "En classe"], ["maison", "À la maison"]].map(function (x) {
+    show(title("Tu es où ?", 0, true) + '<div class="chips">' + [["classe", "En classe"], ["maison", "À la maison"]].map(function (x) {
       return '<button class="chip' + (place === x[0] ? " sel" : "") + '" data-a="place" data-id="' + x[0] + '" aria-pressed="' + (place === x[0]) + '">' + x[1] + "</button>";
     }).join("") + "</div>" + adultChips("adult", draft.adult, "Pour choisir une aide qui te convient.") +
       '<button class="big" data-a="start">' + svg("play") + "Je commence</button>" +
-      '<div class="foot">' + prevLink("prevTask") + "</div>");
+      '<div class="foot">' + prevLink("prevTask") + "</div>", { tone: "deep" });
   }
   var draftPlan = [];
   function startTask() {
@@ -1246,7 +1433,7 @@ function boot() {
         return '<button class="plan-item' + (on ? " sel" : "") + '" data-a="planToggle" data-id="' + id + '" aria-pressed="' + on + '">' + (c.num ? '<span class="num">' + esc(c.num) + "</span>" : "") + "<span>" + esc(c.title) + "</span></button>";
       }).join("") + '</div><button class="big" data-a="planGo">' + svg("play") + "C’est parti</button>" +
       '<div class="foot">' + (all.length > ids.length ? '<button class="link" data-a="planAll">' + svg("more") + "Voir toutes mes stratégies</button>" : "<span></span>") +
-      '<button class="link" data-a="planGo" data-skip="1">Sans plan cette fois</button></div>');
+      '<button class="link" data-a="planGo" data-skip="1">Sans plan cette fois</button></div>', { tone: "deep" });
   }
   function screenViewMethod(id) {
     var c = card(id), t = U.task; if (!c || !t) return;
@@ -1289,7 +1476,7 @@ function boot() {
     show(title("Un adulte peut t’aider ?") + '<div class="tiles">' + [["1", "Oui", "people", true], ["0", "Non", "cross", false]].map(function (o) {
       return '<button class="tile' + (cur === o[3] ? " sel" : "") + '" data-a="adultWorkPick" data-id="' + o[0] + '" aria-pressed="' + (cur === o[3]) + '">' + svg(o[2]) + "<span>" + o[1] + "</span></button>";
     }).join("") + '</div><p class="hint">Pour choisir une aide qui te convient.</p>' +
-      '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Retour à ma tâche</button></div>");
+      '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Retour à ma tâche</button></div>", { tone: "deep" });
   }
   function blocked() {
     var t = U.task, at = now();
@@ -1314,12 +1501,12 @@ function boot() {
     var b = U.block, attach = !rest && U.free && !b.sid && S.students.length;
     U.famHead = heading || null;
     var list = FAMILIES.filter(function (f) { return (FAM_FIRST.indexOf(f.id) < 0) === !!rest; });
-    show(title(heading || "Où ça coince ?") + '<div class="choices">' + list.map(function (f) {
+    show(title(heading || "Où ça coince ?", stageNow()) + '<div class="choices">' + list.map(function (f) {
       return choice("family", { id: f.id }, famLabel(f.id), f.icon);
     }).join("") + (rest ? "" : choice("moreFams", {}, "Autre chose", "dots")) + "</div>" +
       '<div class="choices apart">' + choice("family", { id: "F0" }, famLabel("F0"), "storm", null, "calm") + "</div>" +
       '<div class="foot">' + (rest ? prevLink("famsFirst") : "") + backLink() + "</div>" +
-      (attach ? '<div class="foot"><button class="link" data-a="attach">' + svg("notebook") + "Enregistrer pour un élève</button></div>" : ""));
+      (attach ? '<div class="foot"><button class="link" data-a="attach">' + svg("notebook") + "Enregistrer pour un élève</button></div>" : ""), { tone: "deep" });
   }
   function screenAttach() {
     show(title("C’est pour qui ?") + '<div class="tiles">' + S.students.map(function (st) {
@@ -1342,9 +1529,9 @@ function boot() {
     else { q = "Tu es où ?"; opts = [["classe", "En classe", "book"], ["maison", "À la maison", "home"]]; }
     U.askKey = key;
     var cheer = key === "adult" && U.block && nonCount(U.block) >= 1 ? cheerHtml("Tu as bien essayé. On cherche de l’aide.") : "";
-    show(title(q) + cheer + '<div class="tiles">' + opts.map(function (o) {
+    show(title(q, stageNow()) + cheer + '<div class="tiles">' + opts.map(function (o) {
       return '<button class="tile" data-a="ctxPick" data-id="' + esc(o[0]) + '">' + (o[2] ? svg(o[2]) : "") + "<span>" + esc(o[1]) + "</span></button>";
-    }).join("") + "</div>" + (key === "adult" ? '<p class="hint">Pour choisir une aide qui te convient.</p>' : "") + backToTask());
+    }).join("") + "</div>" + (key === "adult" ? '<p class="hint">Pour choisir une aide qui te convient.</p>' : "") + backToTask(), { tone: "deep" });
   }
   function pickFamily(fid) {
     var b = U.block, st = student(b.sid);
@@ -1365,13 +1552,13 @@ function boot() {
     familyCards(fid, b).forEach(function (id) { if (ids.length < 3 && ids.indexOf(id) < 0) ids.push(id); });
     ids = ids.slice(0, 3);
     U.line = { fam: fid, seq: ids.slice(), free: true };
-    var html = title("Quelle carte veux-tu essayer ?");
+    var html = title("Quelle carte veux-tu essayer ?", stageNow());
     if (recall) html += '<p class="recall">La dernière fois, « ' + esc(card(recall).title) + " » t’a aidé.</p>";
     html += '<div class="choices">' + ids.map(function (id) {
       var c = card(id); return choice("pickCard", { id: id }, c.title, null, c.text);
     }).join("") + "</div>" +
       '<div class="foot">' + backLink() + '<button class="link" data-a="unfold">' + svg("question") + "Aide-moi à choisir</button></div>";
-    show(html);
+    show(html, { tone: "deep" });
   }
   /* Au plus quatre choix à l'écran : au-delà de quatre réponses, trois d'abord puis « Autre chose » (le reste, même question). */
   function askQuestion(qid, keep, rest) {
@@ -1381,12 +1568,12 @@ function boot() {
     U.opts = q.options.filter(function (o) { return !o.line || lineOpen(o.line, b); });
     shown = U.opts.map(function (o, i) { return i; });
     if (shown.length > 4) { if (rest) shown = shown.slice(3); else { shown = shown.slice(0, 3); more = true; } }
-    show(title(q.text) + '<div class="choices">' + shown.map(function (i) {
+    show(title(q.text, stageNow()) + '<div class="choices">' + shown.map(function (i) {
       var o = U.opts[i], label = o.label || lineLabel(o.line);
       var cls = o.label === "Oui" ? "yes" : (o.label === "Non" ? "no" : "");
       return choice("answer", { i: i }, label, o.label === "Oui" ? "check" : (o.label === "Non" ? "cross" : null), null, cls);
     }).join("") + (more ? choice("moreOpts", {}, "Autre chose", "dots") : "") + "</div>" +
-      '<div class="foot">' + prevLink(rest ? "lessOpts" : "prevQ") + backLink() + "</div>");
+      '<div class="foot">' + prevLink(rest ? "lessOpts" : "prevQ") + backLink() + "</div>", { tone: "deep" });
   }
   function prevLink(action) {
     return '<button class="link" data-a="' + action + '">' + svg("back") + "Étape précédente</button>";
@@ -1414,10 +1601,10 @@ function boot() {
   }
   /* « Ça ne va pas du tout » : quatre outils d'apaisement, ou un adulte. Après l'outil, on passe à l'écran d'aide. */
   function screenCalm() {
-    show(title("On se calme d’abord.") + '<div class="choices">' + CALM_TOOLS.map(function (x) {
-      return choice("calmPick", { id: x[0] }, x[1], x[2], null, "calm");
+    show(title("On se calme d’abord.", 0, true) + '<div class="choices">' + CALM_TOOLS.map(function (x) {
+      return choice("calmPick", { id: x[0] }, x[1], x[2], card(x[0]).durTxt || null, "tool");
     }).join("") + "</div>" +
-      '<div class="foot">' + backLink() + '<button class="link" data-a="calmHelp">' + svg("people") + "Je veux un adulte</button></div>");
+      '<div class="foot">' + backLink() + '<button class="link" data-a="calmHelp">' + svg("people") + "Je veux un adulte</button></div>", { tone: "calm" });
   }
   function proposeCard(id, origin, cheer, undo) {
     if (id === "C19") return nonCount(U.block) >= 2 ? helpOrPause() : goHelp();
@@ -1429,7 +1616,7 @@ function boot() {
     alts = alternatives(b, id);
     /* « Étape précédente » seulement tant que rien n'a été essayé : on revient à la question, la réponse est retirée */
     back = !b.tries.length && !b.switched && !b.extra && !b.help && b.family !== "F0" && U.qid && b.answers.length && U.line && !U.line.free;
-    show(title("Essaie ça.") + (cheer ? cheerHtml(cheer) : "") + cardHtml(c, U.mode, "preview") +
+    show((stageTry() !== undefined ? trailHtml(essaiNow()) : "") + '<h1 class="kick">Essaie ça.</h1>' + (cheer ? cheerHtml(cheer) : "") + cardHtml(c, U.mode, "preview") +
       '<button class="big" data-a="try">' + svg("play") + "J’essaie</button>" +
       '<div class="foot">' + (back ? prevLink("prevCard") : "") + backLink() +
       (alts.length && b.family !== "F0" ? '<button class="link" data-a="other">' + svg("loop") + "Une autre idée</button>" : "") + "</div>" +
@@ -1438,9 +1625,9 @@ function boot() {
   function screenCardAsk(id, origin, cheer, undo) {
     var c = card(id);
     U.askCard = { id: id, origin: origin, cheer: cheer, undo: undo };
-    show(title(c.ask) + '<div class="tiles">' +
+    show(title(c.ask, stageTry()) + '<div class="tiles">' +
       '<button class="tile" data-a="cardAsk" data-v="1">' + svg("check") + "<span>Oui</span></button>" +
-      '<button class="tile" data-a="cardAsk" data-v="0">' + svg("cross") + "<span>Non</span></button></div>" + backToTask());
+      '<button class="tile" data-a="cardAsk" data-v="0">' + svg("cross") + "<span>Non</span></button></div>" + backToTask(), { tone: "deep" });
   }
   function cardAsk(yes) {
     var a = U.askCard, b = U.block, next;
@@ -1451,9 +1638,13 @@ function boot() {
     if (!next) return goHelp();
     proposeCard(next, a.origin === "choisie" ? "choisie" : "proposee");
   }
+  /* mots d'action en majuscules dans les stratégies (RELIS, FAMILLE…) : repris en gras */
+  function kwHtml(t) {
+    return esc(t).replace(/(^|[^A-Za-zÀ-ÿ])([A-ZÉÈÀÂÊÎÔÛÇ]{3,})(?![A-Za-zÀ-ÿ])/g, '$1<b class="kw">$2</b>');
+  }
   function stepsHtml(c) {
     return (c.steps.length === 1 ? "<p>" + esc(c.steps[0]) + "</p>"
-      : '<ol class="steps">' + c.steps.map(function (s) { return "<li><span>" + esc(s) + "</span></li>"; }).join("") + "</ol>") +
+      : '<ol class="steps">' + c.steps.map(function (s) { return "<li><span>" + kwHtml(s) + "</span></li>"; }).join("") + "</ol>") +
       (c.truc ? '<p class="truc"><b>Mon truc :</b> ' + esc(c.truc) + "</p>" : "");
   }
   function annexHtml(kind) {
@@ -1479,6 +1670,7 @@ function boot() {
     var dur = view === "preview" ? '<span class="dur">' + svg("timer") + (c.durTxt || c.min + " min") + "</span>" : "";
     var one = c.steps.length === 1, over = c.dom === "fr" ? "Stratégie " + c.num : (DOM_SHORT[c.dom] || ""), body, say;
     say = c.title + ". " + c.steps.join(" ");
+    var knot = (view === "preview" || view === "try") && stageTry() !== undefined ? knotHtml(knotX(essaiNow(), view === "try" ? U.step : 0)) : "";
     if (c.guide && view !== "full") body = "<p>" + esc(c.text) + "</p>";
     else if (view === "full" || mode === 2 || (one && mode !== 3)) body = stepsHtml(c);
     else if (mode === 3) {
@@ -1486,14 +1678,15 @@ function boot() {
         '<details class="annex" data-peek="1"><summary>Voir la carte</summary><div class="in">' + stepsHtml(c) + "</div></details>";
       say = c.title + ". " + (one ? "Tu te souviens de ce qu’il faut faire ?" : "Tu te souviens des étapes ?");
     } else if (view === "try") {
-      body = '<div class="stephero"><span class="n" aria-hidden="true">' + (U.step + 1) + "</span><p>" + esc(c.steps[U.step]) + "</p></div>" +
-        '<div class="dots">' + c.steps.map(function (x, i) { return '<i aria-hidden="true" class="' + (i < U.step ? "done" : (i === U.step ? "on" : "")) + '"></i>'; }).join("") +
-        '<span class="small">Étape ' + (U.step + 1) + " sur " + c.steps.length + "</span></div>" +
+      body = '<ol class="steps">' + c.steps.map(function (x, i) {
+          return '<li class="' + (i < U.step ? "done" : (i === U.step ? "now" : "todo")) + '"' + (i === U.step ? ' aria-current="step"' : "") + "><span>" + kwHtml(x) + "</span></li>";
+        }).join("") + "</ol>" +
+        '<p class="small">Étape ' + (U.step + 1) + " sur " + c.steps.length + "</p>" +
         (c.truc ? '<p class="truc"><b>Mon truc :</b> ' + esc(c.truc) + "</p>" : "");
       say = c.steps[U.step];
     } else body = (c.text ? "<p>" + esc(c.text) + "</p>" : "") + '<p class="sub">' + c.steps.length + " étapes, une par une.</p>";
     return '<div class="card"><div class="cardhead">' + (over ? '<span class="overline">' + esc(over) + "</span>" : "") +
-      '<div class="cardtop"><h2>' + esc(c.title) + "</h2>" + sayBtn(say, true) + "</div></div>" + body + annexHtml(c.annex) + dur + "</div>";
+      '<div class="cardtop"><h2>' + esc(c.title) + "</h2>" + knot + sayBtn(say, true) + "</div></div>" + body + annexHtml(c.annex) + dur + "</div>";
   }
   function startTry() { U.tryStart = now(); U.step = 0; U.dur = null; renderTry(); }
   /* Outils d'apaisement : un guide minuté (le point parcourt le carré pour la respiration, sinon une consigne à la fois). */
@@ -1522,7 +1715,7 @@ function boot() {
       '<p class="small" id="gCount"></p></div></div>' +
       '<div id="gStop" class="foot"><span></span><button class="link" data-a="guideStop">' + svg("pause") + "J’arrête</button></div>" +
       '<div id="gEnd" hidden><button class="big" data-a="tried">' + svg("check") + "Continuer</button>" +
-      '<div class="foot"><span></span><button class="link" data-a="guideAgain">' + svg("loop") + "Encore un tour</button></div></div>");
+      '<div class="foot"><span></span><button class="link" data-a="guideAgain">' + svg("loop") + "Encore un tour</button></div></div>", { tone: "calm" });
     paintGuide(0); runGuide();
   }
   function paintGuide(t) {
@@ -1561,7 +1754,7 @@ function boot() {
     var c = card(U.cardId), total = (c.durs && U.dur ? U.dur : c.min) * 60 * 1000, rang = now() - U.tryStart >= total;
     if (c.guide) return startGuide();
     var last = U.mode !== 1 || U.step >= c.steps.length - 1;
-    show('<h1 class="sr-only">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, U.mode, "try") +
+    show((stageTry() !== undefined ? trailHtml(essaiNow()) : "") + '<h1 class="sr-only">J’essaie : ' + esc(c.title) + "</h1>" + cardHtml(c, U.mode, "try") +
       (c.durs ? '<p class="sub">Combien de temps ?</p><div class="chips">' + c.durs.map(function (m) {
         var on = (U.dur || c.min) === m;
         return '<button class="chip' + (on ? " sel" : "") + '" data-a="setDur" data-m="' + m + '" aria-pressed="' + on + '">' + m + " min</button>";
@@ -1592,11 +1785,11 @@ function boot() {
   function screenResult() {
     var b = U.block, plan = b.family === "plan";
     /* stratégie du plan d'attaque : on n'est pas bloqué, la question porte sur l'étape (« Tu comprends mieux ? »), sans compteur d'essais */
-    show(title(plan ? "Tu comprends mieux ?" : "Ça repart ?") + (plan ? "" : '<p class="sub">Essai ' + Math.min(nonCount(b) + 1, 3) + " sur 3</p>") + '<div class="choices">' +
+    show(title(plan ? "Tu comprends mieux ?" : "Ça repart ?", plan ? undefined : essaiNow()) + (plan ? "" : '<div class="nth"><span class="sr-only">Essai </span><span>' + essaiNow() + "</span><span> sur 3</span></div>") + '<div class="choices">' +
       choice("result", { r: "1" }, "Oui", "check", null, "yes") +
       choice("result", { r: "0.5" }, "Un peu", "half", null, "mid") +
       choice("result", { r: "0" }, "Pas encore", "cross", null, "no") + "</div>" +
-      (card(U.cardId).guide ? "" : '<div class="foot"><button class="link undo" data-a="backTry">' + svg("back") + "Retour à l’essai</button><span></span></div>"));
+      (card(U.cardId).guide ? "" : '<div class="foot"><button class="link undo" data-a="backTry">' + svg("back") + "Retour à l’essai</button><span></span></div>"), { tone: "deep" });
   }
   /* Annuler la dernière réponse à « Ça repart ? » : on retire l'essai enregistré et on revient à la question. */
   function undoFoot() {
@@ -1631,7 +1824,7 @@ function boot() {
       var said = "Tu as trouvé ce qui t’aide : « " + c.title + " ». C’était en " + mins + " min.";
       show('<div class="done restart">' + THREAD + '<div class="qrow"><h1>Tu es reparti !</h1>' + sayBtn("Tu es reparti ! " + said, true) + "</div>" +
         '<p class="sub">Tu as trouvé ce qui t’aide : « <b>' + esc(c.title) + "</b> ». C’était en " + mins + " min.</p>" +
-        '<button class="big" data-a="work">' + svg("next") + (U.task ? "Je continue" : "Terminer") + "</button>" + undoFoot() + "</div>", { center: true });
+        '<button class="big" data-a="work">' + svg("next") + (U.task ? "Je continue" : "Terminer") + "</button>" + undoFoot() + "</div>", { center: true, tone: "win" });
       return;
     }
     afterNon();
@@ -1644,7 +1837,7 @@ function boot() {
       said = r === 1 ? "Étape réussie." : "C’est déjà un début.";
       show('<div class="done restart">' + THREAD + '<div class="qrow"><h1>' + said + "</h1>" + sayBtn(said + " Tu continues ton travail.", true) + "</div>" +
         '<p class="sub">Tu continues ton travail.</p>' +
-        '<button class="big" data-a="work">' + svg("next") + "Je continue</button>" + undoFoot() + "</div>", { center: true });
+        '<button class="big" data-a="work">' + svg("next") + "Je continue</button>" + undoFoot() + "</div>", { center: true, tone: "win" });
       return;
     }
     endBlock("abandon");
@@ -1658,8 +1851,8 @@ function boot() {
     if (n === 2 && next && (L.seq.length >= 3 || L.free)) return proposeCard(next, "proposee", "Tu continues d’essayer. C’est ça qui compte.", true);
     if (L.then && !b.switched) {
       b.switched = L.then; b.answers.push("→ " + famLabel(L.then)); save();
-      show(title("Ça coince peut-être ailleurs.") + '<p class="sub">Tu as bien essayé. On regarde une autre piste.</p>' +
-        '<button class="big" data-a="switch">' + svg("loop") + "D’accord</button>" + backToTask());
+      show(title("Ça coince peut-être ailleurs.", stageNow()) + '<p class="sub">Tu as bien essayé. On regarde une autre piste.</p>' +
+        '<button class="big" data-a="switch">' + svg("loop") + "D’accord</button>" + backToTask(), { tone: "deep" });
       return;
     }
     if (next) return proposeCard(next, "proposee", "Pas grave. On essaie autre chose.", true);
@@ -1671,7 +1864,7 @@ function boot() {
     var b = U.block, n = nonCount(b), msg = n >= 3 ? "Tu as essayé trois fois." : "Tu as bien essayé.", sub = "C’est le moment de demander de l’aide.";
     U.pausedFor = b;
     show('<div class="pause"><div class="qrow"><h1>' + esc(msg) + "</h1>" + sayBtn(msg + " " + sub, true) + '</div><p class="sub">' + esc(sub) + "</p>" +
-      '<button class="big" data-a="pauseGo">' + svg("next") + "Continuer</button>" + undoFoot() + "</div>", { center: true });
+      '<button class="big" data-a="pauseGo">' + svg("next") + "Continuer</button>" + undoFoot() + "</div>", { center: true, tone: "deep" });
     liveEl.textContent = ""; setTimeout(function () { liveEl.textContent = msg + " " + sub; }, 60);
   }
   /* Deux écrans d'aide : avec un adulte (demander), sans adulte (préparer sa question, « ? » dans la marge). */
@@ -1684,7 +1877,7 @@ function boot() {
       return show(title("Parles-en à un adulte dès que tu peux.") +
         '<div class="row">' + (U.task ? '<button class="btn primary" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "") +
         '<button class="btn" data-a="cancelBlock">' + (U.task ? "Je continue quand même" : "Terminer") + "</button></div>" +
-        '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
+        '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>", { tone: "calm" });
     }
     var tried = b.tries.map(function (t) { var c = card(t.card); return c ? c.title : t.card; });
     if (!msg && nonCount(b) >= 1 && U.pausedFor !== b) msg = alone ? "Tu as bien essayé. Note ta question pour plus tard." : "Tu as bien essayé. Un adulte peut t’aider.";
@@ -1701,13 +1894,13 @@ function boot() {
     var passe = '<button class="btn' + (alone ? " primary" : "") + '" data-a="passe">' + svg("question") + "Je note ma question et je continue</button>";
     var stop = U.task ? '<button class="btn" data-a="stopClean">' + svg("pause") + "J’arrête pour aujourd’hui</button>" : "";
     if (alone) {
-      return show(title("Prépare ta question.") + starters +
+      return show(title("Prépare ta question.", 2, true) + starters +
         '<p class="tip">Tu la poseras dès qu’un adulte sera là.</p>' +
         '<div class="row">' + passe + "</div>" +
         (stop ? '<details class="annex"><summary>Autre chose</summary><div class="in">' + stop + "</div></details>" : "") +
         '<div class="foot"><span></span><button class="link" data-a="adultNow">' + svg("people") + "Un adulte est là maintenant</button></div>");
     }
-    show(title("Montre cet écran à un adulte.") + starters +
+    show(title("Montre cet écran à un adulte.", 2, true) + starters +
       '<p class="tip">Demande une explication ou un indice, pas la réponse.</p>' +
       '<div class="row"><button class="btn primary" data-a="helped">' + svg("people") + (U.task ? "J’ai eu de l’aide, je reprends" : "J’ai eu de l’aide") + "</button>" +
       '<button class="btn" data-a="adultNone">Aucun adulte n’est disponible</button></div>' +
@@ -1715,10 +1908,10 @@ function boot() {
       '<details class="annex"><summary>Autre chose</summary><div class="in">' + passe + stop + "</div></details>");
   }
   function screenFinish() {
-    show(title("Où en es-tu ?") + '<div class="choices">' +
+    show(title("Où en es-tu ?", 2, true) + '<div class="choices">' +
       choice("finishAs", { s: "terminee" }, "Terminé", "check", null, "yes") +
       choice("finishAs", { s: "reportee" }, "Je reprendrai plus tard", "pause", null, "mid") + "</div>" +
-      '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Retour à ma tâche</button></div>");
+      '<div class="foot"><button class="link" data-a="work">' + svg("back") + "Retour à ma tâche</button></div>", { tone: "deep" });
   }
   function finishAs(status) {
     var t = U.task; closeTask(t, status); save();
@@ -1728,9 +1921,9 @@ function boot() {
     var t = U.task, used = [];
     taskBlocks(t.id).forEach(function (b) { b.tries.forEach(function (x) { if (x.result >= 0.5 && used.indexOf(x.card) < 0) used.push(x.card); }); });
     if (!used.length) return screenBye();
-    show(title("Qu’est-ce qui t’a le plus aidé ?") + '<div class="choices">' + used.map(function (id) {
+    show(title("Qu’est-ce qui t’a le plus aidé ?", 2, true) + '<div class="choices">' + used.map(function (id) {
       return choice("helpedMost", { id: id }, card(id).title, "pin");
-    }).join("") + choice("helpedMost", { id: "" }, "Je ne sais pas", "dots") + "</div>");
+    }).join("") + choice("helpedMost", { id: "" }, "Je ne sais pas", "dots") + "</div>", { tone: "deep" });
   }
   function helpedMost(id) {
     var t = U.task, st = student(U.sid);
@@ -1739,12 +1932,12 @@ function boot() {
     /* plan si-alors (carte C06) : l'élève s'engage sur une carte pour le prochain blocage, elle est épinglée dans son carnet */
     var c06 = card("C06"), c = card(id);
     if (!c06.active) return screenBye();
-    show(title("Pour la prochaine fois") + '<div class="card"><div class="cardhead"><div class="cardtop"><h2>' + esc(c06.title) + "</h2>" +
+    show(title("Pour la prochaine fois", 1, true) + '<div class="card"><div class="cardhead"><div class="cardtop"><h2>' + esc(c06.title) + "</h2>" +
       sayBtn("Si je bloque encore, alors j’essaie " + c.title, true) + "</div></div><p>Si je bloque encore, alors j’essaie « " + esc(c.title) + " ».</p><p class=\"sub\">Cette stratégie t’a aidé aujourd’hui. On la garde de côté pour la prochaine fois que tu bloques.</p></div>" +
       '<div class="row"><button class="btn primary" data-a="plan" data-id="' + esc(id) + '">' + svg("pin") + 'D’accord, je la garde</button><button class="btn" data-a="bye">Non merci</button></div>');
   }
   function screenBye() {
-    show('<div class="done">' + svg("check") + "<h1>C’est noté.</h1>" + '<p class="sub">Bravo pour ton effort.</p>' + '<button class="btn primary" data-a="home">Terminer</button></div>', { center: true });
+    show('<div class="done restart">' + THREAD + "<h1>C’est noté.</h1>" + '<p class="sub">Bravo pour ton effort.</p>' + '<button class="big" data-a="home">Terminer</button></div>', { center: true, tone: "win" });
     U.task = null;
   }
   function togglePin(st, id) {
