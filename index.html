@@ -514,6 +514,9 @@ function boot() {
     /* ---------- carte de stratégie : phrase d'accroche ---------- */
     .st .card > p:not(.sub):not(.truc):not(.small) { font-family: var(--display); font-weight: 500; font-size: clamp(1.25rem, 4.6vw, 1.5rem); line-height: 1.4; max-width: 34ch; }
     .st .card > p.sub { font-size: 1.05rem; }
+
+    /* ---------- étapes : le texte d'une étape terminée reste aligné à gauche ---------- */
+    .st ol.steps li { text-align: start; }
   `;
   var styleEl = document.createElement("style");
   styleEl.textContent = CSS_TEXT;
