@@ -549,6 +549,10 @@ function boot() {
       .tw th, .tw td { padding-inline: 6px; }
       .tw select { max-width: 100%; min-width: 0; }
     }
+
+    /* ---------- « Mon carnet » : rangées à filet, sans débordement à 390 px ---------- */
+    .st .count { flex-wrap: wrap; min-width: 0; background: transparent; border: 0; border-bottom: 2px solid var(--rule); border-radius: 0; padding: 12px 0; }
+    .st .count > * { min-width: 0; }
   `;
   var styleEl = document.createElement("style");
   styleEl.textContent = CSS_TEXT;
