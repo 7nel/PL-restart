@@ -517,6 +517,11 @@ function boot() {
 
     /* ---------- étapes : le texte d'une étape terminée reste aligné à gauche ---------- */
     .st ol.steps li { text-align: start; }
+
+    /* ---------- accueil : accès enseignante nommé, note après l'action ---------- */
+    .st .iconbtn[data-a="teacher"] { width: auto; padding: 0 16px 0 12px; border: 2px solid var(--line-ctl); border-radius: 999px; color: inherit; background: transparent; }
+    .tlab { font-weight: 700; }
+    .st .empty { text-align: left; padding: 16px 8px 4px; color: inherit; opacity: .9; }
   `;
   var styleEl = document.createElement("style");
   styleEl.textContent = CSS_TEXT;
@@ -1117,7 +1122,7 @@ function boot() {
     if (opts.teacher) right = '<button class="iconbtn" data-a="home">' + svg("back") + "<span>Quitter</span></button>";
     else if (st && opts.who !== false) right = '<span class="who">' + svg(st.icon) + esc(st.name) + "</span>";
     else if (U.free && opts.who !== false) right = '<span class="who">' + svg("buoy") + "Coup de main</span>";
-    else if (opts.gear) right = '<button class="iconbtn quiet" data-a="teacher" aria-label="Espace enseignante" title="Espace enseignante">' + svg("board") + "</button>";
+    else if (opts.gear) right = '<button class="iconbtn quiet" data-a="teacher" aria-label="Espace enseignante" title="Espace enseignante">' + svg("board") + '<span class="tlab">Enseignante</span></button>';
     U.hdr = opts;
     var dark = darkNow();
     var themeBtn = '<button class="iconbtn quiet" data-a="theme" aria-label="' + (dark ? "Passer en affichage clair" : "Passer en affichage sombre") + '" title="' + (dark ? "Affichage clair" : "Affichage sombre") + '">' + svg(dark ? "sun" : "moon") + "</button>";
@@ -1463,9 +1468,9 @@ function boot() {
   /* ---------- écrans élève ---------- */
   function goHome() {
     U.sid = null; U.task = null; U.block = null; U.unlocked = false; U.free = false; U.pinLater = false;
-    var html = title("Qui travaille ?", 0, true, true);
+    var html = title("Qui travaille ?", 0, true, true), note = "";
     if (!S.students.length) {
-      html += '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>';
+      note = '<p class="empty">Aucun élève pour l’instant.<br>L’enseignante en ajoute dans son espace.</p>';
     } else {
       html += '<div class="tiles">' + S.students.map(function (st) {
         return '<button class="tile" data-a="pick" data-id="' + esc(st.id) + '">' + svg(st.icon) + "<span>" + esc(st.name) + "</span></button>";
@@ -1473,7 +1478,7 @@ function boot() {
     }
     /* second mode : aller droit au blocage, sans vignette ni tâche ; rien n'est enregistré sauf rattachement à un élève */
     html += '<div class="choices">' + choice("free", {}, "Juste un coup de main", "buoy", "Sans suivi : rien n’est enregistré.") + "</div>" +
-      '<div class="foot"><span></span>' + guideLink("home") + "</div>";
+      note + '<div class="foot"><span></span>' + guideLink("home") + "</div>";
     show(html, { gear: true, who: false, tone: "deep" });
   }
   function startFree() {
