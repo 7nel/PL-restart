@@ -7,7 +7,7 @@ const SHELL = ["./", "index.html", "manifest.json", "icon-32.png", "icon-180.png
   "fonts/atkinson-400.woff2", "fonts/atkinson-700.woff2", "fonts/lexend.woff2"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", e => {
