@@ -50,7 +50,7 @@ L'outil propose, l'enseignante valide : après trois reprises de suite avec une 
 
 Deux écrans s'activent par élève : « Mon plan d'attaque » au démarrage d'une tâche (quatre stratégies au plus selon la tâche et la matière, le reste derrière « Voir toutes mes stratégies ») et « Avant de rendre » quand la tâche est terminée (trois points à vérifier). Pendant le travail, les stratégies du plan sont proposées au-dessus de « Je bloque » : l'élève en choisit une, est guidé, puis répond à « Tu comprends mieux ? » (oui, un peu, pas encore) et reprend son travail ; la question « Ça repart ? » est réservée aux vrais blocages.
 
-L'espace enseignante (roue dentée sur l'accueil) contient le suivi par élève, les suggestions de retrait de l'aide, l'état de chaque stratégie, les libellés modifiables, l'export et l'effacement.
+L'espace enseignante (bouton « Enseignante » en haut de l'accueil ; onglets à la ligne sur téléphone, onglet actif marqué d'un trait) contient le suivi par élève, les suggestions de retrait de l'aide, l'état de chaque stratégie, les libellés modifiables, l'export et l'effacement.
 
 ## Utiliser l'application
 
