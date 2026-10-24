@@ -533,6 +533,7 @@ function boot() {
     /* un seul filet sous les onglets ; l'onglet actif l'épaissit en trait neutre (jamais jaune : le jaune reste le repère « tu es ici » de l'élève) */
     .tabs { border-bottom: 3px solid var(--ink); }
     .tabs + .panel { border-top: 0; }
+    .panel.sans-filet { border-top: 0; } /* « Tout déplier / Tout replier » précède déjà le panneau : pas de second filet */
     .tab { margin-bottom: -3px; }
     .tab.on { border-bottom: 6px solid var(--ink); }
 
@@ -2376,7 +2377,7 @@ function boot() {
       (S.settings.pin ? pinPanel : "");
   }
   function tabCartes() {
-    var html = foldBar() + '<div class="panel"><h2>Familles et réponses</h2><p class="small">Réécrivez les libellés avec vos élèves. Un champ vidé reprend le libellé d’origine.</p>';
+    var html = foldBar() + '<div class="panel sans-filet"><h2>Familles et réponses</h2><p class="small">Réécrivez les libellés avec vos élèves. Un champ vidé reprend le libellé d’origine.</p>';
     FAMILIES.concat([F0]).forEach(function (f) {
       var keys = Object.keys(LINES).filter(function (k) { return LINES[k].fam === f.id; });
       html += fold("fam:" + f.id, "<b>" + esc(famLabel(f.id)) + '</b> <span class="sum">· ' + (keys.length ? keys.length + " réponse(s)" : "famille seule") + "</span>",
